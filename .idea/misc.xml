@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="EntryPointsManager">
+    <writeAnnotations>
+      <writeAnnotation name="jakarta.validation.constraints.NotBlank" />
+    </writeAnnotations>
+  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="GitLabDefaultAccount">
+    <option name="defaultAccountId" value="a852c17b-e4f5-4365-be23-641baa578ee3" />
+  </component>
+  <component name="MaterialThemeProjectNewConfig">
+    <option name="metadata">
+      <MTProjectMetadataState>
+        <option name="migrated" value="true" />
+        <option name="pristineConfig" value="false" />
+        <option name="userId" value="-11d333e0:1908898e1fd:-7ffe" />
+      </MTProjectMetadataState>
+    </option>
+  </component>
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/pom.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="graalvm-jdk-21" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/out" />
+  </component>
+</project>
