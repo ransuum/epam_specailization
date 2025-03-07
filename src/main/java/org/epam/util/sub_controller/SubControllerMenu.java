@@ -90,8 +90,10 @@ public class SubControllerMenu {
             String firstName = scanner.nextLine();
             System.out.print("Enter new last name (leave blank for no change): ");
             String lastName = scanner.nextLine();
-            String username = CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName);
-            return new Trainee(id, address, LocalDate.now(), firstName, lastName, username, CredentialsGenerator.generatePassword(username), Boolean.FALSE);
+            String username = firstName != null && lastName != null ?
+                    CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName) : null;
+            return new Trainee(id, address, LocalDate.now(), firstName, lastName, username,
+                    username != null ? CredentialsGenerator.generatePassword(username) : null, Boolean.FALSE);
         } catch (Exception e) {
             log.info("Error updating trainee: " + e.getMessage());
             return null;
@@ -110,9 +112,11 @@ public class SubControllerMenu {
             String firstName = scanner.nextLine();
             System.out.print("Enter new last name (leave blank for no change): ");
             String lastName = scanner.nextLine();
-            String username = CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName);
+            String username = firstName != null && lastName != null ?
+                    CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName) : null;
 
-            return new Trainer(id, specialization, firstName, lastName, username, CredentialsGenerator.generatePassword(username), Boolean.TRUE);
+            return new Trainer(id, specialization, firstName, lastName, username,
+                    username != null ? CredentialsGenerator.generatePassword(username) : null, Boolean.TRUE);
         } catch (Exception e) {
             log.info("Error updating trainer: " + e.getMessage());
             return null;
