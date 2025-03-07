@@ -10,11 +10,14 @@ import org.epam.util.CredentialsGenerator;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 @Service
 public class SubControllerMenu {
     private static final Log log = LogFactory.getLog(SubControllerMenu.class);
+    private final Set<String> existingUsernames = new HashSet<>();
 
     public Trainee createTrainee(Scanner scanner) {
         System.out.print("Enter address: ");
@@ -23,7 +26,7 @@ public class SubControllerMenu {
         String firstName = scanner.next();
         System.out.print("Enter last name: ");
         String lastName = scanner.next();
-        String username = firstName + "." + lastName;
+        String username = CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName);
         String password = CredentialsGenerator.generatePassword(username);
 
         return new Trainee(address, LocalDate.now(), firstName, lastName, username, password, Boolean.TRUE);
@@ -37,7 +40,7 @@ public class SubControllerMenu {
         String firstName = scanner.next();
         System.out.print("Enter last name: ");
         String lastName = scanner.next();
-        String username = firstName + "." + lastName;
+        String username = CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName);
         String password = CredentialsGenerator.generatePassword(username);
 
         return new Trainer(specialization, firstName, lastName, username, password, Boolean.TRUE);
@@ -83,12 +86,8 @@ public class SubControllerMenu {
             String firstName = scanner.nextLine();
             System.out.print("Enter new last name (leave blank for no change): ");
             String lastName = scanner.nextLine();
-            System.out.print("Enter new username (leave blank for no change): ");
-            String username = scanner.nextLine();
-            System.out.print("Enter new password (leave blank for no change): ");
-            String password = scanner.nextLine();
-
-            return new Trainee(id, address, LocalDate.now(), firstName, lastName, username, password, Boolean.FALSE);
+            String username = CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName);
+            return new Trainee(id, address, LocalDate.now(), firstName, lastName, username, CredentialsGenerator.generatePassword(username), Boolean.FALSE);
         } catch (Exception e) {
             log.info("Error updating trainee: " + e.getMessage());
             return null;
@@ -107,13 +106,9 @@ public class SubControllerMenu {
             String firstName = scanner.nextLine();
             System.out.print("Enter new last name (leave blank for no change): ");
             String lastName = scanner.nextLine();
-            System.out.print("Enter new username (leave blank for no change): ");
-            String username = scanner.nextLine();
-            System.out.print("Enter new password (leave blank for no change): ");
-            String password = scanner.nextLine();
+            String username = CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName);
 
-
-            return new Trainer(id, specialization, firstName, lastName, username, password, Boolean.TRUE);
+            return new Trainer(id, specialization, firstName, lastName, username, CredentialsGenerator.generatePassword(username), Boolean.TRUE);
         } catch (Exception e) {
             log.info("Error updating trainer: " + e.getMessage());
             return null;

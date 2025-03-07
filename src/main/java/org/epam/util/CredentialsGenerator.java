@@ -3,14 +3,12 @@ package org.epam.util;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class CredentialsGenerator {
     private final static SecureRandom random = new SecureRandom();
-    private final Set<String> existingUsernames = new HashSet<>();
 
     public static String generatePassword(String username) {
         String hash = UUID.nameUUIDFromBytes(username.getBytes()).toString();
@@ -23,7 +21,7 @@ public class CredentialsGenerator {
         return password.toString();
     }
 
-    public String generateUsername(String firstName, String lastName) {
+    public static String generateUsername(Set<String> existingUsernames, String firstName, String lastName) {
         String baseUsername = firstName + "." + lastName;
         if (!existingUsernames.contains(baseUsername)) return baseUsername;
 

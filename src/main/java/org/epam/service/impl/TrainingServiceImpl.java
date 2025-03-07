@@ -31,26 +31,26 @@ public class TrainingServiceImpl implements TrainingService {
     public Training save(TrainingRequest t) {
         log.info("Saving training...");
         return trainingRepo.save(new Training(
-                traineeRepo.findById(t.getTraineeId())
+                traineeRepo.findById(t.traineeId())
                         .orElseThrow(() -> new RuntimeException("Trainee not found")),
-                trainerRepo.findById(t.getTrainerId())
+                trainerRepo.findById(t.trainerId())
                         .orElseThrow(() -> new RuntimeException("Trainer not found")),
-                t.getTrainingName(), t.getTrainingType(), t.getTrainingDate(), t.getTrainingDuration()));
+                t.trainingName(), t.trainingType(), t.trainingDate(), t.trainingDuration()));
     }
 
     @Override
     public Training update(TrainingRequest t) {
         log.info("Update training...");
-        Training training = findById(t.getId());
-        if (t.getTrainingType() != null) training.setTrainingType(t.getTrainingType());
-        if (t.getTrainingName() != null) training.setTrainingName(t.getTrainingName());
-        if (t.getTrainingDuration() != null) training.setTrainingDuration(t.getTrainingDuration());
-        if (t.getTrainingDate() != null) training.setTrainingDate(t.getTrainingDate());
-        if (t.getTraineeId() != null)
-            training.setTrainee(traineeRepo.findById(t.getTraineeId())
+        Training training = findById(t.id());
+        if (t.trainingType() != null) training.setTrainingType(t.trainingType());
+        if (t.trainingName() != null) training.setTrainingName(t.trainingName());
+        if (t.trainingDuration() != null) training.setTrainingDuration(t.trainingDuration());
+        if (t.trainingDate() != null) training.setTrainingDate(t.trainingDate());
+        if (t.traineeId() != null)
+            training.setTrainee(traineeRepo.findById(t.traineeId())
                     .orElseThrow(() -> new RuntimeException("Trainee not found")));
-        if (t.getTrainerId() != null)
-            training.setTrainer(trainerRepo.findById(t.getTrainerId())
+        if (t.trainerId() != null)
+            training.setTrainer(trainerRepo.findById(t.trainerId())
                     .orElseThrow(() -> new RuntimeException("Trainer not found")));
         return trainingRepo.update(training);
     }

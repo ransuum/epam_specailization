@@ -1,18 +1,13 @@
 package org.epam.service;
 
 import org.epam.models.entity.Trainee;
-import org.epam.models.entity.Trainer;
-import org.epam.models.entity.Training;
-import org.epam.models.enums.TrainingType;
-import org.epam.models.request.TrainingRequest;
 import org.epam.repository.TraineeRepo;
-import org.epam.repository.TrainerRepo;
-import org.epam.repository.TrainingRepo;
-import org.epam.service.impl.TrainingServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
+import org.epam.service.impl.TraineeServiceImpl;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -20,137 +15,106 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TraineeServiceTest {
-    private TrainingRepo trainingRepo;
-    private TrainerRepo trainerRepo;
+    @Mock
     private TraineeRepo traineeRepo;
-    private TrainingService trainingService;
 
-    @BeforeEach
-    public void setUp() {
-        trainingRepo = Mockito.mock(TrainingRepo.class);
-        trainerRepo = Mockito.mock(TrainerRepo.class);
-        traineeRepo = Mockito.mock(TraineeRepo.class);
-        trainingService = new TrainingServiceImpl(trainingRepo, trainerRepo, traineeRepo);
-    }
+    @InjectMocks
+    private TraineeServiceImpl traineeService;
 
     @Test
-    public void testSaveTraining_success() {
-        int traineeId = 1;
-        int trainerId = 1;
+    void testSaveTrainee_success() {
         Trainee trainee = new Trainee("address", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
-        Trainer trainer = new Trainer("Fitness", "Alex", "Johnson", "alex.j", "Fitness123@", Boolean.TRUE);
-        TrainingRequest request = TrainingRequest.builder()
-                .traineeId(traineeId)
-                .trainerId(trainerId)
-                .trainingName("Test Training")
-                .trainingType(TrainingType.LABORATORY)
-                .trainingDate(LocalDate.now())
-                .trainingDuration(60)
-                .build();
+        when(traineeRepo.save(trainee)).thenReturn(trainee);
 
-        Training expectedTraining = new Training(trainee, trainer,
-                request.getTrainingName(),
-                request.getTrainingType(),
-                request.getTrainingDate(),
-                request.getTrainingDuration());
+        Trainee savedTrainee = traineeService.save(trainee);
 
-        when(traineeRepo.findById(traineeId)).thenReturn(Optional.of(trainee));
-        when(trainerRepo.findById(trainerId)).thenReturn(Optional.of(trainer));
-        when(trainingRepo.save(any(Training.class))).thenReturn(expectedTraining);
-
-        Training result = trainingService.save(request);
-        assertNotNull(result);
-        assertEquals("Test Training", result.getTrainingName());
-        verify(trainingRepo, times(1)).save(any(Training.class));
+        assertNotNull(savedTrainee);
+        assertEquals("John", savedTrainee.getFirstName());
+        verify(traineeRepo, times(1)).save(trainee);
     }
 
     @Test
-    public void testSaveTraining_TraineeNotFound() {
+    void testUpdateTrainee_success() {
         int traineeId = 1;
-        int trainerId = 2;
-        TrainingRequest request = TrainingRequest.builder()
-                .traineeId(traineeId)
-                .trainerId(trainerId)
-                .trainingName("Test Training")
-                .trainingType(TrainingType.LABORATORY)
-                .trainingDate(LocalDate.now())
-                .trainingDuration(60)
-                .build();
+        Trainee existingTrainee = new Trainee("Old Address", LocalDate.of(2000, 1, 1), "John", "Doe", "john.doe", "OldPass@", Boolean.TRUE);
+        existingTrainee.setId(traineeId);
+
+        Trainee updateData = new Trainee("New Address", LocalDate.of(1999, 5, 10), "Johnny", "Doe", "johnny.d", "NewPass@", Boolean.TRUE);
+        updateData.setId(traineeId);
+
+        when(traineeRepo.findById(traineeId)).thenReturn(Optional.of(existingTrainee));
+        when(traineeRepo.update(any(Trainee.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Trainee updatedTrainee = traineeService.update(updateData);
+
+        assertEquals("Johnny", updatedTrainee.getFirstName());
+        assertEquals("New Address", updatedTrainee.getAddress());
+        assertEquals("NewPass@", updatedTrainee.getPassword());
+        verify(traineeRepo, times(1)).update(any(Trainee.class));
+    }
+
+    @Test
+    void testUpdateTrainee_notFound() {
+        int traineeId = 1;
+        Trainee updateData = new Trainee("New Address", LocalDate.now(), "Johnny", "Doe", "johnny.d", "NewPass@", Boolean.TRUE);
+        updateData.setId(traineeId);
+
         when(traineeRepo.findById(traineeId)).thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> trainingService.save(request));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> traineeService.update(updateData));
         assertEquals("Trainee not found", exception.getMessage());
     }
 
     @Test
-    public void testUpdateTraining_success() {
-        int trainingId = 1;
-        Trainee trainee = new Trainee("address", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
-        Trainer trainer = new Trainer("Fitness", "Alex", "Johnson", "alex.j", "Fitness123@", Boolean.TRUE);
-        Training existingTraining = new Training(trainee, trainer, "Old Training", TrainingType.LABORATORY, LocalDate.now(), 60);
+    void testDeleteTrainee_success() {
+        int traineeId = 1;
+        doNothing().when(traineeRepo).delete(traineeId);
 
-        TrainingRequest updateRequest = TrainingRequest.builder()
-                .id(trainingId)
-                .trainingName("Updated Training")
-                .build();
+        traineeService.delete(traineeId);
 
-        when(trainingRepo.findById(trainingId)).thenReturn(Optional.of(existingTraining));
-        when(trainingRepo.update(any(Training.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Training updatedTraining = trainingService.update(updateRequest);
-
-        assertEquals("Updated Training", updatedTraining.getTrainingName());
-        verify(trainingRepo, times(1)).update(any(Training.class));
+        verify(traineeRepo, times(1)).delete(traineeId);
     }
 
     @Test
-    public void testDeleteTraining_success() {
-        int trainingId = 1;
-        Trainee trainee = new Trainee("address", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
-        Trainer trainer = new Trainer("Fitness", "Alex", "Johnson", "alex.j", "Fitness123@", Boolean.TRUE);
-        Training existingTraining = new Training(trainee, trainer, "Test Training", TrainingType.LABORATORY, LocalDate.now(), 60);
+    void testFindAllTrainees() {
+        Trainee trainee1 = new Trainee("address1", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
+        Trainee trainee2 = new Trainee("address2", LocalDate.now(), "Jane", "Doe", "jane.doe", "Password2@", Boolean.TRUE);
+        List<Trainee> trainees = Arrays.asList(trainee1, trainee2);
 
-        when(trainingRepo.findById(trainingId)).thenReturn(Optional.of(existingTraining));
-        doNothing().when(trainingRepo).delete(trainingId);
+        when(traineeRepo.findAll()).thenReturn(trainees);
 
-        trainingService.delete(trainingId);
-
-        verify(trainingRepo, times(1)).delete(trainingId);
-    }
-
-    @Test
-    public void testFindAllTrainings() {
-        Trainee trainee = new Trainee("address", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
-        Trainer trainer = new Trainer("Fitness", "Alex", "Johnson", "alex.j", "Fitness123@", Boolean.TRUE);
-        Training training1 = new Training(trainee, trainer, "Training1", TrainingType.LABORATORY, LocalDate.now(), 60);
-        Training training2 = new Training(trainee, trainer, "Training2", TrainingType.LABORATORY, LocalDate.now(), 45);
-        List<Training> trainings = Arrays.asList(training1, training2);
-        when(trainingRepo.findAll()).thenReturn(trainings);
-
-        List<Training> result = trainingService.findAll();
+        List<Trainee> result = traineeService.findAll();
 
         assertEquals(2, result.size());
-        verify(trainingRepo, times(1)).findAll();
+        verify(traineeRepo, times(1)).findAll();
     }
 
     @Test
-    public void testFindTrainingById_success() {
-        int trainingId = 1;
+    void testFindTraineeById_success() {
+        int traineeId = 1;
         Trainee trainee = new Trainee("address", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
-        Trainer trainer = new Trainer("Fitness", "Alex", "Johnson", "alex.j", "Fitness123@", Boolean.TRUE);
-        Training training = new Training(trainee, trainer, "Test Training", TrainingType.LABORATORY, LocalDate.now(), 60);
-        training.setId(trainingId);
-        when(trainingRepo.findById(trainingId)).thenReturn(Optional.of(training));
+        trainee.setId(traineeId);
 
-        Training result = trainingService.findById(trainingId);
+        when(traineeRepo.findById(traineeId)).thenReturn(Optional.of(trainee));
+
+        Trainee result = traineeService.findById(traineeId);
 
         assertNotNull(result);
-        assertEquals(trainingId, result.getId());
-        verify(trainingRepo, times(1)).findById(trainingId);
+        assertEquals(traineeId, result.getId());
+        verify(traineeRepo, times(1)).findById(traineeId);
+    }
+
+    @Test
+    void testFindTraineeById_notFound() {
+        int traineeId = 1;
+
+        when(traineeRepo.findById(traineeId)).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> traineeService.findById(traineeId));
+        assertEquals("Trainee not found", exception.getMessage());
     }
 }

@@ -21,7 +21,7 @@ public class SpringCoreTask {
 
     public void start(AnnotationConfigApplicationContext context) {
         try {
-            choosers.get(Profile.MAIN).initialize(context);
+            choosers.get(Profile.MAIN).initialize(context); // Can be changed to DEV
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
