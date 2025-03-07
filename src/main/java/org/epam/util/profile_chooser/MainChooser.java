@@ -90,7 +90,9 @@ public class MainChooser implements Chooser {
                     System.out.println(traineeService.update(subControllerMenu.updateTrainee(scanner)));
                     break;
                 case 8:
-                    traineeService.delete(subControllerMenu.deleteTrainee(scanner));
+                    Integer id = subControllerMenu.deleteTrainee(scanner);
+                    subControllerMenu.getExistingUsernames().remove(traineeService.findById(id).getUsername());
+                    traineeService.delete(id);
                     break;
                 case 9:
                     System.out.println(traineeService.findById(subControllerMenu.findTraineeById(scanner)));
@@ -99,7 +101,9 @@ public class MainChooser implements Chooser {
                     System.out.println(trainerService.update(subControllerMenu.updateTrainer(scanner)));
                     break;
                 case 11:
-                    trainerService.delete(subControllerMenu.deleteTrainer(scanner));
+                    Integer trainerId = subControllerMenu.deleteTrainee(scanner);
+                    subControllerMenu.getExistingUsernames().remove(traineeService.findById(trainerId).getUsername());
+                    trainerService.delete(trainerId);
                     break;
                 case 12:
                     System.out.println(trainerService.findById(subControllerMenu.findTrainerById(scanner)));

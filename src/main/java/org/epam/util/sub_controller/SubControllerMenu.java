@@ -1,5 +1,6 @@
 package org.epam.util.sub_controller;
 
+import lombok.Getter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.epam.models.entity.Trainee;
@@ -14,6 +15,7 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 
+@Getter
 @Service
 public class SubControllerMenu {
     private static final Log log = LogFactory.getLog(SubControllerMenu.class);
@@ -27,6 +29,7 @@ public class SubControllerMenu {
         System.out.print("Enter last name: ");
         String lastName = scanner.next();
         String username = CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName);
+        existingUsernames.add(username);
         String password = CredentialsGenerator.generatePassword(username);
 
         return new Trainee(address, LocalDate.now(), firstName, lastName, username, password, Boolean.TRUE);
@@ -41,6 +44,7 @@ public class SubControllerMenu {
         System.out.print("Enter last name: ");
         String lastName = scanner.next();
         String username = CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName);
+        existingUsernames.add(username);
         String password = CredentialsGenerator.generatePassword(username);
 
         return new Trainer(specialization, firstName, lastName, username, password, Boolean.TRUE);
