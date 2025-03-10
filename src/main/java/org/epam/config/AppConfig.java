@@ -6,47 +6,49 @@ import org.epam.models.entity.Trainee;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
 import org.epam.models.enums.TrainingType;
+import org.epam.models.request.TrainingRequest;
 import org.epam.repository.TraineeRepo;
 import org.epam.repository.TrainerRepo;
 import org.epam.repository.TrainingRepo;
+import org.epam.util.CredentialsGenerator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.io.Resource;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static org.epam.util.sub_controller.SubControllerMenu.existingUsernames;
 
 @Configuration
 @ComponentScan(value = "org.epam")
+@PropertySource("classpath:application.properties")
 public class AppConfig {
     private final TraineeRepo traineeRepo;
     private final TrainingRepo trainingRepo;
     private final TrainerRepo trainerRepo;
     private static final Log log = LogFactory.getLog(AppConfig.class);
 
-    private final List<Trainee> trainees = List.of(
-            new Trainee("address", LocalDate.now(), "Valerii", "Dmitrenko", "valerii", "Password123@", Boolean.TRUE),
-            new Trainee("address", LocalDate.now(), "Dima", "Dmitrenko", "Dima", "Dima@", Boolean.TRUE),
-            new Trainee("address", LocalDate.now(), "Artem", "Dmitrenko", "Artem", "Artem@", Boolean.TRUE),
-            new Trainee("address", LocalDate.now(), "Maria", "Dmitrenko", "Maria", "Maria@", Boolean.TRUE),
-            new Trainee("address", LocalDate.now(), "John", "Dmitrenko", "John", "John@", Boolean.TRUE),
-            new Trainee("address", LocalDate.now(), "Valerii", "Dmitrenko", "valerii", "Password123@", Boolean.TRUE),
-            new Trainee("address", LocalDate.now(), "Valerii", "Dmitrenko", "valerii", "Password123@", Boolean.TRUE),
-            new Trainee("address", LocalDate.now(), "Valerii", "Dmitrenko", "valerii", "Password123@", Boolean.TRUE));
+    @Value("${data.trainee.file}")
+    private Resource traineeFile;
 
-    private final List<Trainer> trainers = List.of(
-            new Trainer("Fitness", "Alex", "Johnson", "alex.j", "Fitness123@", Boolean.TRUE),
-            new Trainer("Yoga", "Sarah", "Miller", "sarah.m", "Yoga456@", Boolean.TRUE),
-            new Trainer("Crossfit", "Mike", "Thompson", "mike.t", "Cross789@", Boolean.TRUE),
-            new Trainer("Boxing", "Anna", "Lee", "anna.l", "Box101@", Boolean.TRUE),
-            new Trainer("Nutrition", "Robert", "Wilson", "robert.w", "Nutri202@", Boolean.TRUE),
-            new Trainer("Yoga", "Sarah", "Miller", "sarah.m", "Yoga456@", Boolean.TRUE),
-            new Trainer("Crossfit", "Mike", "Thompson", "mike.t", "Cross789@", Boolean.TRUE),
-            new Trainer("Boxing", "Anna", "Lee", "anna.l", "Box101@", Boolean.TRUE),
-            new Trainer("Nutrition", "Robert", "Wilson", "robert.w", "Nutri202@", Boolean.TRUE));
+    @Value("${data.training-request.file}")
+    private Resource trainingRequestFile;
+
+    @Value("${data.trainer.file}")
+    private Resource trainerFile;
 
     public AppConfig(TraineeRepo traineeRepo, TrainingRepo trainingRepo, TrainerRepo trainerRepo) {
         this.traineeRepo = traineeRepo;
@@ -55,31 +57,138 @@ public class AppConfig {
     }
 
     @Bean
-    public ApplicationListener<ContextRefreshedEvent> traineeListener() {
+    public ApplicationListener<ContextRefreshedEvent> dataInitializer() {
         return event -> {
             try {
-                List<Trainee> savedTrainees = new ArrayList<>();
-                for (Trainee trainee : trainees)
-                    savedTrainees.add(traineeRepo.save(trainee));
+                List<Trainee> trainees = loadTrainees();
+                List<Trainer> trainers = loadTrainers();
+                List<TrainingRequest> trainingRequests = loadTrainingRequests();
 
+                Map<Integer, Trainee> traineeMap = new HashMap<>();
+                for (int i = 0; i < trainees.size(); i++) {
+                    Trainee savedTrainee = traineeRepo.save(trainees.get(i));
+                    traineeMap.put(i + 1, savedTrainee);
+                }
 
-                List<Trainer> savedTrainers = new ArrayList<>();
-                for (Trainer trainer : trainers)
-                    savedTrainers.add(trainerRepo.save(trainer));
+                Map<Integer, Trainer> trainerMap = new HashMap<>();
+                for (int i = 0; i < trainers.size(); i++) {
+                    Trainer savedTrainer = trainerRepo.save(trainers.get(i));
+                    trainerMap.put(i + 1, savedTrainer);
+                }
 
-                if (!savedTrainees.isEmpty() && !savedTrainers.isEmpty()){
-                    for (int i = 0; i < 8; i++) {
-                        trainingRepo.save(new Training(
-                                trainees.get(i),
-                                trainers.get(i),
-                                "Training", TrainingType.CAMPUS, LocalDate.now(), 365));
+                if (!traineeMap.isEmpty() && !trainerMap.isEmpty() && !trainingRequests.isEmpty()) {
+                    for (TrainingRequest request : trainingRequests) {
+                        Trainee trainee = traineeMap.get(request.traineeId());
+                        Trainer trainer = trainerMap.get(request.trainerId());
+
+                        if (trainee != null && trainer != null) {
+                            Training training = new Training(
+                                    trainee,
+                                    trainer,
+                                    request.trainingName(),
+                                    request.trainingType(),
+                                    request.trainingDate(),
+                                    request.trainingDuration());
+
+                            trainingRepo.save(training);
+                        }
                     }
                 }
 
-
+                log.info("Successfully initialized data from files");
             } catch (Exception e) {
-                log.info("Error: " + e.getMessage());
+                log.error("Error initializing data: " + e.getMessage(), e);
             }
         };
+
+    }
+
+    private List<Trainee> loadTrainees() throws IOException {
+        List<Trainee> trainees = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(traineeFile.getInputStream()))) {
+            String line;
+            if ((line = reader.readLine()) != null && line.startsWith("address")) {}
+
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 5) {
+                    String firstName = parts[2].trim();
+                    String lastName = parts[3].trim();
+                    String username = CredentialsGenerator.generateUsername(firstName, lastName);
+                    existingUsernames.add(username);
+                    Trainee trainee = new Trainee(
+                            parts[0].trim(),
+                            LocalDate.parse(parts[1].trim(), formatter),
+                            firstName,
+                            lastName,
+                            username,
+                            CredentialsGenerator.generatePassword(username),
+                            Boolean.parseBoolean(parts[4].trim())
+                    );
+                    trainees.add(trainee);
+                }
+            }
+        }
+
+        return trainees;
+    }
+
+    private List<Trainer> loadTrainers() throws IOException {
+        List<Trainer> trainers = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(trainerFile.getInputStream()))) {
+            String line;
+            if ((line = reader.readLine()) != null && line.startsWith("specialization")) {}
+
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 4) {
+                    String firstName = parts[1].trim();
+                    String lastName = parts[2].trim();
+                    String username = CredentialsGenerator.generateUsername(firstName, lastName);
+                    existingUsernames.add(username);
+                    Trainer trainer = new Trainer(
+                            parts[0].trim(),
+                            parts[1].trim(),
+                            parts[2].trim(),
+                            username,
+                            CredentialsGenerator.generatePassword(username),
+                            Boolean.parseBoolean(parts[3].trim())
+                    );
+                    trainers.add(trainer);
+                }
+            }
+        }
+
+        return trainers;
+    }
+
+    private List<TrainingRequest> loadTrainingRequests() throws IOException {
+        List<TrainingRequest> requests = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(trainingRequestFile.getInputStream()))) {
+            String line;
+            if ((line = reader.readLine()) != null && line.startsWith("id")) {}
+
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 6) {
+                    TrainingRequest request = TrainingRequest.builder()
+                            .traineeId(Integer.parseInt(parts[0].trim()))
+                            .trainerId(Integer.parseInt(parts[1].trim()))
+                            .trainingName(parts[2].trim())
+                            .trainingType(TrainingType.valueOf(parts[3].trim()))
+                            .trainingDate(LocalDate.parse(parts[4].trim(), formatter))
+                            .trainingDuration(Integer.parseInt(parts[5].trim()))
+                            .build();
+                    requests.add(request);
+                }
+            }
+        }
+
+        return requests;
     }
 }

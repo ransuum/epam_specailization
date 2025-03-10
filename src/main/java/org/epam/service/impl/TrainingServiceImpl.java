@@ -39,9 +39,9 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public Training update(TrainingRequest t) {
+    public Training update(Integer id, TrainingRequest t) {
         log.info("Update training...");
-        Training training = findById(t.id());
+        Training training = findById(id);
         if (t.trainingType() != null) training.setTrainingType(t.trainingType());
         if (t.trainingName() != null) training.setTrainingName(t.trainingName());
         if (t.trainingDuration() != null) training.setTrainingDuration(t.trainingDuration());

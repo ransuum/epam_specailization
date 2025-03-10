@@ -6,8 +6,7 @@ import org.epam.models.enums.TrainingType;
 import java.time.LocalDate;
 
 @Builder
-public record TrainingRequest(Integer id,
-                              Integer traineeId,
+public record TrainingRequest(Integer traineeId,
                               Integer trainerId,
                               String trainingName,
                               TrainingType trainingType,

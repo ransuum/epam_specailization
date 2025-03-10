@@ -3,15 +3,19 @@ package org.epam.util.profile_chooser;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.epam.models.enums.Profile;
+import org.epam.models.request.TrainingRequest;
 import org.epam.service.TraineeService;
 import org.epam.service.TrainerService;
 import org.epam.service.TrainingService;
+import org.epam.util.own_pair.EpamPair;
 import org.epam.util.sub_controller.SubControllerMenu;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
+
+import static org.epam.util.sub_controller.SubControllerMenu.existingUsernames;
 
 @Component
 public class MainChooser implements Chooser {
@@ -91,7 +95,7 @@ public class MainChooser implements Chooser {
                     break;
                 case 8:
                     Integer id = subControllerMenu.deleteTrainee(scanner);
-                    subControllerMenu.getExistingUsernames().remove(traineeService.findById(id).getUsername());
+                    existingUsernames.remove(traineeService.findById(id).getUsername());
                     traineeService.delete(id);
                     break;
                 case 9:
@@ -101,15 +105,16 @@ public class MainChooser implements Chooser {
                     System.out.println(trainerService.update(subControllerMenu.updateTrainer(scanner)));
                     break;
                 case 11:
-                    Integer trainerId = subControllerMenu.deleteTrainee(scanner);
-                    subControllerMenu.getExistingUsernames().remove(traineeService.findById(trainerId).getUsername());
+                    Integer trainerId = subControllerMenu.deleteTrainer(scanner);
+                    existingUsernames.remove(traineeService.findById(trainerId).getUsername());
                     trainerService.delete(trainerId);
                     break;
                 case 12:
                     System.out.println(trainerService.findById(subControllerMenu.findTrainerById(scanner)));
                     break;
                 case 13:
-                    System.out.println(trainingService.update(subControllerMenu.updateTraining(scanner)));
+                    EpamPair<Integer, TrainingRequest> pair = subControllerMenu.updateTraining(scanner);
+                    System.out.println(trainingService.update(pair.getLeft(), pair.getRight()));
                     break;
                 case 14:
                     trainingService.delete(subControllerMenu.deleteTraining(scanner));

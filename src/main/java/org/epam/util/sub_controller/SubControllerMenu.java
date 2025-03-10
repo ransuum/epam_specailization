@@ -8,6 +8,7 @@ import org.epam.models.entity.Trainer;
 import org.epam.models.enums.TrainingType;
 import org.epam.models.request.TrainingRequest;
 import org.epam.util.CredentialsGenerator;
+import org.epam.util.own_pair.EpamPair;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,7 +20,7 @@ import java.util.Set;
 @Service
 public class SubControllerMenu {
     private static final Log log = LogFactory.getLog(SubControllerMenu.class);
-    private final Set<String> existingUsernames = new HashSet<>();
+    public static final Set<String> existingUsernames = new HashSet<>();
 
     public Trainee createTrainee(Scanner scanner) {
         System.out.print("Enter address: ");
@@ -28,7 +29,7 @@ public class SubControllerMenu {
         String firstName = scanner.next();
         System.out.print("Enter last name: ");
         String lastName = scanner.next();
-        String username = CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName);
+        String username = CredentialsGenerator.generateUsername(firstName, lastName);
         existingUsernames.add(username);
         String password = CredentialsGenerator.generatePassword(username);
 
@@ -43,7 +44,7 @@ public class SubControllerMenu {
         String firstName = scanner.next();
         System.out.print("Enter last name: ");
         String lastName = scanner.next();
-        String username = CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName);
+        String username = CredentialsGenerator.generateUsername(firstName, lastName);
         existingUsernames.add(username);
         String password = CredentialsGenerator.generatePassword(username);
 
@@ -91,7 +92,7 @@ public class SubControllerMenu {
             System.out.print("Enter new last name (leave blank for no change): ");
             String lastName = scanner.nextLine();
             String username = firstName != null && lastName != null ?
-                    CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName) : null;
+                    CredentialsGenerator.generateUsername(firstName, lastName) : null;
             return new Trainee(id, address, LocalDate.now(), firstName, lastName, username,
                     username != null ? CredentialsGenerator.generatePassword(username) : null, Boolean.FALSE);
         } catch (Exception e) {
@@ -113,7 +114,7 @@ public class SubControllerMenu {
             System.out.print("Enter new last name (leave blank for no change): ");
             String lastName = scanner.nextLine();
             String username = firstName != null && lastName != null ?
-                    CredentialsGenerator.generateUsername(existingUsernames, firstName, lastName) : null;
+                    CredentialsGenerator.generateUsername(firstName, lastName) : null;
 
             return new Trainer(id, specialization, firstName, lastName, username,
                     username != null ? CredentialsGenerator.generatePassword(username) : null, Boolean.TRUE);
@@ -123,7 +124,7 @@ public class SubControllerMenu {
         }
     }
 
-    public TrainingRequest updateTraining(Scanner scanner) {
+    public EpamPair<Integer, TrainingRequest> updateTraining(Scanner scanner) {
         try {
             System.out.print("Enter training id to update: ");
             int id = scanner.nextInt();
@@ -144,14 +145,13 @@ public class SubControllerMenu {
             System.out.print("Enter new training duration (in minutes) (leave blank for no change): ");
             String durationStr = scanner.nextLine();
 
-            return TrainingRequest.builder()
-                    .id(id)
+            return EpamPair.create(id, TrainingRequest.builder()
                     .traineeId(Integer.valueOf(traineeIdStr))
                     .trainerId(Integer.valueOf(trainerIdStr))
                     .trainingName(trainingName)
                     .trainingType(TrainingType.valueOf(typeStr))
                     .trainingDuration(Integer.valueOf(durationStr))
-                    .build();
+                    .build());
         } catch (Exception e) {
             log.info("Error updating training: " + e.getMessage());
             return null;

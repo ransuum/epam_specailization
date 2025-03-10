@@ -8,7 +8,7 @@ import java.util.List;
 public interface TrainingService {
     Training save(TrainingRequest t);
 
-    Training update(TrainingRequest t);
+    Training update(Integer id, TrainingRequest t);
 
     void delete(Integer id);
 

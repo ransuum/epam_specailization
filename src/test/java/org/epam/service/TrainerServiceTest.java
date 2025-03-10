@@ -70,6 +70,9 @@ class TrainerServiceTest {
     @Test
     void testDeleteTrainer_success() {
         int trainerId = 1;
+        Trainer trainer = new Trainer("Java", "John", "Doe", "john.doe", "Password@", Boolean.TRUE);
+
+        when(trainerRepo.findById(trainerId)).thenReturn(Optional.of(trainer));
         doNothing().when(trainerRepo).delete(trainerId);
 
         trainerService.delete(trainerId);

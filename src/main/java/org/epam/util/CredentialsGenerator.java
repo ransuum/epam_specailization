@@ -1,14 +1,18 @@
 package org.epam.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.util.Set;
 import java.util.UUID;
+
+import static org.epam.util.sub_controller.SubControllerMenu.existingUsernames;
 
 @Service
 public class CredentialsGenerator {
     private final static SecureRandom random = new SecureRandom();
+    private static final Log log = LogFactory.getLog(CredentialsGenerator.class);
 
     public static String generatePassword(String username) {
         String hash = UUID.nameUUIDFromBytes(username.getBytes()).toString();
@@ -18,19 +22,23 @@ public class CredentialsGenerator {
             int index = random.nextInt(hash.length());
             password.append(hash.charAt(index));
         }
+
+        log.info("Generated password.....");
         return password.toString();
     }
 
-    public static String generateUsername(Set<String> existingUsernames, String firstName, String lastName) {
+    public static String generateUsername(String firstName, String lastName) {
         String baseUsername = firstName + "." + lastName;
-        if (!existingUsernames.contains(baseUsername)) return baseUsername;
+        int serial = 0;
+        String newUsername = baseUsername;
 
-        int serial = 1;
-        String newUsername;
-        do {
-            newUsername = baseUsername + serial;
+        while (existingUsernames.contains(newUsername)) {
             serial++;
-        } while (existingUsernames.contains(newUsername));
+            newUsername = baseUsername + serial;
+        }
+
+        log.info("Generated username.....");
+
         return newUsername;
     }
 }

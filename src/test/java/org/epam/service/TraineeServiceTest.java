@@ -72,6 +72,9 @@ class TraineeServiceTest {
     @Test
     void testDeleteTrainee_success() {
         int traineeId = 1;
+        Trainee trainee = new Trainee("address", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
+
+        when(traineeRepo.findById(traineeId)).thenReturn(Optional.of(trainee));
         doNothing().when(traineeRepo).delete(traineeId);
 
         traineeService.delete(traineeId);

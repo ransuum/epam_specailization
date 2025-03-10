@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static org.epam.util.sub_controller.SubControllerMenu.existingUsernames;
+
 @Service
 public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepo traineeRepo;
@@ -23,6 +25,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public Trainee save(Trainee t) {
         log.info("Saving Trainee...");
+        existingUsernames.add(t.getUsername());
         return traineeRepo.save(t);
     }
 
@@ -43,6 +46,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public void delete(Integer id) {
         log.info("delete Trainee...");
+        existingUsernames.remove(findById(id).getUsername());
         traineeRepo.delete(id);
     }
 

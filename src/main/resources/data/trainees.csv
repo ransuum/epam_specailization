@@ -1,0 +1,9 @@
+address,dateOfBirth,firstName,lastName,active
+address1,2000-01-01,Valerii,Dmitrenko,true
+address2,2001-02-02,Valerii,Dmitrenko,true
+address3,2002-03-03,Artem,Dmitrenko,true
+address4,2003-04-04,Maria,Dmitrenko,true
+address5,2004-05-05,John,Dmitrenko,true
+address6,2000-06-06,Alex,Smith,true
+address7,2000-07-07,Kate,Johnson,true
+address8,2000-08-08,Michael,Brown,true
