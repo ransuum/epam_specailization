@@ -29,7 +29,7 @@ public class MainChooser implements Chooser {
     private SubControllerMenu subControllerMenu;
     private AnnotationConfigApplicationContext context;
 
-    @Value("${active.profile}")
+    @Value("${spring.active.profile}")
     private String profile;
 
     private static final Log log = LogFactory.getLog(MainChooser.class);

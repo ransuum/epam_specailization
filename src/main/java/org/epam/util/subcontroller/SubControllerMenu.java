@@ -12,6 +12,7 @@ import org.graalvm.collections.Pair;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.epam.util.CheckerField.check;
@@ -21,6 +22,7 @@ import static org.epam.util.CheckerField.check;
 public class SubControllerMenu {
     private static final Log log = LogFactory.getLog(SubControllerMenu.class);
     public static final Set<String> existingUsernames = new HashSet<>();
+    private final static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     public Trainee createTrainee(Scanner scanner) {
         System.out.print("Enter address: ");
@@ -29,12 +31,13 @@ public class SubControllerMenu {
         String firstName = scanner.next();
         System.out.print("Enter last name: ");
         String lastName = scanner.next();
+        System.out.print("Enter date of birth(dd-MM-yyyy): ");
+        String dateOfBirth = scanner.next();
         String username = CredentialsGenerator.generateUsername(firstName, lastName);
         existingUsernames.add(username);
         String password = CredentialsGenerator.generatePassword(username);
 
-        return new Trainee(address, LocalDate.now(), firstName, lastName, username, password, Boolean.TRUE);
-
+        return new Trainee(address, LocalDate.parse(dateOfBirth, dateTimeFormatter), firstName, lastName, username, password, Boolean.TRUE);
     }
 
     public Trainer createTrainer(Scanner scanner) {
@@ -64,13 +67,16 @@ public class SubControllerMenu {
             TrainingType trainingType = TrainingType.valueOf(typeStr.toUpperCase());
             System.out.print("Enter training duration (in minutes): ");
             int duration = scanner.nextInt();
+            System.out.print("Enter training date(dd-MM-yyyy): ");
+            String trainingDate = scanner.next();
+
 
             return TrainingRequest.builder()
                     .traineeId(traineeId)
                     .trainerId(trainerId)
                     .trainingName(trainingName)
                     .trainingType(trainingType)
-                    .trainingDate(LocalDate.now())
+                    .trainingDate(LocalDate.parse(trainingDate, dateTimeFormatter))
                     .trainingDuration(duration)
                     .build();
         } catch (Exception e) {
@@ -94,6 +100,9 @@ public class SubControllerMenu {
             System.out.print("Enter new last name (leave blank for no change): ");
             String lastName = scanner.nextLine();
 
+            System.out.print("Enter date of birth(dd-MM-yyyy): ");
+            String dateOfBirth = scanner.nextLine();
+
             String username = null;
             String password = null;
 
@@ -103,7 +112,7 @@ public class SubControllerMenu {
                     password = CredentialsGenerator.generatePassword(username);
             }
 
-            return Pair.create(id, new Trainee(true, address, LocalDate.now(), firstName, lastName, username,
+            return Pair.create(id, new Trainee(true, address, LocalDate.parse(dateOfBirth, dateTimeFormatter), firstName, lastName, username,
                     password, Boolean.FALSE));
         } catch (Exception e) {
             log.info("Error updating trainee: " + e.getMessage());
@@ -153,6 +162,10 @@ public class SubControllerMenu {
             String traineeIdStr = scanner.nextLine();
             Integer traineeId = traineeIdStr.trim().isEmpty() ? null : Integer.valueOf(traineeIdStr);
 
+            System.out.print("Enter training date(dd-MM-yyyy): ");
+            String trainingDate = scanner.nextLine();
+            LocalDate localDate = LocalDate.parse(trainingDate, dateTimeFormatter);
+
             System.out.print("Enter new trainer id (leave blank for no change): ");
             String trainerIdStr = scanner.nextLine();
             Integer trainerId = trainerIdStr.trim().isEmpty() ? null : Integer.valueOf(trainerIdStr);
@@ -183,6 +196,7 @@ public class SubControllerMenu {
                     .trainingName(trainingName)
                     .trainingType(trainingType)
                     .trainingDuration(duration)
+                    .trainingDate(localDate)
                     .build());
         } catch (Exception e) {
             log.info("Error updating training: " + e.getMessage());

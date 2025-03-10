@@ -11,23 +11,27 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.stereotype.Component;
 
 @Component
-@org.springframework.context.annotation.Profile(value = "dev")
 public class DevChooser implements Chooser {
     private static final Log log = LogFactory.getLog(DevChooser.class);
-    private TraineeService traineeService;
-    private TrainerService trainerService;
-    private TrainingService trainingService;
+    private final TraineeService traineeService;
+    private final TrainerService trainerService;
+    private final TrainingService trainingService;
     private AnnotationConfigApplicationContext context;
 
-    @Value("${active.profile}")
+    @Value("${spring.active.profile}")
     private String profile;
+
+    public DevChooser(TraineeService traineeService, TrainerService trainerService, TrainingService trainingService) {
+        this.traineeService = traineeService;
+        this.trainerService = trainerService;
+        this.trainingService = trainingService;
+    }
+
 
     @Override
     public void initialize(AnnotationConfigApplicationContext context) {
         this.context = context;
-        this.traineeService = context.getBean(TraineeService.class);
-        this.trainerService = context.getBean(TrainerService.class);
-        this.trainingService = context.getBean(TrainingService.class);
+        log.info("Initializing application with DevChooser");
         process();
     }
 
