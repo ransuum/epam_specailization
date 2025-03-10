@@ -1,14 +1,19 @@
-package org.epam.repository.configuration;
+package org.epam.repository.inmemoryrepositories;
 
 import org.epam.models.entity.Training;
 import org.epam.repository.TrainingRepo;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
 @Repository
-public class TrainingRepository implements TrainingRepo {
-    private final Map<Integer, Training> trainings = new HashMap<>();
+public class InMemoryTrainingRepository implements TrainingRepo {
+    private final Map<Integer, Object> trainings;
+
+    public InMemoryTrainingRepository(@Qualifier("storageMap") Map<String, Map<Integer, Object>> storageMap) {
+        this.trainings = storageMap.get("trainings");
+    }
 
     @Override
     public Training save(Training training) {
@@ -18,7 +23,7 @@ public class TrainingRepository implements TrainingRepo {
 
     @Override
     public Training update(Training training) {
-        return trainings.replace(training.getId(), training);
+        return (Training) trainings.replace(training.getId(), training);
     }
 
     @Override
@@ -31,12 +36,13 @@ public class TrainingRepository implements TrainingRepo {
     public List<Training> findAll() {
         return trainings.values()
                 .stream()
+                .map(Training.class::cast)
                 .sorted(Comparator.comparing(Training::getId))
                 .toList();
     }
 
     @Override
     public Optional<Training> findById(Integer integer) {
-        return Optional.ofNullable(trainings.get(integer));
+        return Optional.ofNullable((Training) trainings.get(integer));
     }
 }

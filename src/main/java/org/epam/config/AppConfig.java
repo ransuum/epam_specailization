@@ -32,15 +32,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.epam.util.sub_controller.SubControllerMenu.existingUsernames;
+import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
 
 @Configuration
 @ComponentScan(value = "org.epam")
 @PropertySource("classpath:application.properties")
 public class AppConfig {
-    private final TraineeRepo traineeRepo;
-    private final TrainingRepo trainingRepo;
-    private final TrainerRepo trainerRepo;
     private static final Log log = LogFactory.getLog(AppConfig.class);
 
     @Value("${data.trainee.file}")
@@ -52,14 +49,17 @@ public class AppConfig {
     @Value("${data.trainer.file}")
     private Resource trainerFile;
 
-    public AppConfig(TraineeRepo traineeRepo, TrainingRepo trainingRepo, TrainerRepo trainerRepo) {
-        this.traineeRepo = traineeRepo;
-        this.trainingRepo = trainingRepo;
-        this.trainerRepo = trainerRepo;
+    @Bean
+    public Map<String, Map<Integer, Object>> storageMap() {
+        Map<String, Map<Integer, Object>> storage = new HashMap<>();
+        storage.put("trainees", new HashMap<>());
+        storage.put("trainers", new HashMap<>());
+        storage.put("trainings", new HashMap<>());
+        return storage;
     }
 
     @Bean
-    public ApplicationListener<ContextRefreshedEvent> dataInitializer() {
+    public ApplicationListener<ContextRefreshedEvent> dataInitializer(TraineeRepo traineeRepo, TrainingRepo trainingRepo, TrainerRepo trainerRepo) {
         return event -> {
             try {
                 List<Trainee> trainees = loadTrainees();
@@ -111,7 +111,8 @@ public class AppConfig {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(traineeFile.getInputStream()))) {
             String line;
-            if ((line = reader.readLine()) != null && line.startsWith("address")) {}
+            if ((line = reader.readLine()) != null && line.startsWith("address")) {
+            }
 
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -142,7 +143,8 @@ public class AppConfig {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(trainerFile.getInputStream()))) {
             String line;
-            if ((line = reader.readLine()) != null && line.startsWith("specialization")) {}
+            if ((line = reader.readLine()) != null && line.startsWith("specialization")) {
+            }
 
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -181,7 +183,8 @@ public class AppConfig {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(trainingRequestFile.getInputStream()))) {
             String line;
-            if ((line = reader.readLine()) != null && line.startsWith("id")) {}
+            if ((line = reader.readLine()) != null && line.startsWith("id")) {
+            }
 
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");

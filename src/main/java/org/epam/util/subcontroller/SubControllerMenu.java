@@ -1,4 +1,4 @@
-package org.epam.util.sub_controller;
+package org.epam.util.subcontroller;
 
 import lombok.Getter;
 import org.apache.commons.logging.Log;
@@ -8,7 +8,7 @@ import org.epam.models.entity.Trainer;
 import org.epam.models.enums.TrainingType;
 import org.epam.models.request.TrainingRequest;
 import org.epam.util.CredentialsGenerator;
-import org.epam.util.own_pair.EpamPair;
+import org.graalvm.collections.Pair;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -79,7 +79,7 @@ public class SubControllerMenu {
         }
     }
 
-    public EpamPair<Integer, Trainee> updateTrainee(Scanner scanner) {
+    public Pair<Integer, Trainee> updateTrainee(Scanner scanner) {
         try {
             System.out.print("Enter trainee id to update: ");
             int id = scanner.nextInt();
@@ -103,7 +103,7 @@ public class SubControllerMenu {
                     password = CredentialsGenerator.generatePassword(username);
             }
 
-            return EpamPair.create(id, new Trainee(true, address, LocalDate.now(), firstName, lastName, username,
+            return Pair.create(id, new Trainee(true, address, LocalDate.now(), firstName, lastName, username,
                     password, Boolean.FALSE));
         } catch (Exception e) {
             log.info("Error updating trainee: " + e.getMessage());
@@ -111,7 +111,7 @@ public class SubControllerMenu {
         }
     }
 
-    public EpamPair<Integer, Trainer> updateTrainer(Scanner scanner) {
+    public Pair<Integer, Trainer> updateTrainer(Scanner scanner) {
         try {
             System.out.print("Enter trainer id to update: ");
             int id = scanner.nextInt();
@@ -135,7 +135,7 @@ public class SubControllerMenu {
                     password = CredentialsGenerator.generatePassword(username);
             }
 
-            return EpamPair.create(id,
+            return Pair.create(id,
                     new Trainer(true, specialization, firstName, lastName, username, password, Boolean.TRUE));
         } catch (Exception e) {
             log.info("Error updating trainer: " + e.getMessage());
@@ -143,7 +143,7 @@ public class SubControllerMenu {
         }
     }
 
-    public EpamPair<Integer, TrainingRequest> updateTraining(Scanner scanner) {
+    public Pair<Integer, TrainingRequest> updateTraining(Scanner scanner) {
         try {
             System.out.print("Enter training id to update: ");
             int id = scanner.nextInt();
@@ -177,7 +177,7 @@ public class SubControllerMenu {
             String durationStr = scanner.nextLine();
             Integer duration = durationStr.trim().isEmpty() ? null : Integer.valueOf(durationStr);
 
-            return EpamPair.create(id, TrainingRequest.builder()
+            return Pair.create(id, TrainingRequest.builder()
                     .traineeId(traineeId)
                     .trainerId(trainerId)
                     .trainingName(trainingName)

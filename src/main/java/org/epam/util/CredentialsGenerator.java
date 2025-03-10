@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.util.UUID;
 
-import static org.epam.util.sub_controller.SubControllerMenu.existingUsernames;
+import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
 
 @Service
 public class CredentialsGenerator {

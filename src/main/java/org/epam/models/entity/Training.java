@@ -32,15 +32,4 @@ public class Training {
         this.trainingDate = trainingDate;
         this.trainingDuration = trainingDuration;
     }
-
-    @Override
-    public String toString() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        try {
-            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    }
 }

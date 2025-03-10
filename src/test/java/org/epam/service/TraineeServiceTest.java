@@ -1,12 +1,10 @@
 package org.epam.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
 import org.epam.repository.TraineeRepo;
 import org.epam.service.impl.TraineeServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

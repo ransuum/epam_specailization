@@ -3,6 +3,7 @@ package org.epam.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.epam.exception.EntityNotFoundException;
 import org.epam.models.dto.TrainingDto;
 import org.epam.models.entity.Training;
 import org.epam.models.request.TrainingRequest;
@@ -10,7 +11,6 @@ import org.epam.service.TrainingService;
 import org.epam.repository.TraineeRepo;
 import org.epam.repository.TrainerRepo;
 import org.epam.repository.TrainingRepo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,7 +25,6 @@ public class TrainingServiceImpl implements TrainingService {
     private final ObjectMapper objectMapper;
     private static final Log log = LogFactory.getLog(TrainingServiceImpl.class);
 
-    @Autowired
     public TrainingServiceImpl(TrainingRepo trainingRepo, TrainerRepo trainerRepo, TraineeRepo traineeRepo, ObjectMapper objectMapper) {
         this.trainingRepo = trainingRepo;
         this.trainerRepo = trainerRepo;
@@ -34,37 +33,38 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public TrainingDto save(TrainingRequest t) {
+    public TrainingDto save(TrainingRequest trainingRequest) {
         log.info("Saving training...");
-        var trainee = traineeRepo.findById(t.traineeId())
+        var trainee = traineeRepo.findById(trainingRequest.traineeId())
                 .orElseThrow(() -> new RuntimeException("Trainee not found"));
 
-        var trainer = trainerRepo.findById(t.trainerId())
+        var trainer = trainerRepo.findById(trainingRequest.trainerId())
                 .orElseThrow(() -> new RuntimeException("Trainer not found"));
 
         Training training = new Training(
                 trainee,
                 trainer,
-                t.trainingName(), t.trainingType(), t.trainingDate(), t.trainingDuration());
+                trainingRequest.trainingName(), trainingRequest.trainingType(),
+                trainingRequest.trainingDate(), trainingRequest.trainingDuration());
 
         return objectMapper.convertValue(trainingRepo.save(training), TrainingDto.class);
     }
 
     @Override
-    public TrainingDto update(Integer id, TrainingRequest t) {
+    public TrainingDto update(Integer id, TrainingRequest trainingRequest) {
         log.info("Update training...");
-        Training training = trainingRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Training not found"));
+        Training trainingById = trainingRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Training not found"));
 
-        if (check(String.valueOf(t.trainingType()))) training.setTrainingType(t.trainingType());
-        if (check(t.trainingName())) training.setTrainingName(t.trainingName());
-        if (check(t.trainingDuration())) training.setTrainingDuration(t.trainingDuration());
-        if (check(t.trainingDate())) training.setTrainingDate(t.trainingDate());
-        if (check(t.traineeId())) training.setTrainee(traineeRepo.findById(t.traineeId())
+        if (check(String.valueOf(trainingRequest.trainingType()))) trainingById.setTrainingType(trainingRequest.trainingType());
+        if (check(trainingRequest.trainingName())) trainingById.setTrainingName(trainingRequest.trainingName());
+        if (check(trainingRequest.trainingDuration())) trainingById.setTrainingDuration(trainingRequest.trainingDuration());
+        if (check(trainingRequest.trainingDate())) trainingById.setTrainingDate(trainingRequest.trainingDate());
+        if (check(trainingRequest.traineeId())) trainingById.setTrainee(traineeRepo.findById(trainingRequest.traineeId())
                 .orElseThrow(() -> new RuntimeException("Trainee not found")));
-        if (check(t.trainerId())) training.setTrainer(trainerRepo.findById(t.trainerId())
+        if (check(trainingRequest.trainerId())) trainingById.setTrainer(trainerRepo.findById(trainingRequest.trainerId())
                 .orElseThrow(() -> new RuntimeException("Trainer not found")));
-        return objectMapper.convertValue(trainingRepo.update(training), TrainingDto.class);
+        return objectMapper.convertValue(trainingRepo.update(trainingById), TrainingDto.class);
     }
 
     @Override
@@ -84,6 +84,6 @@ public class TrainingServiceImpl implements TrainingService {
     @Override
     public TrainingDto findById(Integer id) {
         return objectMapper.convertValue(trainingRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Training not found")), TrainingDto.class);
+                .orElseThrow(() -> new EntityNotFoundException("Training not found")), TrainingDto.class);
     }
 }

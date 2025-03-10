@@ -32,15 +32,4 @@ public class Trainee extends User {
         this.address = address;
         this.dateOfBirth = dateOfBirth;
     }
-
-    @Override
-    public String toString() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        try {
-            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    }
 }

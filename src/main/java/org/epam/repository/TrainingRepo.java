@@ -1,12 +1,11 @@
 package org.epam.repository;
 
 import org.epam.models.entity.Training;
-import org.epam.repository.configuration.SpringTaskRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface TrainingRepo extends SpringTaskRepository<Integer, Training> {
+public interface TrainingRepo extends CrudRepository<Integer, Training> {
     Training save(Training training);
 
     Training update(Training training);

@@ -1,9 +1,9 @@
-package org.epam.repository.configuration;
+package org.epam.repository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface SpringTaskRepository<I, T> {
+public interface CrudRepository<I, T> {
     T save(T t);
     T update(T t);
     void delete(I i);

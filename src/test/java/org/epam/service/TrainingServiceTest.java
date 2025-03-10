@@ -11,7 +11,6 @@ import org.epam.repository.TraineeRepo;
 import org.epam.repository.TrainerRepo;
 import org.epam.repository.TrainingRepo;
 import org.epam.service.impl.TrainingServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -1,14 +1,19 @@
-package org.epam.repository.configuration;
+package org.epam.repository.inmemoryrepositories;
 
 import org.epam.models.entity.Trainee;
 import org.epam.repository.TraineeRepo;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
 @Repository
-public class TraineeRepository implements TraineeRepo {
-    private final Map<Integer, Trainee> trainees = new HashMap<>();
+public class InMemoryTraineeRepository implements TraineeRepo {
+    private final Map<Integer, Object> trainees;
+
+    public InMemoryTraineeRepository(@Qualifier("storageMap") Map<String, Map<Integer, Object>> storageMap) {
+        this.trainees = storageMap.get("trainees");
+    }
 
     @Override
     public Trainee save(Trainee trainee) {
@@ -18,7 +23,7 @@ public class TraineeRepository implements TraineeRepo {
 
     @Override
     public Trainee update(Trainee trainee) {
-        return trainees.replace(trainee.getId(), trainee);
+        return (Trainee) trainees.replace(trainee.getId(), trainee);
     }
 
     @Override
@@ -32,12 +37,13 @@ public class TraineeRepository implements TraineeRepo {
     public List<Trainee> findAll() {
         return trainees.values()
                 .stream()
+                .map(Trainee.class::cast)
                 .sorted(Comparator.comparing(Trainee::getId))
                 .toList();
     }
 
     @Override
     public Optional<Trainee> findById(Integer id) {
-        return Optional.ofNullable(trainees.get(id));
+        return Optional.ofNullable((Trainee) trainees.get(id));
     }
 }

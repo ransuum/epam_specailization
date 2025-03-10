@@ -1,4 +1,4 @@
-package org.epam.util.profile_chooser;
+package org.epam.util.profilechooser;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -9,32 +9,48 @@ import org.epam.models.request.TrainingRequest;
 import org.epam.service.TraineeService;
 import org.epam.service.TrainerService;
 import org.epam.service.TrainingService;
-import org.epam.util.own_pair.EpamPair;
-import org.epam.util.sub_controller.SubControllerMenu;
+import org.epam.util.subcontroller.SubControllerMenu;
+import org.graalvm.collections.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-import static org.epam.util.sub_controller.SubControllerMenu.existingUsernames;
+import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
 
 @Component
+
 public class MainChooser implements Chooser {
-    private TraineeService traineeService;
-    private TrainerService trainerService;
-    private TrainingService trainingService;
-    private static final Log log = LogFactory.getLog(MainChooser.class);
+    private final TraineeService traineeService;
+    private final TrainerService trainerService;
+    private final TrainingService trainingService;
     private SubControllerMenu subControllerMenu;
     private AnnotationConfigApplicationContext context;
+
+    @Value("${spring.profile}")
+    private String profile;
+
+    private static final Log log = LogFactory.getLog(MainChooser.class);
+
+    public MainChooser(TraineeService traineeService, TrainerService trainerService,
+                       TrainingService trainingService) {
+        this.traineeService = traineeService;
+        this.trainerService = trainerService;
+        this.trainingService = trainingService;
+    }
+
+    @Autowired
+    public void setSubControllerMenu(SubControllerMenu subControllerMenu) {
+        this.subControllerMenu = subControllerMenu;
+    }
 
     @Override
     public void initialize(AnnotationConfigApplicationContext context) throws InterruptedException {
         this.context = context;
-        this.traineeService = context.getBean(TraineeService.class);
-        this.trainerService = context.getBean(TrainerService.class);
-        this.trainingService = context.getBean(TrainingService.class);
-        this.subControllerMenu = context.getBean(SubControllerMenu.class);
+        log.info("Initializing application with FacadeChooser");
         process();
     }
 
@@ -93,7 +109,7 @@ public class MainChooser implements Chooser {
                     trainingService.findAll().forEach(System.out::println);
                     break;
                 case 7:
-                    EpamPair<Integer, Trainee> pair = subControllerMenu.updateTrainee(scanner);
+                    Pair<Integer, Trainee> pair = subControllerMenu.updateTrainee(scanner);
                     System.out.println(traineeService.update(pair.getLeft(), pair.getRight()));
                     break;
                 case 8:
@@ -105,7 +121,7 @@ public class MainChooser implements Chooser {
                     System.out.println(traineeService.findById(subControllerMenu.findTraineeById(scanner)));
                     break;
                 case 10:
-                    EpamPair<Integer, Trainer> trainerEpamPair = subControllerMenu.updateTrainer(scanner);
+                    Pair<Integer, Trainer> trainerEpamPair = subControllerMenu.updateTrainer(scanner);
                     if (trainerEpamPair != null) {
                         log.info("Updating trainer with ID: " + trainerEpamPair.getLeft());
                         System.out.println(trainerService.update(trainerEpamPair.getLeft(), trainerEpamPair.getRight()));
@@ -122,7 +138,7 @@ public class MainChooser implements Chooser {
                     System.out.println(trainerService.findById(subControllerMenu.findTrainerById(scanner)));
                     break;
                 case 13:
-                    EpamPair<Integer, TrainingRequest> trainingRequestEpamPair = subControllerMenu.updateTraining(scanner);
+                    Pair<Integer, TrainingRequest> trainingRequestEpamPair = subControllerMenu.updateTraining(scanner);
                     System.out.println(trainingService.update(trainingRequestEpamPair.getLeft(), trainingRequestEpamPair.getRight()));
                     break;
                 case 14:
@@ -145,7 +161,7 @@ public class MainChooser implements Chooser {
     }
 
     @Override
-    public Profile getProfile() {
-        return Profile.MAIN;
+    public boolean getProfile() {
+        return profile.equals(Profile.main.name());
     }
 }
