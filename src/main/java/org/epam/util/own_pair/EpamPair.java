@@ -1,7 +1,10 @@
 package org.epam.util.own_pair;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
+@Getter
 public final class EpamPair<L, R> {
     private static final EpamPair<Object, Object> EMPTY = new EpamPair<>(null, null);
     private final L left;
@@ -29,14 +32,6 @@ public final class EpamPair<L, R> {
         this.right = right;
     }
 
-    public L getLeft() {
-        return this.left;
-    }
-
-    public R getRight() {
-        return this.right;
-    }
-
     @Override
     public int hashCode() {
         return Objects.hashCode(this.left) + 31 * Objects.hashCode(this.right);
@@ -44,14 +39,11 @@ public final class EpamPair<L, R> {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (!(obj instanceof EpamPair)) {
-            return false;
-        } else {
-            EpamPair<?, ?> pair = (EpamPair<?, ?>) obj;
-            return Objects.equals(this.left, pair.left) && Objects.equals(this.right, pair.right);
-        }
+        if (obj == this) return true;
+        else if (!(obj instanceof EpamPair<?, ?> pair)) return false;
+        else return Objects.equals(this.left, pair.left)
+                    && Objects.equals(this.right, pair.right);
+
     }
 
     @Override

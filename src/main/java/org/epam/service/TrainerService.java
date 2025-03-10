@@ -1,17 +1,18 @@
 package org.epam.service;
 
+import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
 
 import java.util.List;
 
 public interface TrainerService {
-    Trainer save(Trainer t);
+    TrainerDto save(Trainer t);
 
-    Trainer update(Trainer t);
+    TrainerDto update(Integer id, Trainer t);
 
     void delete(Integer id);
 
-    List<Trainer> findAll();
+    List<TrainerDto> findAll();
 
-    Trainer findById(Integer id);
+    TrainerDto findById(Integer id);
 }

@@ -1,5 +1,7 @@
 package org.epam.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.epam.models.dto.TrainingDto;
 import org.epam.models.entity.Trainee;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
@@ -28,6 +30,9 @@ import static org.mockito.Mockito.*;
 public class TrainingServiceTest {
 
     @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
     private TrainingRepo trainingRepo;
 
     @Mock
@@ -41,152 +46,219 @@ public class TrainingServiceTest {
 
     @Test
     void testSaveTrainingSuccess() {
-        TrainingRequest request = new TrainingRequest(1, 1, "Java Training", TrainingType.ONLINE, LocalDate.now(), 60);
-        Trainee trainee = new Trainee(1, "123 Main St", LocalDate.of(1990, 1, 1), "John", "Doe", "john_doe", "password", true);
-        Trainer trainer = new Trainer(1, "Java", "Jane", "Smith", "jane_smith", "password", true);
+        Trainee trainee = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "pass", true);
+        Trainer trainer = new Trainer("Java", "Alice", "Smith", "asmith", "pass", true);
+        TrainingRequest request = new TrainingRequest(
+                trainee.getId(), trainer.getId(), "Java Basics", TrainingType.ONLINE,
+                LocalDate.of(2025, 3, 15), 60);
 
         when(traineeRepo.findById(request.traineeId())).thenReturn(Optional.of(trainee));
         when(trainerRepo.findById(request.trainerId())).thenReturn(Optional.of(trainer));
 
-        Training trainingToSave = new Training(trainee, trainer, request.trainingName(),
-                request.trainingType(), request.trainingDate(), request.trainingDuration());
-        when(trainingRepo.save(any(Training.class))).thenReturn(trainingToSave);
+        Training savedTraining = new Training(trainee, trainer,
+                request.trainingName(), request.trainingType(), request.trainingDate(), request.trainingDuration());
+        when(trainingRepo.save(any(Training.class))).thenReturn(savedTraining);
 
-        Training savedTraining = trainingService.save(request);
+        TrainingDto dummyDto = mock(TrainingDto.class);
+        when(objectMapper.convertValue(savedTraining, TrainingDto.class)).thenReturn(dummyDto);
 
-        assertNotNull(savedTraining);
-        assertEquals(request.trainingName(), savedTraining.getTrainingName());
+        TrainingDto result = trainingService.save(request);
+
+        assertEquals(dummyDto, result);
         verify(traineeRepo).findById(request.traineeId());
         verify(trainerRepo).findById(request.trainerId());
         verify(trainingRepo).save(any(Training.class));
+        verify(objectMapper).convertValue(savedTraining, TrainingDto.class);
     }
 
     @Test
     void testSaveTrainingTraineeNotFound() {
-        TrainingRequest request = new TrainingRequest(1, 1, "Java Training", TrainingType.ONLINE, LocalDate.now(), 60);
+        Trainee trainee = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "pass", true);
+        Trainer trainer = new Trainer("Java", "Alice", "Smith", "asmith", "pass", true);
+        TrainingRequest request = new TrainingRequest(
+                trainee.getId(), trainer.getId(), "Java Basics", TrainingType.ONLINE,
+                LocalDate.of(2025, 3, 15), 60);
+
         when(traineeRepo.findById(request.traineeId())).thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> trainingService.save(request));
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> trainingService.save(request));
         assertEquals("Trainee not found", exception.getMessage());
+        verify(traineeRepo).findById(request.traineeId());
+        verify(trainerRepo, never()).findById(any());
+        verify(trainingRepo, never()).save(any());
     }
 
     @Test
     void testUpdateTrainingSuccess() {
-        Trainee oldTrainee = new Trainee(1, "Old Address", LocalDate.of(1990, 1, 1),
-                "John", "Doe", "john_doe", "password", true);
-        Trainer oldTrainer = new Trainer(1, "Old Specialization", "Jane", "Smith", "jane_smith", "password", true);
-        Training existingTraining = new Training(oldTrainee, oldTrainer, "Old Training",
-                TrainingType.OFFLINE, LocalDate.now().minusDays(1), 45);
-        int trainingId = existingTraining.getId();
+        Trainee trainee = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "pass", true);
+        Trainer trainer = new Trainer("Java", "Alice", "Smith", "asmith", "pass", true);
+        Training existingTraining = new Training(trainee, trainer, "Java Basics",
+                TrainingType.ONLINE, LocalDate.of(2025, 3, 15), 60);
+        existingTraining.setId(1);
 
-        when(trainingRepo.findById(trainingId)).thenReturn(Optional.of(existingTraining));
-
-        TrainingRequest updateRequest = new TrainingRequest(null, null, "Updated Training",
-                TrainingType.ONLINE, LocalDate.now(), 90);
-
+        TrainingRequest updateRequest = new TrainingRequest(
+                trainee.getId(), trainer.getId(), "Advanced Java", TrainingType.ONLINE,
+                LocalDate.of(2025, 4, 15), 90);
+        when(trainingRepo.findById(1)).thenReturn(Optional.of(existingTraining));
+        when(traineeRepo.findById(updateRequest.traineeId())).thenReturn(Optional.of(trainee));
+        when(trainerRepo.findById(updateRequest.trainerId())).thenReturn(Optional.of(trainer));
         when(trainingRepo.update(existingTraining)).thenReturn(existingTraining);
+        TrainingDto dummyDto = mock(TrainingDto.class);
+        when(objectMapper.convertValue(existingTraining, TrainingDto.class)).thenReturn(dummyDto);
 
-        Training updatedTraining = trainingService.update(trainingId, updateRequest);
+        TrainingDto result = trainingService.update(1, updateRequest);
 
-        assertEquals("Updated Training", updatedTraining.getTrainingName());
-        assertEquals(TrainingType.ONLINE, updatedTraining.getTrainingType());
-        assertEquals(90, updatedTraining.getTrainingDuration());
-        assertEquals(LocalDate.now(), updatedTraining.getTrainingDate());
+        assertEquals("Advanced Java", existingTraining.getTrainingName());
+        assertEquals(TrainingType.ONLINE, existingTraining.getTrainingType());
+        assertEquals(LocalDate.of(2025, 4, 15), existingTraining.getTrainingDate());
+        assertEquals(90, existingTraining.getTrainingDuration());
+        assertEquals(trainee, existingTraining.getTrainee());
+        assertEquals(trainer, existingTraining.getTrainer());
+        assertEquals(dummyDto, result);
+
+        verify(trainingRepo).findById(1);
+        verify(traineeRepo).findById(updateRequest.traineeId());
+        verify(trainerRepo).findById(updateRequest.trainerId());
+        verify(trainingRepo).update(existingTraining);
+        verify(objectMapper).convertValue(existingTraining, TrainingDto.class);
     }
 
     @Test
     void testUpdateTrainingWithTraineeAndTrainerChange() {
-        Trainee oldTrainee = new Trainee(1, "Old Address", LocalDate.of(1990, 1, 1),
-                "John", "Doe", "john_doe", "password", true);
-        Trainer oldTrainer = new Trainer(1, "Old Specialization", "Jane", "Smith", "jane_smith", "password", true);
-        Training existingTraining = new Training(oldTrainee, oldTrainer, "Old Training",
-                TrainingType.OFFLINE, LocalDate.now().minusDays(1), 45);
-        int trainingId = existingTraining.getId();
+        Trainee oldTrainee = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "pass", true);
+        Trainer oldTrainer = new Trainer("Java", "Alice", "Smith", "asmith", "pass", true);
+        Training existingTraining = new Training(oldTrainee, oldTrainer, "Java Basics",
+                TrainingType.ONLINE, LocalDate.of(2025, 3, 15), 60);
+        existingTraining.setId(1);
 
-        when(trainingRepo.findById(trainingId)).thenReturn(Optional.of(existingTraining));
+        Trainee newTrainee = new Trainee("456 Other St", LocalDate.of(1991, 2, 2),
+                "Jane", "Doe", "janedoe", "newpass", true);
+        Trainer newTrainer = new Trainer("Python", "Bob", "Brown", "bobbrown", "newpass", true);
 
-        Trainee newTrainee = new Trainee(2, "New Address", LocalDate.of(1995, 5, 5),
-                "Alice", "Wonder", "alice_wonder", "password", true);
-        Trainer newTrainer = new Trainer(2, "New Specialization", "Bob", "Marley", "bob_marley", "password", true);
-
-        TrainingRequest updateRequest = new TrainingRequest(newTrainee.getId(), newTrainer.getId(), "Updated Training",
-                TrainingType.ONLINE, LocalDate.now(), 60);
-        when(traineeRepo.findById(newTrainee.getId())).thenReturn(Optional.of(newTrainee));
-        when(trainerRepo.findById(newTrainer.getId())).thenReturn(Optional.of(newTrainer));
+        TrainingRequest updateRequest = new TrainingRequest(
+                newTrainee.getId(), newTrainer.getId(), "Advanced Java", TrainingType.OFFLINE,
+                LocalDate.of(2025, 4, 15), 90);
+        when(trainingRepo.findById(1)).thenReturn(Optional.of(existingTraining));
+        when(traineeRepo.findById(updateRequest.traineeId())).thenReturn(Optional.of(newTrainee));
+        when(trainerRepo.findById(updateRequest.trainerId())).thenReturn(Optional.of(newTrainer));
         when(trainingRepo.update(existingTraining)).thenReturn(existingTraining);
+        TrainingDto dummyDto = mock(TrainingDto.class);
+        when(objectMapper.convertValue(existingTraining, TrainingDto.class)).thenReturn(dummyDto);
 
-        Training updatedTraining = trainingService.update(trainingId, updateRequest);
+        TrainingDto result = trainingService.update(1, updateRequest);
 
-        assertEquals(newTrainee, updatedTraining.getTrainee());
-        assertEquals(newTrainer, updatedTraining.getTrainer());
-        assertEquals("Updated Training", updatedTraining.getTrainingName());
+        assertEquals("Advanced Java", existingTraining.getTrainingName());
+        assertEquals(TrainingType.OFFLINE, existingTraining.getTrainingType());
+        assertEquals(LocalDate.of(2025, 4, 15), existingTraining.getTrainingDate());
+        assertEquals(90, existingTraining.getTrainingDuration());
+        assertEquals(newTrainee, existingTraining.getTrainee());
+        assertEquals(newTrainer, existingTraining.getTrainer());
+        assertEquals(dummyDto, result);
+
+        verify(trainingRepo).findById(1);
+        verify(traineeRepo).findById(updateRequest.traineeId());
+        verify(trainerRepo).findById(updateRequest.trainerId());
+        verify(trainingRepo).update(existingTraining);
+        verify(objectMapper).convertValue(existingTraining, TrainingDto.class);
     }
 
     @Test
     void testUpdateTrainingNotFound() {
-        int trainingId = 1;
-        TrainingRequest updateRequest = new TrainingRequest(null, null, "Updated Training",
-                TrainingType.ONLINE, LocalDate.now(), 60);
-        when(trainingRepo.findById(trainingId)).thenReturn(Optional.empty());
+        TrainingRequest updateRequest = new TrainingRequest(
+                1, 1, "Advanced Java", TrainingType.OFFLINE, LocalDate.of(2025, 4, 15), 90);
+        when(trainingRepo.findById(1)).thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> trainingService.update(trainingId, updateRequest));
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> trainingService.update(1, updateRequest));
         assertEquals("Training not found", exception.getMessage());
+        verify(trainingRepo).findById(1);
+        verify(traineeRepo, never()).findById(any());
+        verify(trainerRepo, never()).findById(any());
+        verify(trainingRepo, never()).update(any());
     }
 
     @Test
     void testDeleteTrainingSuccess() {
-        Trainee trainee = new Trainee(1, "Address", LocalDate.of(1990, 1, 1),
-                "John", "Doe", "john_doe", "password", true);
-        Trainer trainer = new Trainer(1, "Specialization", "Jane", "Smith", "jane_smith", "password", true);
-        Training training = new Training(trainee, trainer, "Training", TrainingType.ONLINE, LocalDate.now(), 60);
-        int trainingId = training.getId();
+        Trainee trainee = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "pass", true);
+        Trainer trainer = new Trainer("Java", "Alice", "Smith", "asmith", "pass", true);
+        Training existingTraining = new Training(trainee, trainer, "Java Basics",
+                TrainingType.ONLINE, LocalDate.of(2025, 3, 15), 60);
+        existingTraining.setId(1);
 
-        when(trainingRepo.findById(trainingId)).thenReturn(Optional.of(training));
-        doNothing().when(trainingRepo).delete(trainingId);
+        TrainingDto dummyDto = mock(TrainingDto.class);
+        when(trainingRepo.findById(1)).thenReturn(Optional.of(existingTraining));
+        when(objectMapper.convertValue(existingTraining, TrainingDto.class)).thenReturn(dummyDto);
+        when(dummyDto.id()).thenReturn(1);
 
-        trainingService.delete(trainingId);
+        trainingService.delete(1);
 
-        verify(trainingRepo, times(1)).delete(trainingId);
+        verify(trainingRepo).delete(1);
     }
 
     @Test
     void testFindAllTrainings() {
-        // Arrange
-        Trainee trainee = new Trainee(1, "Address", LocalDate.of(1990, 1, 1),
-                "John", "Doe", "john_doe", "password", true);
-        Trainer trainer = new Trainer(1, "Specialization", "Jane", "Smith", "jane_smith", "password", true);
-        Training training1 = new Training(trainee, trainer, "Training1", TrainingType.ONLINE, LocalDate.now(), 60);
-        Training training2 = new Training(trainee, trainer, "Training2", TrainingType.OFFLINE, LocalDate.now().plusDays(1), 90);
-        List<Training> trainings = List.of(training1, training2);
+        Trainee trainee1 = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "pass", true);
+        Trainer trainer1 = new Trainer("Java", "Alice", "Smith", "asmith", "pass", true);
+        Training training1 = new Training(trainee1, trainer1, "Java Basics",
+                TrainingType.ONLINE, LocalDate.of(2025, 3, 15), 60);
+        training1.setId(1);
 
-        when(trainingRepo.findAll()).thenReturn(trainings);
+        Trainee trainee2 = new Trainee("456 Other St", LocalDate.of(1991, 2, 2),
+                "Jane", "Doe", "janedoe", "pass", true);
+        Trainer trainer2 = new Trainer("Python", "Bob", "Brown", "bobbrown", "pass", true);
+        Training training2 = new Training(trainee2, trainer2, "Python Basics",
+                TrainingType.ONLINE, LocalDate.of(2025, 4, 15), 90);
+        training2.setId(2);
 
-        List<Training> result = trainingService.findAll();
+        List<Training> trainingList = List.of(training1, training2);
+        when(trainingRepo.findAll()).thenReturn(trainingList);
 
+        TrainingDto dto1 = mock(TrainingDto.class);
+        TrainingDto dto2 = mock(TrainingDto.class);
+        when(objectMapper.convertValue(training1, TrainingDto.class)).thenReturn(dto1);
+        when(objectMapper.convertValue(training2, TrainingDto.class)).thenReturn(dto2);
+
+        List<TrainingDto> result = trainingService.findAll();
         assertEquals(2, result.size());
-        assertEquals(trainings, result);
+        assertTrue(result.containsAll(List.of(dto1, dto2)));
+        verify(trainingRepo).findAll();
+        verify(objectMapper).convertValue(training1, TrainingDto.class);
+        verify(objectMapper).convertValue(training2, TrainingDto.class);
     }
 
     @Test
     void testFindByIdSuccess() {
-        Trainee trainee = new Trainee(1, "Address", LocalDate.of(1990, 1, 1),
-                "John", "Doe", "john_doe", "password", true);
-        Trainer trainer = new Trainer(1, "Specialization", "Jane", "Smith", "jane_smith", "password", true);
-        Training training = new Training(trainee, trainer, "Training", TrainingType.ONLINE, LocalDate.now(), 60);
-        int trainingId = training.getId();
+        Trainee trainee = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "pass", true);
+        Trainer trainer = new Trainer("Java", "Alice", "Smith", "asmith", "pass", true);
+        Training training = new Training(trainee, trainer, "Java Basics",
+                TrainingType.OFFLINE, LocalDate.of(2025, 3, 15), 60);
+        training.setId(1);
+        TrainingDto dummyDto = mock(TrainingDto.class);
+        when(trainingRepo.findById(1)).thenReturn(Optional.of(training));
+        when(objectMapper.convertValue(training, TrainingDto.class)).thenReturn(dummyDto);
 
-        when(trainingRepo.findById(trainingId)).thenReturn(Optional.of(training));
-
-        Training result = trainingService.findById(trainingId);
-
-        assertEquals(training, result);
+        TrainingDto result = trainingService.findById(1);
+        assertEquals(dummyDto, result);
+        verify(trainingRepo).findById(1);
+        verify(objectMapper).convertValue(training, TrainingDto.class);
     }
 
     @Test
     void testFindByIdNotFound() {
-        when(trainingRepo.findById(anyInt())).thenReturn(Optional.empty());
+        when(trainingRepo.findById(1)).thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> trainingService.findById(1));
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> trainingService.findById(1));
         assertEquals("Training not found", exception.getMessage());
+        verify(trainingRepo).findById(1);
+        verify(objectMapper, never()).convertValue(any(), eq(TrainingDto.class));
     }
 }

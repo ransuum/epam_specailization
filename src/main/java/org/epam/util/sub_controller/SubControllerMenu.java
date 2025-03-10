@@ -12,9 +12,9 @@ import org.epam.util.own_pair.EpamPair;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
+
+import static org.epam.util.CheckerField.check;
 
 @Getter
 @Service
@@ -79,45 +79,64 @@ public class SubControllerMenu {
         }
     }
 
-    public Trainee updateTrainee(Scanner scanner) {
+    public EpamPair<Integer, Trainee> updateTrainee(Scanner scanner) {
         try {
             System.out.print("Enter trainee id to update: ");
             int id = scanner.nextInt();
+            scanner.nextLine();
 
             System.out.print("Enter new address (leave blank for no change): ");
             String address = scanner.nextLine();
-            scanner.nextLine();
+
             System.out.print("Enter new first name (leave blank for no change): ");
             String firstName = scanner.nextLine();
+
             System.out.print("Enter new last name (leave blank for no change): ");
             String lastName = scanner.nextLine();
-            String username = firstName != null && lastName != null ?
-                    CredentialsGenerator.generateUsername(firstName, lastName) : null;
-            return new Trainee(id, address, LocalDate.now(), firstName, lastName, username,
-                    username != null ? CredentialsGenerator.generatePassword(username) : null, Boolean.FALSE);
+
+            String username = null;
+            String password = null;
+
+            if (!firstName.trim().isBlank() && !lastName.trim().isBlank()) {
+                username = CredentialsGenerator.generateUsername(firstName, lastName);
+                if (username != null && username.length() > 3)
+                    password = CredentialsGenerator.generatePassword(username);
+            }
+
+            return EpamPair.create(id, new Trainee(true, address, LocalDate.now(), firstName, lastName, username,
+                    password, Boolean.FALSE));
         } catch (Exception e) {
             log.info("Error updating trainee: " + e.getMessage());
             return null;
         }
     }
 
-    public Trainer updateTrainer(Scanner scanner) {
+    public EpamPair<Integer, Trainer> updateTrainer(Scanner scanner) {
         try {
             System.out.print("Enter trainer id to update: ");
             int id = scanner.nextInt();
+            scanner.nextLine();
 
             System.out.print("Enter new specialization (leave blank for no change): ");
             String specialization = scanner.nextLine();
-            scanner.nextLine();
+
             System.out.print("Enter new first name (leave blank for no change): ");
             String firstName = scanner.nextLine();
+
             System.out.print("Enter new last name (leave blank for no change): ");
             String lastName = scanner.nextLine();
-            String username = firstName != null && lastName != null ?
-                    CredentialsGenerator.generateUsername(firstName, lastName) : null;
 
-            return new Trainer(id, specialization, firstName, lastName, username,
-                    username != null ? CredentialsGenerator.generatePassword(username) : null, Boolean.TRUE);
+            String username = null;
+            String password = null;
+
+            if (!firstName.trim().isBlank() && !lastName.trim().isBlank()) {
+                username = CredentialsGenerator.generateUsername(firstName, lastName);
+                if (username != null && username.length() > 3)
+                    password = CredentialsGenerator.generatePassword(username);
+            }
+
+            return EpamPair.create(id,
+                    new Trainer(true, specialization, firstName, lastName, username, password, Boolean.TRUE));
         } catch (Exception e) {
             log.info("Error updating trainer: " + e.getMessage());
             return null;
@@ -128,29 +147,42 @@ public class SubControllerMenu {
         try {
             System.out.print("Enter training id to update: ");
             int id = scanner.nextInt();
+            scanner.nextLine();
 
             System.out.print("Enter new trainee id (leave blank for no change): ");
             String traineeIdStr = scanner.nextLine();
-            scanner.nextLine();
+            Integer traineeId = traineeIdStr.trim().isEmpty() ? null : Integer.valueOf(traineeIdStr);
 
             System.out.print("Enter new trainer id (leave blank for no change): ");
             String trainerIdStr = scanner.nextLine();
+            Integer trainerId = trainerIdStr.trim().isEmpty() ? null : Integer.valueOf(trainerIdStr);
 
             System.out.print("Enter new training name (leave blank for no change): ");
             String trainingName = scanner.nextLine();
+            trainingName = trainingName.trim().isEmpty() ? null : trainingName;
 
-            System.out.print("Enter new training type (LABORATORY, THEORETICAL) (leave blank for no change): ");
+            System.out.print("Enter new training type (leave blank for no change): ");
             String typeStr = scanner.nextLine();
+            TrainingType trainingType = null;
+            if (check(typeStr)) {
+                try {
+                    trainingType = TrainingType.valueOf(typeStr.trim().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid training type. Valid options are: " +
+                            Arrays.toString(TrainingType.values()));
+                }
+            }
 
             System.out.print("Enter new training duration (in minutes) (leave blank for no change): ");
             String durationStr = scanner.nextLine();
+            Integer duration = durationStr.trim().isEmpty() ? null : Integer.valueOf(durationStr);
 
             return EpamPair.create(id, TrainingRequest.builder()
-                    .traineeId(Integer.valueOf(traineeIdStr))
-                    .trainerId(Integer.valueOf(trainerIdStr))
+                    .traineeId(traineeId)
+                    .trainerId(trainerId)
                     .trainingName(trainingName)
-                    .trainingType(TrainingType.valueOf(typeStr))
-                    .trainingDuration(Integer.valueOf(durationStr))
+                    .trainingType(trainingType)
+                    .trainingDuration(duration)
                     .build());
         } catch (Exception e) {
             log.info("Error updating training: " + e.getMessage());

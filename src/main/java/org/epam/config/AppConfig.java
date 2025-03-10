@@ -1,5 +1,7 @@
 package org.epam.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.epam.models.entity.Trainee;
@@ -164,6 +166,14 @@ public class AppConfig {
 
         return trainers;
     }
+
+    @Bean
+    public ObjectMapper beanMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper;
+    }
+
 
     private List<TrainingRequest> loadTrainingRequests() throws IOException {
         List<TrainingRequest> requests = new ArrayList<>();

@@ -1,8 +1,12 @@
 package org.epam.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
 import org.epam.repository.TraineeRepo;
 import org.epam.service.impl.TraineeServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,102 +26,126 @@ class TraineeServiceTest {
     @Mock
     private TraineeRepo traineeRepo;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     @InjectMocks
     private TraineeServiceImpl traineeService;
 
     @Test
     void testSaveTrainee_success() {
-        Trainee trainee = new Trainee("address", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
+        Trainee trainee = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "password", true);
+
         when(traineeRepo.save(trainee)).thenReturn(trainee);
 
-        Trainee savedTrainee = traineeService.save(trainee);
+        TraineeDto dummyDto = mock(TraineeDto.class);
+        when(objectMapper.convertValue(trainee, TraineeDto.class)).thenReturn(dummyDto);
 
-        assertNotNull(savedTrainee);
-        assertEquals("John", savedTrainee.getFirstName());
+        TraineeDto result = traineeService.save(trainee);
+
+        assertEquals(dummyDto, result);
         verify(traineeRepo, times(1)).save(trainee);
     }
 
     @Test
     void testUpdateTrainee_success() {
-        int traineeId = 1;
-        Trainee existingTrainee = new Trainee("Old Address", LocalDate.of(2000, 1, 1), "John", "Doe", "john.doe", "OldPass@", Boolean.TRUE);
-        existingTrainee.setId(traineeId);
+        Integer id = 1;
+        Trainee existingTrainee = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "password", true);
+        Trainee updateInfo = new Trainee("456 New Address", LocalDate.of(1991, 2, 2),
+                "Jane", "Doe", "janedoe", "newpassword", true);
 
-        Trainee updateData = new Trainee("New Address", LocalDate.of(1999, 5, 10), "Johnny", "Doe", "johnny.d", "NewPass@", Boolean.TRUE);
-        updateData.setId(traineeId);
-
-        when(traineeRepo.findById(traineeId)).thenReturn(Optional.of(existingTrainee));
+        when(traineeRepo.findById(id)).thenReturn(Optional.of(existingTrainee));
         when(traineeRepo.update(any(Trainee.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Trainee updatedTrainee = traineeService.update(updateData);
+        TraineeDto dummyDto = mock(TraineeDto.class);
+        when(objectMapper.convertValue(existingTrainee, TraineeDto.class)).thenReturn(dummyDto);
 
-        assertEquals("Johnny", updatedTrainee.getFirstName());
-        assertEquals("New Address", updatedTrainee.getAddress());
-        assertEquals("NewPass@", updatedTrainee.getPassword());
-        verify(traineeRepo, times(1)).update(any(Trainee.class));
+        TraineeDto result = traineeService.update(id, updateInfo);
+
+        assertEquals("456 New Address", existingTrainee.getAddress());
+        assertEquals("newpassword", existingTrainee.getPassword());
+        assertEquals("janedoe", existingTrainee.getUsername());
+        assertEquals("Jane", existingTrainee.getFirstName());
+        assertEquals("Doe", existingTrainee.getLastName());
+        assertEquals(LocalDate.of(1991, 2, 2), existingTrainee.getDateOfBirth());
+        assertEquals(dummyDto, result);
+        verify(traineeRepo, times(1)).findById(id);
+        verify(traineeRepo, times(1)).update(existingTrainee);
     }
 
     @Test
     void testUpdateTrainee_notFound() {
-        int traineeId = 1;
-        Trainee updateData = new Trainee("New Address", LocalDate.now(), "Johnny", "Doe", "johnny.d", "NewPass@", Boolean.TRUE);
-        updateData.setId(traineeId);
+        Integer id = 1;
+        Trainee updateInfo = new Trainee("456 New Address", LocalDate.of(1991, 2, 2),
+                "Jane", "Doe", "janedoe", "newpassword", true);
+        when(traineeRepo.findById(id)).thenReturn(Optional.empty());
 
-        when(traineeRepo.findById(traineeId)).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> traineeService.update(updateData));
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> traineeService.update(id, updateInfo));
         assertEquals("Trainee not found", exception.getMessage());
+        verify(traineeRepo, times(1)).findById(id);
     }
 
     @Test
     void testDeleteTrainee_success() {
-        int traineeId = 1;
-        Trainee trainee = new Trainee("address", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
+        Integer id = 1;
+        Trainee trainee = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "password", true);
+        TraineeDto dummyDto = mock(TraineeDto.class);
+        when(dummyDto.username()).thenReturn("jdoe");
+        when(traineeRepo.findById(id)).thenReturn(Optional.of(trainee));
+        when(objectMapper.convertValue(trainee, TraineeDto.class)).thenReturn(dummyDto);
 
-        when(traineeRepo.findById(traineeId)).thenReturn(Optional.of(trainee));
-        doNothing().when(traineeRepo).delete(traineeId);
+        traineeService.delete(id);
 
-        traineeService.delete(traineeId);
-
-        verify(traineeRepo, times(1)).delete(traineeId);
+        verify(traineeRepo, times(1)).delete(id);
     }
 
     @Test
     void testFindAllTrainees() {
-        Trainee trainee1 = new Trainee("address1", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
-        Trainee trainee2 = new Trainee("address2", LocalDate.now(), "Jane", "Doe", "jane.doe", "Password2@", Boolean.TRUE);
+        Trainee trainee1 = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "password", true);
+        Trainee trainee2 = new Trainee("456 Side St", LocalDate.of(1992, 3, 4),
+                "Alice", "Smith", "asmith", "pass", true);
         List<Trainee> trainees = Arrays.asList(trainee1, trainee2);
 
+        TraineeDto dto1 = mock(TraineeDto.class);
+        TraineeDto dto2 = mock(TraineeDto.class);
+
         when(traineeRepo.findAll()).thenReturn(trainees);
+        when(objectMapper.convertValue(trainee1, TraineeDto.class)).thenReturn(dto1);
+        when(objectMapper.convertValue(trainee2, TraineeDto.class)).thenReturn(dto2);
 
-        List<Trainee> result = traineeService.findAll();
-
+        List<TraineeDto> result = traineeService.findAll();
         assertEquals(2, result.size());
+        assertTrue(result.containsAll(Arrays.asList(dto1, dto2)));
         verify(traineeRepo, times(1)).findAll();
     }
 
     @Test
     void testFindTraineeById_success() {
-        int traineeId = 1;
-        Trainee trainee = new Trainee("address", LocalDate.now(), "John", "Doe", "john.doe", "Password1@", Boolean.TRUE);
-        trainee.setId(traineeId);
+        Integer id = 1;
+        Trainee trainee = new Trainee("123 Main St", LocalDate.of(1990, 1, 1),
+                "John", "Doe", "jdoe", "password", true);
+        TraineeDto dummyDto = mock(TraineeDto.class);
+        when(traineeRepo.findById(id)).thenReturn(Optional.of(trainee));
+        when(objectMapper.convertValue(trainee, TraineeDto.class)).thenReturn(dummyDto);
 
-        when(traineeRepo.findById(traineeId)).thenReturn(Optional.of(trainee));
-
-        Trainee result = traineeService.findById(traineeId);
-
-        assertNotNull(result);
-        assertEquals(traineeId, result.getId());
-        verify(traineeRepo, times(1)).findById(traineeId);
+        TraineeDto result = traineeService.findById(id);
+        assertEquals(dummyDto, result);
+        verify(traineeRepo, times(1)).findById(id);
     }
 
     @Test
     void testFindTraineeById_notFound() {
-        int traineeId = 1;
+        Integer id = 1;
+        when(traineeRepo.findById(id)).thenReturn(Optional.empty());
 
-        when(traineeRepo.findById(traineeId)).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> traineeService.findById(traineeId));
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> traineeService.findById(id));
         assertEquals("Trainee not found", exception.getMessage());
+        verify(traineeRepo, times(1)).findById(id);
     }
 }

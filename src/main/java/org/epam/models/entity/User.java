@@ -19,4 +19,12 @@ public abstract class User {
         this.password = password;
         this.isActive = isActive;
     }
+
+    public User(String firstName, String lastName, String username, String password, Boolean isActive) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
+        this.password = password;
+        this.isActive = isActive;
+    }
 }

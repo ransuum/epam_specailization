@@ -1,17 +1,18 @@
 package org.epam.service;
 
+import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
 
 import java.util.List;
 
 public interface TraineeService {
-    Trainee save(Trainee t);
+    TraineeDto save(Trainee t);
 
-    Trainee update(Trainee t);
+    TraineeDto update(Integer id, Trainee t);
 
     void delete(Integer id);
 
-    List<Trainee> findAll();
+    List<TraineeDto> findAll();
 
-    Trainee findById(Integer id);
+    TraineeDto findById(Integer id);
 }

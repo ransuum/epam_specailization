@@ -1,18 +1,18 @@
 package org.epam.service;
 
-import org.epam.models.entity.Training;
+import org.epam.models.dto.TrainingDto;
 import org.epam.models.request.TrainingRequest;
 
 import java.util.List;
 
 public interface TrainingService {
-    Training save(TrainingRequest t);
+    TrainingDto save(TrainingRequest t);
 
-    Training update(Integer id, TrainingRequest t);
+    TrainingDto update(Integer id, TrainingRequest t);
 
     void delete(Integer id);
 
-    List<Training> findAll();
+    List<TrainingDto> findAll();
 
-    Training findById(Integer id);
+    TrainingDto findById(Integer id);
 }
