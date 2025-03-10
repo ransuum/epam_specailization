@@ -22,7 +22,6 @@ import java.util.Scanner;
 import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
 
 @Component
-
 public class MainChooser implements Chooser {
     private final TraineeService traineeService;
     private final TrainerService trainerService;
@@ -30,7 +29,7 @@ public class MainChooser implements Chooser {
     private SubControllerMenu subControllerMenu;
     private AnnotationConfigApplicationContext context;
 
-    @Value("${spring.profile}")
+    @Value("${active.profile}")
     private String profile;
 
     private static final Log log = LogFactory.getLog(MainChooser.class);

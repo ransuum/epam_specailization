@@ -19,7 +19,7 @@ public class DevChooser implements Chooser {
     private TrainingService trainingService;
     private AnnotationConfigApplicationContext context;
 
-    @Value("${spring.profile}")
+    @Value("${active.profile}")
     private String profile;
 
     @Override
