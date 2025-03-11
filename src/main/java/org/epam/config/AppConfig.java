@@ -20,6 +20,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.Resource;
 
 import java.io.BufferedReader;
@@ -49,13 +50,26 @@ public class AppConfig {
     @Value("${data.trainer.file}")
     private Resource trainerFile;
 
+    @Bean(name = "traineesStorage")
+    public Map<Integer, Trainee> traineesStorage() {
+        return new HashMap<>();
+    }
+
+    @Bean(name = "trainersStorage")
+    public Map<Integer, Trainer> trainersStorage() {
+        return new HashMap<>();
+    }
+
+    @Bean(name = "trainingsStorage")
+    public Map<Integer, Training> trainingsStorage() {
+        return new HashMap<>();
+    }
+
     @Bean
-    public Map<String, Map<Integer, Object>> storageMap() {
-        Map<String, Map<Integer, Object>> storage = new HashMap<>();
-        storage.put("trainees", new HashMap<>());
-        storage.put("trainers", new HashMap<>());
-        storage.put("trainings", new HashMap<>());
-        return storage;
+    public static PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+        configurer.setIgnoreUnresolvablePlaceholders(false);
+        return configurer;
     }
 
     @Bean

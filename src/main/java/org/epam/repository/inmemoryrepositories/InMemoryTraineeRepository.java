@@ -9,10 +9,10 @@ import java.util.*;
 
 @Repository
 public class InMemoryTraineeRepository implements TraineeRepo {
-    private final Map<Integer, Object> trainees;
+    private final Map<Integer, Trainee> trainees;
 
-    public InMemoryTraineeRepository(@Qualifier("storageMap") Map<String, Map<Integer, Object>> storageMap) {
-        this.trainees = storageMap.get("trainees");
+    public InMemoryTraineeRepository(@Qualifier("traineesStorage") Map<Integer, Trainee> storageMap) {
+        this.trainees = storageMap;
     }
 
     @Override
@@ -23,7 +23,7 @@ public class InMemoryTraineeRepository implements TraineeRepo {
 
     @Override
     public Trainee update(Trainee trainee) {
-        return (Trainee) trainees.replace(trainee.getId(), trainee);
+        return trainees.replace(trainee.getId(), trainee);
     }
 
     @Override
@@ -37,13 +37,12 @@ public class InMemoryTraineeRepository implements TraineeRepo {
     public List<Trainee> findAll() {
         return trainees.values()
                 .stream()
-                .map(Trainee.class::cast)
                 .sorted(Comparator.comparing(Trainee::getId))
                 .toList();
     }
 
     @Override
     public Optional<Trainee> findById(Integer id) {
-        return Optional.ofNullable((Trainee) trainees.get(id));
+        return Optional.ofNullable(trainees.get(id));
     }
 }
