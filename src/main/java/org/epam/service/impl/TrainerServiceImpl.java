@@ -1,13 +1,12 @@
 package org.epam.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.epam.exception.EntityNotFoundException;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
 import org.epam.repository.TrainerRepo;
 import org.epam.service.TrainerService;
+import org.epam.util.CredentialsGenerator;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,7 +18,6 @@ import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
 public class TrainerServiceImpl implements TrainerService {
     private final TrainerRepo trainerRepo;
     private final ObjectMapper objectMapper;
-    private static final Log log = LogFactory.getLog(TrainerServiceImpl.class);
 
     public TrainerServiceImpl(TrainerRepo trainerRepo, ObjectMapper objectMapper) {
         this.trainerRepo = trainerRepo;
@@ -39,9 +37,10 @@ public class TrainerServiceImpl implements TrainerService {
 
         if (check(trainer.getFirstName())) trainerById.setFirstName(trainer.getFirstName());
         if (check(trainer.getLastName())) trainerById.setLastName(trainer.getLastName());
-        if (check(trainer.getUsername())) trainerById.setUsername(trainer.getUsername());
-        if (check(trainer.getPassword())) trainerById.setPassword(trainer.getPassword());
         if (check(trainer.getSpecialization())) trainerById.setSpecialization(trainer.getSpecialization());
+
+        trainerById.setUsername(CredentialsGenerator.generateUsername(trainerById.getFirstName(), trainerById.getLastName()));
+        trainerById.setPassword(CredentialsGenerator.generatePassword(trainerById.getUsername()));
         return objectMapper.convertValue(trainerRepo.update(trainerById), TrainerDto.class);
     }
 

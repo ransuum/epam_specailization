@@ -1,5 +1,6 @@
 package org.epam.util.profilechooser;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.epam.models.entity.Trainee;
@@ -10,7 +11,6 @@ import org.epam.service.TraineeService;
 import org.epam.service.TrainerService;
 import org.epam.service.TrainingService;
 import org.epam.util.subcontroller.SubControllerMenu;
-import org.graalvm.collections.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;

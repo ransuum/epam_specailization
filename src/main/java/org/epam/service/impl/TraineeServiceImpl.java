@@ -8,6 +8,7 @@ import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
 import org.epam.repository.TraineeRepo;
 import org.epam.service.TraineeService;
+import org.epam.util.CredentialsGenerator;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,11 +41,12 @@ public class TraineeServiceImpl implements TraineeService {
                 .orElseThrow(() -> new EntityNotFoundException("Trainee not found"));
 
         if (check(trainee.getAddress())) traineeById.setAddress(trainee.getAddress());
-        if (check(trainee.getPassword())) traineeById.setPassword(trainee.getPassword());
-        if (check(trainee.getUsername())) traineeById.setUsername(trainee.getUsername());
         if (check(trainee.getFirstName())) traineeById.setFirstName(trainee.getFirstName());
         if (check(trainee.getLastName())) traineeById.setLastName(trainee.getLastName());
         if (check(String.valueOf(trainee.getDateOfBirth()))) traineeById.setDateOfBirth(trainee.getDateOfBirth());
+
+        traineeById.setUsername(CredentialsGenerator.generateUsername(traineeById.getFirstName(), traineeById.getLastName()));
+        traineeById.setPassword(CredentialsGenerator.generatePassword(traineeById.getUsername()));
         return objectMapper.convertValue(traineeRepo.update(traineeById), TraineeDto.class);
     }
 

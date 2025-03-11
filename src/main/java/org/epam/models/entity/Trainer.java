@@ -1,8 +1,5 @@
 package org.epam.models.entity;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,13 +16,8 @@ public class Trainer extends User {
         this.specialization = specialization;
     }
 
-    public Trainer(Integer id, String specialization, String firstName, String lastName, String username, String password, Boolean isActive) {
-        super(id, firstName, lastName, username, password, isActive);
-        this.specialization = specialization;
-    }
-
-    public Trainer(boolean update, String specialization, String firstName, String lastName, String username, String password, Boolean isActive) {
-        super(firstName, lastName, username, password, isActive);
+    public Trainer(String specialization, String firstName, String lastName, Boolean isActive) {
+        super(firstName, lastName, isActive);
         this.specialization = specialization;
     }
 }

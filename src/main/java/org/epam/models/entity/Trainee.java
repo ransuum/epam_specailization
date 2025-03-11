@@ -18,8 +18,8 @@ public class Trainee extends User {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public Trainee(boolean update, String address, LocalDate dateOfBirth, String firstName, String lastName, String username, String password, Boolean isActive) {
-        super(firstName, lastName, username, password, isActive);
+    public Trainee(String address, LocalDate dateOfBirth, String firstName, String lastName, Boolean isActive) {
+        super(firstName, lastName, isActive);
         this.address = address;
         this.dateOfBirth = dateOfBirth;
     }

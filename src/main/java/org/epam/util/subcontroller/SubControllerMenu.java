@@ -1,6 +1,7 @@
 package org.epam.util.subcontroller;
 
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.epam.models.entity.Trainee;
@@ -8,7 +9,6 @@ import org.epam.models.entity.Trainer;
 import org.epam.models.enums.TrainingType;
 import org.epam.models.request.TrainingRequest;
 import org.epam.util.CredentialsGenerator;
-import org.graalvm.collections.Pair;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -103,17 +103,8 @@ public class SubControllerMenu {
             System.out.print("Enter date of birth(dd-MM-yyyy): ");
             String dateOfBirth = scanner.nextLine();
 
-            String username = null;
-            String password = null;
 
-            if (!firstName.trim().isBlank() && !lastName.trim().isBlank()) {
-                username = CredentialsGenerator.generateUsername(firstName, lastName);
-                if (username != null && username.length() > 3)
-                    password = CredentialsGenerator.generatePassword(username);
-            }
-
-            return Pair.create(id, new Trainee(true, address, LocalDate.parse(dateOfBirth, dateTimeFormatter), firstName, lastName, username,
-                    password, Boolean.FALSE));
+            return Pair.of(id, new Trainee(address, LocalDate.parse(dateOfBirth, dateTimeFormatter), firstName, lastName, Boolean.FALSE));
         } catch (Exception e) {
             log.info("Error updating trainee: " + e.getMessage());
             return null;
@@ -135,17 +126,7 @@ public class SubControllerMenu {
             System.out.print("Enter new last name (leave blank for no change): ");
             String lastName = scanner.nextLine();
 
-            String username = null;
-            String password = null;
-
-            if (!firstName.trim().isBlank() && !lastName.trim().isBlank()) {
-                username = CredentialsGenerator.generateUsername(firstName, lastName);
-                if (username != null && username.length() > 3)
-                    password = CredentialsGenerator.generatePassword(username);
-            }
-
-            return Pair.create(id,
-                    new Trainer(true, specialization, firstName, lastName, username, password, Boolean.TRUE));
+            return Pair.of(id, new Trainer(specialization, firstName, lastName, Boolean.TRUE));
         } catch (Exception e) {
             log.info("Error updating trainer: " + e.getMessage());
             return null;
@@ -190,7 +171,7 @@ public class SubControllerMenu {
             String durationStr = scanner.nextLine();
             Integer duration = durationStr.trim().isEmpty() ? null : Integer.valueOf(durationStr);
 
-            return Pair.create(id, TrainingRequest.builder()
+            return Pair.of(id, TrainingRequest.builder()
                     .traineeId(traineeId)
                     .trainerId(trainerId)
                     .trainingName(trainingName)
