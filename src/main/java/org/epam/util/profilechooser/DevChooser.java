@@ -3,34 +3,24 @@ package org.epam.util.profilechooser;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.epam.models.enums.Profile;
-import org.epam.service.TraineeService;
-import org.epam.service.TrainerService;
-import org.epam.service.TrainingService;
+import org.epam.util.servicecontroller.ServiceController;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DevChooser implements Chooser {
     private static final Log log = LogFactory.getLog(DevChooser.class);
-    private final TraineeService traineeService;
-    private final TrainerService trainerService;
-    private final TrainingService trainingService;
-    private AnnotationConfigApplicationContext context;
+    private final ServiceController serviceController;
 
-    @Value("${spring.active.profile}")
+    @Value("${spring.profiles.active}")
     private String profile;
 
-    public DevChooser(TraineeService traineeService, TrainerService trainerService, TrainingService trainingService) {
-        this.traineeService = traineeService;
-        this.trainerService = trainerService;
-        this.trainingService = trainingService;
+    public DevChooser(ServiceController serviceController) {
+        this.serviceController = serviceController;
     }
 
-
     @Override
-    public void initialize(AnnotationConfigApplicationContext context) {
-        this.context = context;
+    public void initialize() {
         log.info("Initializing application with DevChooser");
         process();
     }
@@ -38,13 +28,11 @@ public class DevChooser implements Chooser {
     @Override
     public void process() {
         log.info("Trainee list: ");
-        traineeService.findAll().forEach(System.out::println);
+        serviceController.getTraineeService().findAll().forEach(System.out::println);
         log.info("Trainer list: ");
-        trainerService.findAll().forEach(System.out::println);
+        serviceController.getTrainerService().findAll().forEach(System.out::println);
         log.info("Trainings list: {}");
-        trainingService.findAll().forEach(System.out::println);
-
-        context.close();
+        serviceController.getTrainingService().findAll().forEach(System.out::println);
     }
 
     @Override

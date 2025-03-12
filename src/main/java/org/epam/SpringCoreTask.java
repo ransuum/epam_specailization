@@ -10,14 +10,15 @@ import java.util.stream.Collectors;
 public class SpringCoreTask {
 
     public static void main(String[] args) {
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
-        Map<Boolean, Chooser> choosers = context.getBeansOfType(Chooser.class).values().stream()
-                .collect(Collectors.toMap(Chooser::getProfile, chooser -> chooser));
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class)) {
+            Map<Boolean, Chooser> choosers = context.getBeansOfType(Chooser.class).values().stream()
+                    .collect(Collectors.toMap(Chooser::getProfile, chooser -> chooser));
 
-        try {
-            choosers.get(true).initialize(context);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            try {
+                choosers.get(true).initialize();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
