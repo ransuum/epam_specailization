@@ -13,6 +13,8 @@ import org.epam.repository.TraineeRepo;
 import org.epam.repository.TrainerRepo;
 import org.epam.repository.TrainingRepo;
 import org.epam.util.CredentialsGenerator;
+import org.epam.util.dataprocessing.PostProcessing;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -28,10 +30,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
 
@@ -50,19 +49,18 @@ public class AppConfig {
     @Value("${data.trainer.file}")
     private Resource trainerFile;
 
-    @Bean(name = "traineesStorage")
-    public Map<Integer, Trainee> traineesStorage() {
-        return new HashMap<>();
+    @Bean
+    public Map<String, Map<Integer, Object>> storageMap() {
+        Map<String, Map<Integer, Object>> storage = new HashMap<>();
+        storage.put("trainees", new HashMap<>());
+        storage.put("trainers", new HashMap<>());
+        storage.put("trainings", new HashMap<>());
+        return storage;
     }
 
-    @Bean(name = "trainersStorage")
-    public Map<Integer, Trainer> trainersStorage() {
-        return new HashMap<>();
-    }
-
-    @Bean(name = "trainingsStorage")
-    public Map<Integer, Training> trainingsStorage() {
-        return new HashMap<>();
+    @Bean
+    public PostProcessing postProcessing(@Qualifier("storageMap") Map<String, Map<Integer, Object>> storageMap) {
+        return new PostProcessing(storageMap);
     }
 
     @Bean
