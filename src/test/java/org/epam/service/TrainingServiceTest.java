@@ -7,9 +7,9 @@ import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
 import org.epam.models.enums.TrainingType;
 import org.epam.models.request.TrainingRequest;
-import org.epam.repository.TraineeRepo;
-import org.epam.repository.TrainerRepo;
-import org.epam.repository.TrainingRepo;
+import org.epam.repository.TraineeRepository;
+import org.epam.repository.TrainerRepository;
+import org.epam.repository.TrainingRepository;
 import org.epam.service.impl.TrainingServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,13 +32,13 @@ public class TrainingServiceTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private TrainingRepo trainingRepo;
+    private TrainingRepository trainingRepository;
 
     @Mock
-    private TrainerRepo trainerRepo;
+    private TrainerRepository trainerRepository;
 
     @Mock
-    private TraineeRepo traineeRepo;
+    private TraineeRepository traineeRepository;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
@@ -52,12 +52,12 @@ public class TrainingServiceTest {
                 trainee.getId(), trainer.getId(), "Java Basics", TrainingType.ONLINE,
                 LocalDate.of(2025, 3, 15), 60);
 
-        when(traineeRepo.findById(request.traineeId())).thenReturn(Optional.of(trainee));
-        when(trainerRepo.findById(request.trainerId())).thenReturn(Optional.of(trainer));
+        when(traineeRepository.findById(request.traineeId())).thenReturn(Optional.of(trainee));
+        when(trainerRepository.findById(request.trainerId())).thenReturn(Optional.of(trainer));
 
         Training savedTraining = new Training(trainee, trainer,
                 request.trainingName(), request.trainingType(), request.trainingDate(), request.trainingDuration());
-        when(trainingRepo.save(any(Training.class))).thenReturn(savedTraining);
+        when(trainingRepository.save(any(Training.class))).thenReturn(savedTraining);
 
         TrainingDto dummyDto = mock(TrainingDto.class);
         when(objectMapper.convertValue(savedTraining, TrainingDto.class)).thenReturn(dummyDto);
@@ -65,9 +65,9 @@ public class TrainingServiceTest {
         TrainingDto result = trainingService.save(request);
 
         assertEquals(dummyDto, result);
-        verify(traineeRepo).findById(request.traineeId());
-        verify(trainerRepo).findById(request.trainerId());
-        verify(trainingRepo).save(any(Training.class));
+        verify(traineeRepository).findById(request.traineeId());
+        verify(trainerRepository).findById(request.trainerId());
+        verify(trainingRepository).save(any(Training.class));
         verify(objectMapper).convertValue(savedTraining, TrainingDto.class);
     }
 
@@ -80,14 +80,14 @@ public class TrainingServiceTest {
                 trainee.getId(), trainer.getId(), "Java Basics", TrainingType.ONLINE,
                 LocalDate.of(2025, 3, 15), 60);
 
-        when(traineeRepo.findById(request.traineeId())).thenReturn(Optional.empty());
+        when(traineeRepository.findById(request.traineeId())).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> trainingService.save(request));
         assertEquals("Trainee not found", exception.getMessage());
-        verify(traineeRepo).findById(request.traineeId());
-        verify(trainerRepo, never()).findById(any());
-        verify(trainingRepo, never()).save(any());
+        verify(traineeRepository).findById(request.traineeId());
+        verify(trainerRepository, never()).findById(any());
+        verify(trainingRepository, never()).save(any());
     }
 
     @Test
@@ -102,10 +102,10 @@ public class TrainingServiceTest {
         TrainingRequest updateRequest = new TrainingRequest(
                 trainee.getId(), trainer.getId(), "Advanced Java", TrainingType.ONLINE,
                 LocalDate.of(2025, 4, 15), 90);
-        when(trainingRepo.findById(1)).thenReturn(Optional.of(existingTraining));
-        when(traineeRepo.findById(updateRequest.traineeId())).thenReturn(Optional.of(trainee));
-        when(trainerRepo.findById(updateRequest.trainerId())).thenReturn(Optional.of(trainer));
-        when(trainingRepo.update(existingTraining)).thenReturn(existingTraining);
+        when(trainingRepository.findById(1)).thenReturn(Optional.of(existingTraining));
+        when(traineeRepository.findById(updateRequest.traineeId())).thenReturn(Optional.of(trainee));
+        when(trainerRepository.findById(updateRequest.trainerId())).thenReturn(Optional.of(trainer));
+        when(trainingRepository.update(existingTraining)).thenReturn(existingTraining);
         TrainingDto dummyDto = mock(TrainingDto.class);
         when(objectMapper.convertValue(existingTraining, TrainingDto.class)).thenReturn(dummyDto);
 
@@ -119,10 +119,10 @@ public class TrainingServiceTest {
         assertEquals(trainer, existingTraining.getTrainer());
         assertEquals(dummyDto, result);
 
-        verify(trainingRepo).findById(1);
-        verify(traineeRepo).findById(updateRequest.traineeId());
-        verify(trainerRepo).findById(updateRequest.trainerId());
-        verify(trainingRepo).update(existingTraining);
+        verify(trainingRepository).findById(1);
+        verify(traineeRepository).findById(updateRequest.traineeId());
+        verify(trainerRepository).findById(updateRequest.trainerId());
+        verify(trainingRepository).update(existingTraining);
         verify(objectMapper).convertValue(existingTraining, TrainingDto.class);
     }
 
@@ -142,10 +142,10 @@ public class TrainingServiceTest {
         TrainingRequest updateRequest = new TrainingRequest(
                 newTrainee.getId(), newTrainer.getId(), "Advanced Java", TrainingType.OFFLINE,
                 LocalDate.of(2025, 4, 15), 90);
-        when(trainingRepo.findById(1)).thenReturn(Optional.of(existingTraining));
-        when(traineeRepo.findById(updateRequest.traineeId())).thenReturn(Optional.of(newTrainee));
-        when(trainerRepo.findById(updateRequest.trainerId())).thenReturn(Optional.of(newTrainer));
-        when(trainingRepo.update(existingTraining)).thenReturn(existingTraining);
+        when(trainingRepository.findById(1)).thenReturn(Optional.of(existingTraining));
+        when(traineeRepository.findById(updateRequest.traineeId())).thenReturn(Optional.of(newTrainee));
+        when(trainerRepository.findById(updateRequest.trainerId())).thenReturn(Optional.of(newTrainer));
+        when(trainingRepository.update(existingTraining)).thenReturn(existingTraining);
         TrainingDto dummyDto = mock(TrainingDto.class);
         when(objectMapper.convertValue(existingTraining, TrainingDto.class)).thenReturn(dummyDto);
 
@@ -159,10 +159,10 @@ public class TrainingServiceTest {
         assertEquals(newTrainer, existingTraining.getTrainer());
         assertEquals(dummyDto, result);
 
-        verify(trainingRepo).findById(1);
-        verify(traineeRepo).findById(updateRequest.traineeId());
-        verify(trainerRepo).findById(updateRequest.trainerId());
-        verify(trainingRepo).update(existingTraining);
+        verify(trainingRepository).findById(1);
+        verify(traineeRepository).findById(updateRequest.traineeId());
+        verify(trainerRepository).findById(updateRequest.trainerId());
+        verify(trainingRepository).update(existingTraining);
         verify(objectMapper).convertValue(existingTraining, TrainingDto.class);
     }
 
@@ -170,15 +170,15 @@ public class TrainingServiceTest {
     void testUpdateTrainingNotFound() {
         TrainingRequest updateRequest = new TrainingRequest(
                 1, 1, "Advanced Java", TrainingType.OFFLINE, LocalDate.of(2025, 4, 15), 90);
-        when(trainingRepo.findById(1)).thenReturn(Optional.empty());
+        when(trainingRepository.findById(1)).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> trainingService.update(1, updateRequest));
         assertEquals("Training not found", exception.getMessage());
-        verify(trainingRepo).findById(1);
-        verify(traineeRepo, never()).findById(any());
-        verify(trainerRepo, never()).findById(any());
-        verify(trainingRepo, never()).update(any());
+        verify(trainingRepository).findById(1);
+        verify(traineeRepository, never()).findById(any());
+        verify(trainerRepository, never()).findById(any());
+        verify(trainingRepository, never()).update(any());
     }
 
     @Test
@@ -191,13 +191,13 @@ public class TrainingServiceTest {
         existingTraining.setId(1);
 
         TrainingDto dummyDto = mock(TrainingDto.class);
-        when(trainingRepo.findById(1)).thenReturn(Optional.of(existingTraining));
+        when(trainingRepository.findById(1)).thenReturn(Optional.of(existingTraining));
         when(objectMapper.convertValue(existingTraining, TrainingDto.class)).thenReturn(dummyDto);
         when(dummyDto.id()).thenReturn(1);
 
         trainingService.delete(1);
 
-        verify(trainingRepo).delete(1);
+        verify(trainingRepository).delete(1);
     }
 
     @Test
@@ -217,7 +217,7 @@ public class TrainingServiceTest {
         training2.setId(2);
 
         List<Training> trainingList = List.of(training1, training2);
-        when(trainingRepo.findAll()).thenReturn(trainingList);
+        when(trainingRepository.findAll()).thenReturn(trainingList);
 
         TrainingDto dto1 = mock(TrainingDto.class);
         TrainingDto dto2 = mock(TrainingDto.class);
@@ -227,7 +227,7 @@ public class TrainingServiceTest {
         List<TrainingDto> result = trainingService.findAll();
         assertEquals(2, result.size());
         assertTrue(result.containsAll(List.of(dto1, dto2)));
-        verify(trainingRepo).findAll();
+        verify(trainingRepository).findAll();
         verify(objectMapper).convertValue(training1, TrainingDto.class);
         verify(objectMapper).convertValue(training2, TrainingDto.class);
     }
@@ -241,23 +241,23 @@ public class TrainingServiceTest {
                 TrainingType.OFFLINE, LocalDate.of(2025, 3, 15), 60);
         training.setId(1);
         TrainingDto dummyDto = mock(TrainingDto.class);
-        when(trainingRepo.findById(1)).thenReturn(Optional.of(training));
+        when(trainingRepository.findById(1)).thenReturn(Optional.of(training));
         when(objectMapper.convertValue(training, TrainingDto.class)).thenReturn(dummyDto);
 
         TrainingDto result = trainingService.findById(1);
         assertEquals(dummyDto, result);
-        verify(trainingRepo).findById(1);
+        verify(trainingRepository).findById(1);
         verify(objectMapper).convertValue(training, TrainingDto.class);
     }
 
     @Test
     void testFindByIdNotFound() {
-        when(trainingRepo.findById(1)).thenReturn(Optional.empty());
+        when(trainingRepository.findById(1)).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> trainingService.findById(1));
         assertEquals("Training not found", exception.getMessage());
-        verify(trainingRepo).findById(1);
+        verify(trainingRepository).findById(1);
         verify(objectMapper, never()).convertValue(any(), eq(TrainingDto.class));
     }
 }

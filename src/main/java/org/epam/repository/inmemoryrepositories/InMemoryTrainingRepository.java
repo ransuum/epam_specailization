@@ -1,14 +1,14 @@
 package org.epam.repository.inmemoryrepositories;
 
 import org.epam.models.entity.Training;
-import org.epam.repository.TrainingRepo;
+import org.epam.repository.TrainingRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
 @Repository
-public class InMemoryTrainingRepository implements TrainingRepo {
+public class InMemoryTrainingRepository implements TrainingRepository {
     private final Map<Integer, Object> trainings;
 
     public InMemoryTrainingRepository(@Qualifier("storageMap") Map<String, Map<Integer, Object>> storageMap) {

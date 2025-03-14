@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.epam.exception.EntityNotFoundException;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
-import org.epam.repository.TrainerRepo;
+import org.epam.repository.TrainerRepository;
 import org.epam.service.TrainerService;
 import org.epam.util.CredentialsGenerator;
 import org.springframework.stereotype.Service;
@@ -16,23 +16,23 @@ import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
 
 @Service
 public class TrainerServiceImpl implements TrainerService {
-    private final TrainerRepo trainerRepo;
+    private final TrainerRepository trainerRepository;
     private final ObjectMapper objectMapper;
 
-    public TrainerServiceImpl(TrainerRepo trainerRepo, ObjectMapper objectMapper) {
-        this.trainerRepo = trainerRepo;
+    public TrainerServiceImpl(TrainerRepository trainerRepository, ObjectMapper objectMapper) {
+        this.trainerRepository = trainerRepository;
         this.objectMapper = objectMapper;
     }
 
     @Override
     public TrainerDto save(Trainer trainer) {
         existingUsernames.add(trainer.getUsername());
-        return objectMapper.convertValue(trainerRepo.save(trainer), TrainerDto.class);
+        return objectMapper.convertValue(trainerRepository.save(trainer), TrainerDto.class);
     }
 
     @Override
     public TrainerDto update(Integer id, Trainer trainer) {
-        Trainer trainerById = trainerRepo.findById(id)
+        Trainer trainerById = trainerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Trainer not found"));
 
         if (check(trainer.getFirstName())) trainerById.setFirstName(trainer.getFirstName());
@@ -41,18 +41,18 @@ public class TrainerServiceImpl implements TrainerService {
 
         trainerById.setUsername(CredentialsGenerator.generateUsername(trainerById.getFirstName(), trainerById.getLastName()));
         trainerById.setPassword(CredentialsGenerator.generatePassword(trainerById.getUsername()));
-        return objectMapper.convertValue(trainerRepo.update(trainerById), TrainerDto.class);
+        return objectMapper.convertValue(trainerRepository.update(trainerById), TrainerDto.class);
     }
 
     @Override
     public void delete(Integer id) {
         existingUsernames.remove(findById(id).username());
-        trainerRepo.delete(id);
+        trainerRepository.delete(id);
     }
 
     @Override
     public List<TrainerDto> findAll() {
-        return trainerRepo.findAll()
+        return trainerRepository.findAll()
                 .stream()
                 .map(trainer ->
                         objectMapper.convertValue(trainer, TrainerDto.class))
@@ -61,7 +61,7 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     public TrainerDto findById(Integer id) {
-        return objectMapper.convertValue(trainerRepo.findById(id)
+        return objectMapper.convertValue(trainerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Trainer not found")), TrainerDto.class);
     }
 }

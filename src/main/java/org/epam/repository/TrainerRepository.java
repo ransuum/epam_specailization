@@ -5,7 +5,7 @@ import org.epam.models.entity.Trainer;
 import java.util.List;
 import java.util.Optional;
 
-public interface TrainerRepo extends CrudRepository<Integer, Trainer> {
+public interface TrainerRepository extends CrudRepository<Integer, Trainer> {
     Trainer save(Trainer trainer);
 
     Trainer update(Trainer trainer);

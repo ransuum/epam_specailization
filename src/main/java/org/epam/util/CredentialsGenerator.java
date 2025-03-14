@@ -9,7 +9,6 @@ import java.util.UUID;
 
 import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
 
-@Service
 public class CredentialsGenerator {
     private final static SecureRandom random = new SecureRandom();
     private static final Log log = LogFactory.getLog(CredentialsGenerator.class);

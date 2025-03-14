@@ -6,7 +6,7 @@ import org.apache.commons.logging.LogFactory;
 import org.epam.exception.EntityNotFoundException;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
-import org.epam.repository.TraineeRepo;
+import org.epam.repository.TraineeRepository;
 import org.epam.service.TraineeService;
 import org.epam.util.CredentialsGenerator;
 import org.springframework.stereotype.Service;
@@ -18,12 +18,12 @@ import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
 
 @Service
 public class TraineeServiceImpl implements TraineeService {
-    private final TraineeRepo traineeRepo;
+    private final TraineeRepository traineeRepository;
     private final ObjectMapper objectMapper;
     private static final Log log = LogFactory.getLog(TraineeServiceImpl.class);
 
-    public TraineeServiceImpl(TraineeRepo traineeRepo, ObjectMapper objectMapper) {
-        this.traineeRepo = traineeRepo;
+    public TraineeServiceImpl(TraineeRepository traineeRepository, ObjectMapper objectMapper) {
+        this.traineeRepository = traineeRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -31,13 +31,13 @@ public class TraineeServiceImpl implements TraineeService {
     public TraineeDto save(Trainee trainee) {
         log.info("Saving Trainee...");
         existingUsernames.add(trainee.getUsername());
-        return objectMapper.convertValue(traineeRepo.save(trainee), TraineeDto.class);
+        return objectMapper.convertValue(traineeRepository.save(trainee), TraineeDto.class);
     }
 
     @Override
     public TraineeDto update(Integer id, Trainee trainee) {
         log.info("update Trainee...");
-        Trainee traineeById = traineeRepo.findById(id)
+        Trainee traineeById = traineeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Trainee not found"));
 
         if (check(trainee.getAddress())) traineeById.setAddress(trainee.getAddress());
@@ -47,19 +47,19 @@ public class TraineeServiceImpl implements TraineeService {
 
         traineeById.setUsername(CredentialsGenerator.generateUsername(traineeById.getFirstName(), traineeById.getLastName()));
         traineeById.setPassword(CredentialsGenerator.generatePassword(traineeById.getUsername()));
-        return objectMapper.convertValue(traineeRepo.update(traineeById), TraineeDto.class);
+        return objectMapper.convertValue(traineeRepository.update(traineeById), TraineeDto.class);
     }
 
     @Override
     public void delete(Integer id) {
         log.info("delete Trainee...");
         existingUsernames.remove(findById(id).username());
-        traineeRepo.delete(id);
+        traineeRepository.delete(id);
     }
 
     @Override
     public List<TraineeDto> findAll() {
-        return traineeRepo.findAll()
+        return traineeRepository.findAll()
                 .stream()
                 .map(trainee ->
                         objectMapper.convertValue(trainee, TraineeDto.class))
@@ -68,7 +68,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     public TraineeDto findById(Integer id) {
-        return objectMapper.convertValue(traineeRepo.findById(id)
+        return objectMapper.convertValue(traineeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Trainee not found")), TraineeDto.class);
     }
 }

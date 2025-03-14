@@ -3,8 +3,9 @@ package org.epam.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
-import org.epam.repository.TrainerRepo;
+import org.epam.repository.TrainerRepository;
 import org.epam.service.impl.TrainerServiceImpl;
+import org.epam.util.CredentialsGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,7 +22,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class TrainerServiceTest {
     @Mock
-    private TrainerRepo trainerRepo;
+    private TrainerRepository trainerRepository;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -32,7 +33,7 @@ class TrainerServiceTest {
     @Test
     void testSaveTrainer_success() {
         Trainer trainer = new Trainer("Java", "John", "Doe", "johndoe", "password", true);
-        when(trainerRepo.save(trainer)).thenReturn(trainer);
+        when(trainerRepository.save(trainer)).thenReturn(trainer);
 
         TrainerDto dummyDto = mock(TrainerDto.class);
         when(objectMapper.convertValue(trainer, TrainerDto.class)).thenReturn(dummyDto);
@@ -40,17 +41,21 @@ class TrainerServiceTest {
         TrainerDto result = trainerService.save(trainer);
 
         assertEquals(dummyDto, result);
-        verify(trainerRepo, times(1)).save(trainer);
+        verify(trainerRepository, times(1)).save(trainer);
     }
 
     @Test
     void testUpdateTrainer_success() {
         Integer id = 1;
-        Trainer existingTrainer = new Trainer("Java", "John", "Doe", "johndoe", "password", true);
-        Trainer updateInfo = new Trainer("Python", "Jane", "Smith", "janesmith", "newpass", true);
+        String username = CredentialsGenerator.generateUsername("John", "Doe");
+        String password = CredentialsGenerator.generatePassword(username);
+        Trainer existingTrainer = new Trainer("Java", "John", "Doe", username, password, true);
+        String newUsername = CredentialsGenerator.generateUsername("Jane", "Smith");
+        String newPassword = CredentialsGenerator.generatePassword(newUsername);
+        Trainer updateInfo = new Trainer("Python", "Jane", "Smith", newUsername, newPassword, true);
 
-        when(trainerRepo.findById(id)).thenReturn(Optional.of(existingTrainer));
-        when(trainerRepo.update(any(Trainer.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(trainerRepository.findById(id)).thenReturn(Optional.of(existingTrainer));
+        when(trainerRepository.update(any(Trainer.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         TrainerDto dummyDto = mock(TrainerDto.class);
         when(objectMapper.convertValue(existingTrainer, TrainerDto.class)).thenReturn(dummyDto);
@@ -59,13 +64,12 @@ class TrainerServiceTest {
 
         assertEquals("Jane", existingTrainer.getFirstName());
         assertEquals("Smith", existingTrainer.getLastName());
-        assertEquals("janesmith", existingTrainer.getUsername());
-        assertEquals("newpass", existingTrainer.getPassword());
+        assertEquals(newUsername, existingTrainer.getUsername());
         assertEquals("Python", existingTrainer.getSpecialization());
         assertEquals(dummyDto, result);
 
-        verify(trainerRepo, times(1)).findById(id);
-        verify(trainerRepo, times(1)).update(existingTrainer);
+        verify(trainerRepository, times(1)).findById(id);
+        verify(trainerRepository, times(1)).update(existingTrainer);
     }
 
     @Test
@@ -73,12 +77,12 @@ class TrainerServiceTest {
         Integer id = 1;
         Trainer updateInfo = new Trainer("Python", "Jane", "Smith", "janesmith", "newpass", true);
 
-        when(trainerRepo.findById(id)).thenReturn(Optional.empty());
+        when(trainerRepository.findById(id)).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> trainerService.update(id, updateInfo));
         assertEquals("Trainer not found", exception.getMessage());
-        verify(trainerRepo, times(1)).findById(id);
+        verify(trainerRepository, times(1)).findById(id);
     }
 
     @Test
@@ -87,13 +91,13 @@ class TrainerServiceTest {
         Trainer trainer = new Trainer("Java", "John", "Doe", "johndoe", "password", true);
 
         TrainerDto dummyDto = mock(TrainerDto.class);
-        when(trainerRepo.findById(id)).thenReturn(Optional.of(trainer));
+        when(trainerRepository.findById(id)).thenReturn(Optional.of(trainer));
         when(objectMapper.convertValue(trainer, TrainerDto.class)).thenReturn(dummyDto);
         when(dummyDto.username()).thenReturn("johndoe");
 
         trainerService.delete(id);
 
-        verify(trainerRepo, times(1)).delete(id);
+        verify(trainerRepository, times(1)).delete(id);
     }
 
     @Test
@@ -105,14 +109,14 @@ class TrainerServiceTest {
         TrainerDto dto1 = mock(TrainerDto.class);
         TrainerDto dto2 = mock(TrainerDto.class);
 
-        when(trainerRepo.findAll()).thenReturn(trainers);
+        when(trainerRepository.findAll()).thenReturn(trainers);
         when(objectMapper.convertValue(trainer1, TrainerDto.class)).thenReturn(dto1);
         when(objectMapper.convertValue(trainer2, TrainerDto.class)).thenReturn(dto2);
 
         List<TrainerDto> result = trainerService.findAll();
         assertEquals(2, result.size());
         assertTrue(result.containsAll(Arrays.asList(dto1, dto2)));
-        verify(trainerRepo, times(1)).findAll();
+        verify(trainerRepository, times(1)).findAll();
     }
 
     @Test
@@ -121,22 +125,22 @@ class TrainerServiceTest {
         Trainer trainer = new Trainer("Java", "John", "Doe", "johndoe", "password", true);
 
         TrainerDto dummyDto = mock(TrainerDto.class);
-        when(trainerRepo.findById(id)).thenReturn(Optional.of(trainer));
+        when(trainerRepository.findById(id)).thenReturn(Optional.of(trainer));
         when(objectMapper.convertValue(trainer, TrainerDto.class)).thenReturn(dummyDto);
 
         TrainerDto result = trainerService.findById(id);
         assertEquals(dummyDto, result);
-        verify(trainerRepo, times(1)).findById(id);
+        verify(trainerRepository, times(1)).findById(id);
     }
 
     @Test
     void testFindTrainerById_notFound() {
         Integer id = 1;
-        when(trainerRepo.findById(id)).thenReturn(Optional.empty());
+        when(trainerRepository.findById(id)).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> trainerService.findById(id));
         assertEquals("Trainer not found", exception.getMessage());
-        verify(trainerRepo, times(1)).findById(id);
+        verify(trainerRepository, times(1)).findById(id);
     }
 }
