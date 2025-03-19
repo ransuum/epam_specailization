@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.SneakyThrows;
+import org.epam.models.enums.TrainingType;
 
 import java.util.List;
 
-public record TrainerDto(String id,
-                         UserDto user,
-                         String specialization,
-                         List<String> trainingsIds) {
+public record TrainingViewDto(String id,
+                              TrainingType trainingType,
+                              List<String> trainingsIds) {
 
     @Override
     public String toString() {

@@ -6,13 +6,14 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.SneakyThrows;
 
-import java.util.List;
+import java.time.LocalDate;
 
-public record TrainerDto(String id,
-                         UserDto user,
-                         String specialization,
-                         List<String> trainingsIds) {
-
+public record TrainingDtoForTrainee(String id,
+                                    TrainerDto trainer,
+                                    String trainingName,
+                                    TrainingViewDto trainingView,
+                                    LocalDate startTime,
+                                    Long duration) {
     @Override
     public String toString() {
         ObjectMapper objectMapper = new ObjectMapper();

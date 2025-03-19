@@ -1,17 +1,26 @@
-package org.epam.models.dto;
+package org.epam.models;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.SneakyThrows;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.epam.models.enums.UserType;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
-public record TrainerDto(String id,
-                         UserDto user,
-                         String specialization,
-                         List<String> trainingsIds) {
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class SecurityContextHolder {
+    private String username;
+    private String userId;
+    private LocalDateTime generateAt;
+    private LocalDateTime expiredAt;
+    private UserType userType;
 
     @Override
     public String toString() {
@@ -23,5 +32,4 @@ public record TrainerDto(String id,
             throw new RuntimeException(e.getMessage());
         }
     }
-
 }

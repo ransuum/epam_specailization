@@ -1,5 +1,5 @@
 package org.epam.models.enums;
 
 public enum TrainingType {
-    OFFLINE, ONLINE
+    SELF_PLACING, LABORATORY, FUNDAMENTALS
 }

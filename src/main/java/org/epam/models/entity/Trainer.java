@@ -1,23 +1,31 @@
 package org.epam.models.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 
-@Getter
-@Setter
-public class Trainer extends User {
+@NoArgsConstructor
+@Entity
+@Table(name = "trainer")
+@Data
+@Builder
+@AllArgsConstructor
+public class Trainer {
+    @Id
+    @Column(name = "id")
+    private String id;
+
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "id")
+    private User user;
+
     private String specialization;
 
-    private static final AtomicInteger counter = new AtomicInteger(1);
-    public Trainer(String specialization, String firstName, String lastName, String username, String password, Boolean isActive) {
-        super(counter.getAndIncrement(), firstName, lastName, username, password, isActive);
-        this.specialization = specialization;
-    }
-
-    public Trainer(String specialization, String firstName, String lastName, Boolean isActive) {
-        super(firstName, lastName, isActive);
-        this.specialization = specialization;
-    }
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Training> trainings;
 }
