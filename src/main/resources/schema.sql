@@ -39,7 +39,7 @@ create table trainer
 alter table trainer
     owner to postgres;
 
-create table training_view
+create table training_type
 (
     id            varchar(255) not null
         primary key,
@@ -48,6 +48,9 @@ create table training_view
             check ((training_type)::text = ANY
                    ((ARRAY ['SELF_PLACING'::character varying, 'LABORATORY'::character varying, 'FUNDAMENTALS'::character varying])::text[]))
 );
+
+alter table training_type
+    owner to postgres;
 
 create table training
 (
@@ -64,13 +67,10 @@ create table training
             references trainer,
     training_view_id varchar(255) not null
         constraint fka1js7wvjlmdha696irgy6m37x
-            references training_view
+            references training_type
 );
 
 alter table training
-    owner to postgres;
-
-alter table training_view
     owner to postgres;
 
 INSERT INTO users (id, first_name, last_name, username, password, is_active)
@@ -87,7 +87,7 @@ INSERT INTO trainer (id, specialization)
 VALUES ('uuid3', 'Yoga'),
        ('uuid4', 'Strength Training');
 
-INSERT INTO training_view (id, training_type)
+INSERT INTO training_type (id, training_type)
 VALUES ('view1', 'SELF_PLACING'),
        ('view2', 'LABORATORY'),
        ('view3', 'FUNDAMENTALS');

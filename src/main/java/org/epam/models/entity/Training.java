@@ -8,34 +8,34 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-    @NoArgsConstructor
-    @Entity
-    @Table(name = "training")
-    @Data
-    @Builder
-    @AllArgsConstructor
-    public class Training {
-        @Id
-        @GeneratedValue(strategy = GenerationType.UUID)
-        @Column(nullable = false, updatable = false)
-        private String id;
+@NoArgsConstructor
+@Entity
+@Table(name = "training")
+@Data
+@Builder
+@AllArgsConstructor
+public class Training {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false, updatable = false)
+    private String id;
 
-        @ManyToOne
-        @JoinColumn(referencedColumnName = "id", nullable = false, name = "trainee_id")
-        private Trainee trainee;
+    @ManyToOne
+    @JoinColumn(referencedColumnName = "id", nullable = false, name = "trainee_id")
+    private Trainee trainee;
 
-        @ManyToOne
-        @JoinColumn(referencedColumnName = "id", nullable = false, name = "trainer_id")
-        private Trainer trainer;
+    @ManyToOne
+    @JoinColumn(referencedColumnName = "id", nullable = false, name = "trainer_id")
+    private Trainer trainer;
 
-        @Column(nullable = false, name = "training_name")
-        private String trainingName;
+    @Column(nullable = false, name = "training_name")
+    private String trainingName;
 
-        @ManyToOne
-        @JoinColumn(referencedColumnName = "id", nullable = false, name = "training_view_id")
-        private TrainingView trainingView;
+    @ManyToOne
+    @JoinColumn(referencedColumnName = "id", nullable = false, name = "training_view_id")
+    private TrainingView trainingView;
 
-        private LocalDate startTime;
+    private LocalDate startTime;
 
-        private Long duration;
-    }
+    private Long duration;
+}

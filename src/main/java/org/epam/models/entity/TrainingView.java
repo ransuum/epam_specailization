@@ -11,7 +11,7 @@ import java.util.List;
 
 @NoArgsConstructor
 @Entity
-@Table(name = "training_view")
+@Table(name = "training_type")
 @Data
 @Builder
 @AllArgsConstructor
