@@ -64,7 +64,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public TraineeDto findById(String id) throws NotFoundException {
         return TraineeMapper.INSTANCE.toDto(traineeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Trainee not found with id " + id)));
+                .orElseThrow(() -> new NotFoundException("User not found with this credentials")));
 
     }
 

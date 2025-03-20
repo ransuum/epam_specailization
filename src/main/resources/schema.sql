@@ -92,7 +92,7 @@ VALUES ('view1', 'SELF_PLACING'),
        ('view2', 'LABORATORY'),
        ('view3', 'FUNDAMENTALS');
 
-INSERT INTO training (id, duration, starttime, training_name, trainee_id, trainer_id, training_view_id)
+INSERT INTO training (id, duration, start_time, training_name, trainee_id, trainer_id, training_view_id)
 VALUES ('training1', 60, '2025-04-01', 'Morning Yoga', 'uuid1', 'uuid3', 'view1'),
        ('training2', 90, '2025-04-02', 'Evening Strength', 'uuid2', 'uuid4', 'view2'),
        ('training3', 45, '2025-04-03', 'Beginner Fundamentals', 'uuid1', 'uuid4', 'view3');

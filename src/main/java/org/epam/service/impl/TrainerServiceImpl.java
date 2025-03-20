@@ -66,7 +66,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     public TrainerDto findById(String id) throws NotFoundException {
         return TrainerMapper.INSTANCE.toDto(trainerRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Trainer not found")));
+                .orElseThrow(() -> new NotFoundException("User not found with this credentials")));
     }
 
     @Override

@@ -77,6 +77,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto findByUsername(String username) throws NotFoundException {
         return UserMapper.INSTANCE.toDto(userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found")));
+                .orElseThrow(() -> new NotFoundException("There is no user with this username!")));
     }
 }
