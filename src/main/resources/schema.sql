@@ -54,7 +54,7 @@ create table training
     id               varchar(255) not null
         primary key,
     duration         bigint,
-    starttime        date,
+    start_time        date,
     training_name    varchar(255) not null,
     trainee_id       varchar(255) not null
         constraint fkqetaw250jxb3witc7rewif68g
@@ -70,30 +70,29 @@ create table training
 alter table training
     owner to postgres;
 
-
 alter table training_view
     owner to postgres;
 
-INSERT INTO users (id, first_name, last_name, username, password, is_active) VALUES
-                                                                                 ('uuid1', 'John', 'Doe', 'johndoe', 'password123', TRUE),
-                                                                                 ('uuid2', 'Jane', 'Smith', 'janesmith', 'password456', TRUE),
-                                                                                 ('uuid3', 'Mike', 'Johnson', 'mikejohnson', 'password789', TRUE),
-                                                                                 ('uuid4', 'Emily', 'Davis', 'emilydavis', 'password987', TRUE);
+INSERT INTO users (id, first_name, last_name, username, password, is_active)
+VALUES ('uuid1', 'John', 'Doe', 'johndoe', 'password123', TRUE),
+       ('uuid2', 'Jane', 'Smith', 'janesmith', 'password456', TRUE),
+       ('uuid3', 'Mike', 'Johnson', 'mikejohnson', 'password789', TRUE),
+       ('uuid4', 'Emily', 'Davis', 'emilydavis', 'password987', TRUE);
 
-INSERT INTO trainee (id, address, date_of_birth) VALUES
-                                                     ('uuid1', '123 Elm Street', '1990-01-01'),
-                                                     ('uuid2', '456 Oak Avenue', '1995-06-15');
+INSERT INTO trainee (id, address, date_of_birth)
+VALUES ('uuid1', '123 Elm Street', '1990-01-01'),
+       ('uuid2', '456 Oak Avenue', '1995-06-15');
 
-INSERT INTO trainer (id, specialization) VALUES
-                                             ('uuid3', 'Yoga'),
-                                             ('uuid4', 'Strength Training');
+INSERT INTO trainer (id, specialization)
+VALUES ('uuid3', 'Yoga'),
+       ('uuid4', 'Strength Training');
 
-INSERT INTO training_view (id, training_type) VALUES
-                                                  ('view1', 'SELF_PLACING'),
-                                                  ('view2', 'LABORATORY'),
-                                                  ('view3', 'FUNDAMENTALS');
+INSERT INTO training_view (id, training_type)
+VALUES ('view1', 'SELF_PLACING'),
+       ('view2', 'LABORATORY'),
+       ('view3', 'FUNDAMENTALS');
 
-INSERT INTO training (id, duration, starttime, training_name, trainee_id, trainer_id, training_view_id) VALUES
-                                                                                                            ('training1', 60, '2025-04-01', 'Morning Yoga', 'uuid1', 'uuid3', 'view1'),
-                                                                                                            ('training2', 90, '2025-04-02', 'Evening Strength', 'uuid2', 'uuid4', 'view2'),
-                                                                                                            ('training3', 45, '2025-04-03', 'Beginner Fundamentals', 'uuid1', 'uuid4', 'view3');
+INSERT INTO training (id, duration, starttime, training_name, trainee_id, trainer_id, training_view_id)
+VALUES ('training1', 60, '2025-04-01', 'Morning Yoga', 'uuid1', 'uuid3', 'view1'),
+       ('training2', 90, '2025-04-02', 'Evening Strength', 'uuid2', 'uuid4', 'view2'),
+       ('training3', 45, '2025-04-03', 'Beginner Fundamentals', 'uuid1', 'uuid4', 'view3');

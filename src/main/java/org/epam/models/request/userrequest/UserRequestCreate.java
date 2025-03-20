@@ -1,4 +1,4 @@
-package org.epam.models.request.userRequest;
+package org.epam.models.request.userrequest;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

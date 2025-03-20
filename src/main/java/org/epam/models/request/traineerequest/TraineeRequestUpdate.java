@@ -1,4 +1,4 @@
-package org.epam.models.request.traineeRequest;
+package org.epam.models.request.traineerequest;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

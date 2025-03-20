@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
@@ -62,20 +63,26 @@ public class Menu {
 
     private void processMainMenuChoice(int choice) {
         scanner.nextLine();
-        Boolean forTrainee = securityContextHolder != null ?
-                securityContextHolder.getUserType().equals(UserType.TRAINEE) : null;
-        Boolean forTrainer = securityContextHolder != null ?
-                securityContextHolder.getUserType().equals(UserType.TRAINER) : null;
+        Boolean forTrainee = Objects.requireNonNull(securityContextHolder)
+                .getUserType().equals(UserType.TRAINEE);
+        Boolean forTrainer = Objects.requireNonNull(securityContextHolder)
+                .getUserType().equals(UserType.TRAINER);
         switch (choice) {
             case 1:
-                chooserIntegerMap.get(1).show(scanner, securityContextHolder);
+                try {
+                    if (checkForContext(forTrainee, forTrainer))
+                        chooserIntegerMap.get(1).show(scanner, securityContextHolder);
+                    else throw new PermissionException("Permission denied please authorize");
+                } catch (Exception e) {
+                    log.error("Security exception with user: {}", e.getMessage());
+                }
                 break;
             case 2:
                 try {
                     if (Boolean.TRUE.equals(forTrainee))
                         chooserIntegerMap.get(2).show(scanner, securityContextHolder);
                     else throw new PermissionException("Permission denied");
-                } catch (PermissionException e) {
+                } catch (Exception e) {
                     log.error("Security exception with Trainee: {}", e.getMessage());
                 }
                 break;
@@ -90,16 +97,16 @@ public class Menu {
                 break;
             case 4:
                 try {
-                    if (forTrainer != null)
+                    if (checkForContext(forTrainee, forTrainer))
                         chooserIntegerMap.get(4).show(scanner, securityContextHolder);
                     else throw new PermissionException("Permission denied please authorize");
                 } catch (PermissionException e) {
-                    log.error("Security exception: {}", e.getMessage());
+                    log.error("Security exception with training: {}", e.getMessage());
                 }
                 break;
             case 5:
                 try {
-                    if (forTrainer != null)
+                    if (checkForContext(forTrainee, forTrainer))
                         chooserIntegerMap.get(5).show(scanner, securityContextHolder);
                     else throw new PermissionException("Permission denied please authorize");
                 } catch (PermissionException e) {
@@ -118,5 +125,9 @@ public class Menu {
                 log.error("Invalid choice. Please try again.");
                 break;
         }
+    }
+
+    private boolean checkForContext(Boolean forTrainee, Boolean forTrainer) {
+        return forTrainee || forTrainer;
     }
 }

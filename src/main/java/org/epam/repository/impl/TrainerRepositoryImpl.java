@@ -1,8 +1,6 @@
-package org.epam.repository.inmemoryrepository;
+package org.epam.repository.impl;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.PersistenceUnit;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,12 +13,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class InMemoryTrainerRepository implements TrainerRepository {
-    private static final Logger logger = LogManager.getLogger(InMemoryTrainerRepository.class);
+public class TrainerRepositoryImpl implements TrainerRepository {
+    private static final Logger logger = LogManager.getLogger(TrainerRepositoryImpl.class);
 
     private final EntityManager entityManager;
 
-    public InMemoryTrainerRepository(EntityManager entityManager) {
+    public TrainerRepositoryImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
@@ -45,14 +43,10 @@ public class InMemoryTrainerRepository implements TrainerRepository {
     @Override
     @Transactional
     public void delete(String id) {
-        try {
-            Trainer trainer = findById(id).orElseThrow(()
-                    -> new NotFoundException("Not found trainer by id: " + id));
-            if (entityManager.contains(trainer)) entityManager.remove(trainer);
-            else entityManager.merge(trainer);
-        } catch (NotFoundException e) {
-            logger.error("Error in deleting trainee: {}", e.getMessage());
-        }
+        Trainer trainer = findById(id).orElseThrow(()
+                -> new NotFoundException("Not found trainer by id: " + id));
+        if (entityManager.contains(trainer)) entityManager.remove(trainer);
+        else entityManager.merge(trainer);
     }
 
     @Override

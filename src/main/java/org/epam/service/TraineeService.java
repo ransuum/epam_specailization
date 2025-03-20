@@ -1,29 +1,32 @@
 package org.epam.service;
 
 
+import org.epam.exception.CredentialException;
+import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TraineeDto;
-import org.epam.models.request.traineeRequest.TraineeRequestCreate;
-import org.epam.models.request.traineeRequest.TraineeRequestUpdate;
+import org.epam.models.request.traineerequest.TraineeRequestCreate;
+import org.epam.models.request.traineerequest.TraineeRequestUpdate;
 
 import java.util.List;
 
 public interface TraineeService {
-    TraineeDto save(TraineeRequestCreate request);
+    TraineeDto save(TraineeRequestCreate request) throws NotFoundException;
 
-    TraineeDto update(String id, TraineeRequestUpdate request);
+    TraineeDto update(String id, TraineeRequestUpdate request) throws NotFoundException;
 
-    void delete(String id);
+    void delete(String id) throws NotFoundException;
 
     List<TraineeDto> findAll();
 
-    TraineeDto findById(String id);
+    TraineeDto findById(String id) throws NotFoundException;
 
-    TraineeDto changePassword(String id, String oldPassword, String newPassword);
+    TraineeDto changePassword(String id, String oldPassword, String newPassword) throws NotFoundException, CredentialException;
 
-    TraineeDto findByUsername(String username);
+    TraineeDto findByUsername(String username) throws NotFoundException;
 
-    String deleteByUsername(String username);
-    TraineeDto activateAction(String username);
+    String deleteByUsername(String username) throws NotFoundException;
 
-    TraineeDto deactivateAction(String username);
+    TraineeDto activateAction(String username) throws NotFoundException;
+
+    TraineeDto deactivateAction(String username) throws NotFoundException;
 }

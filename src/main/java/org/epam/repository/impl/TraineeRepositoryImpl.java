@@ -1,27 +1,24 @@
-package org.epam.repository.inmemoryrepository;
+package org.epam.repository.impl;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainee;
 import org.epam.repository.TraineeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class InMemoryTraineeRepository implements TraineeRepository {
-    private static final Logger logger = LogManager.getLogger(InMemoryTraineeRepository.class);
+public class TraineeRepositoryImpl implements TraineeRepository {
+    private static final Logger logger = LogManager.getLogger(TraineeRepositoryImpl.class);
 
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
-    @Autowired
-    public void setEntityManager(EntityManager entityManager) {
+    public TraineeRepositoryImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
@@ -61,16 +58,11 @@ public class InMemoryTraineeRepository implements TraineeRepository {
     }
 
     @Override
-    public String deleteByUsername(String username) {
-        try {
-            var trainee = findByUsername(username)
-                    .orElseThrow(() -> new NotFoundException("Trainee not found"));
-            entityManager.remove(trainee);
-            return username;
-        } catch (NotFoundException e) {
-            logger.error("Error deleting trainer by username: {}", e.getMessage());
-            return "please try again";
-        }
+    public String deleteByUsername(String username) throws NotFoundException {
+        var trainee = findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Trainee not found"));
+        entityManager.remove(trainee);
+        return username;
 
     }
 
@@ -82,15 +74,12 @@ public class InMemoryTraineeRepository implements TraineeRepository {
 
     @Override
     @Transactional
-    public void delete(String id) {
-        try {
-            Trainee trainee = findById(id).orElseThrow(()
-                    -> new NotFoundException("Not found trainee by id: " + id));
-            if (entityManager.contains(trainee)) entityManager.remove(trainee);
-            else entityManager.merge(trainee);
-        } catch (NotFoundException e) {
-            logger.error("Error deleting trainee: {}", e.getMessage());
-        }
+    public void delete(String id) throws NotFoundException {
+        var trainee = findById(id).orElseThrow(()
+                -> new NotFoundException("Not found trainee by id: " + id));
+        if (entityManager.contains(trainee)) entityManager.remove(trainee);
+        else entityManager.merge(trainee);
+
     }
 
     @Override

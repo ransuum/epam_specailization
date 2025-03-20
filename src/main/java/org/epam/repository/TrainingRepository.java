@@ -1,6 +1,7 @@
 package org.epam.repository;
 
 
+import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Training;
 import org.epam.models.enums.TrainingType;
 
@@ -13,7 +14,7 @@ public interface TrainingRepository extends CrudRepository<String, Training> {
 
     Optional<Training> findById(String id);
 
-    void delete(String id);
+    void delete(String id) throws NotFoundException;
 
     List<Training> findAll();
 

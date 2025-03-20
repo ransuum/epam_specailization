@@ -2,9 +2,7 @@ package org.epam.models.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.SneakyThrows;
 import org.epam.models.enums.TrainingType;
 
 import java.util.List;
@@ -23,5 +21,4 @@ public record TrainingViewDto(String id,
             throw new RuntimeException(e.getMessage());
         }
     }
-
 }

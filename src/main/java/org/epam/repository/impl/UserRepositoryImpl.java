@@ -1,7 +1,6 @@
-package org.epam.repository.inmemoryrepository;
+package org.epam.repository.impl;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,14 +13,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class InMemoryUserRepository implements UserRepository {
+public class UserRepositoryImpl implements UserRepository {
     private final EntityManager entityManager;
 
-    public InMemoryUserRepository(EntityManager entityManager) {
+    public UserRepositoryImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
-    private static final Logger log = LogManager.getLogger(InMemoryUserRepository.class);
+    private static final Logger log = LogManager.getLogger(UserRepositoryImpl.class);
 
     @Override
     @Transactional
@@ -43,15 +42,12 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     @Transactional
-    public void delete(String id) {
-        try {
-            User user = findById(id).orElseThrow(()
-                    -> new NotFoundException("Not found trainingView by id: " + id));
-            if (entityManager.contains(user)) entityManager.remove(user);
-            else entityManager.merge(user);
-        } catch (NotFoundException e) {
-            log.error("Not found user by id: {}", id);
-        }
+    public void delete(String id) throws NotFoundException {
+        User user = findById(id).orElseThrow(()
+                -> new NotFoundException("Not found trainingView by id: " + id));
+        if (entityManager.contains(user)) entityManager.remove(user);
+        else entityManager.merge(user);
+
     }
 
     @Override
@@ -65,6 +61,13 @@ public class InMemoryUserRepository implements UserRepository {
                         "SELECT COUNT(u) > 0 FROM User u WHERE u.username = :username", Boolean.class)
                 .setParameter("username", username)
                 .getSingleResult();
+    }
+
+    @Override
+    public Optional<User> findByUsername(String username) {
+        return Optional.ofNullable(entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+                .setParameter("username", username)
+                .getSingleResult());
     }
 
     @Override

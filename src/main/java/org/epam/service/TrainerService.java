@@ -1,6 +1,8 @@
 package org.epam.service;
 
 
+import org.epam.exception.CredentialException;
+import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.request.trainerrequest.TrainerRequestCreate;
 import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
@@ -8,21 +10,21 @@ import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
 import java.util.List;
 
 public interface TrainerService {
-    TrainerDto save(TrainerRequestCreate request);
+    TrainerDto save(TrainerRequestCreate request) throws NotFoundException;
 
-    TrainerDto update(String id, TrainerRequestUpdate request);
+    TrainerDto update(String id, TrainerRequestUpdate request) throws NotFoundException;
 
-    void delete(String id);
+    void delete(String id) throws NotFoundException;
 
-    List<TrainerDto> findAll();
+    List<TrainerDto> findAll() throws NotFoundException;
 
-    TrainerDto findById(String id);
+    TrainerDto findById(String id) throws NotFoundException;
 
-    TrainerDto changePassword(String id, String oldPassword, String newPassword);
+    TrainerDto changePassword(String id, String oldPassword, String newPassword) throws NotFoundException, CredentialException;
 
-    TrainerDto findByUsername(String username);
+    TrainerDto findByUsername(String username) throws NotFoundException;
 
-    TrainerDto activateAction(String username);
+    TrainerDto activateAction(String username) throws NotFoundException;
 
-    TrainerDto deactivateAction(String username);
+    TrainerDto deactivateAction(String username) throws NotFoundException;
 }

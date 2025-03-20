@@ -1,5 +1,7 @@
 package org.epam.controller;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.epam.models.SecurityContextHolder;
 import org.epam.models.enums.UserType;
 import org.epam.service.AuthenticationService;
@@ -11,6 +13,7 @@ import java.util.Scanner;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final SecurityContextHolder securityContextHolder;
+    private static final Logger logger = LogManager.getLogger(AuthenticationController.class);
 
     public AuthenticationController(AuthenticationService authenticationService,
                                     SecurityContextHolder securityContextHolder) {
@@ -19,19 +22,24 @@ public class AuthenticationController {
     }
 
     public SecurityContextHolder authenticate(Scanner scanner) {
-        System.out.print("Please enter your username: ");
-        String username = scanner.next();
-        System.out.print("Please enter your password: ");
-        String password = scanner.next();
+        try {
+            System.out.print("Please enter your username: ");
+            String username = scanner.next();
+            System.out.print("Please enter your password: ");
+            String password = scanner.next();
 
-        SecurityContextHolder temp = authenticationService.authenticate(username, password);
+            SecurityContextHolder temp = authenticationService.authenticate(username, password);
 
-        this.securityContextHolder.setUsername(temp.getUsername());
-        this.securityContextHolder.setUserId(temp.getUserId());
-        this.securityContextHolder.setGenerateAt(temp.getGenerateAt());
-        this.securityContextHolder.setExpiredAt(temp.getExpiredAt());
-        this.securityContextHolder.setUserType(temp.getUserType());
-        return this.securityContextHolder;
+            this.securityContextHolder.setUsername(temp.getUsername());
+            this.securityContextHolder.setUserId(temp.getUserId());
+            this.securityContextHolder.setGenerateAt(temp.getGenerateAt());
+            this.securityContextHolder.setExpiredAt(temp.getExpiredAt());
+            this.securityContextHolder.setUserType(temp.getUserType());
+            return this.securityContextHolder;
+        } catch (Exception e) {
+            logger.error("Authentication failed: {}", e.getMessage());
+            return this.securityContextHolder;
+        }
     }
 
     public SecurityContextHolder logout() {

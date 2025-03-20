@@ -23,5 +23,4 @@ public record TraineeDto(String id,
             throw new RuntimeException(e.getMessage());
         }
     }
-
 }

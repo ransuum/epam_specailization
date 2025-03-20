@@ -1,9 +1,5 @@
 package org.epam.service.impl;
 
-
-import jakarta.persistence.EntityManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
@@ -23,7 +19,6 @@ import static org.epam.utils.CheckerField.check;
 
 @Service
 public class TrainerServiceImpl implements TrainerService {
-    private static final Logger log = LogManager.getLogger(TrainerServiceImpl.class);
     private final TrainerRepository trainerRepository;
     private final UserRepository userRepository;
 
@@ -33,44 +28,31 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public TrainerDto save(TrainerRequestCreate request) {
-        try {
-            return TrainerMapper.INSTANCE.toDto(trainerRepository.save(
-                    Trainer.builder()
-                            .user(userRepository.findById(request.userId())
-                                    .orElseThrow(() -> new NotFoundException("User not found")))
-                            .specialization(request.specialization())
-                            .build())
-            );
-        } catch (NotFoundException e) {
-            log.error("User not found with this id: {}", request.userId());
-            return null;
-        }
+    public TrainerDto save(TrainerRequestCreate request) throws NotFoundException {
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.save(
+                Trainer.builder()
+                        .user(userRepository.findById(request.userId())
+                                .orElseThrow(() -> new NotFoundException("User not found")))
+                        .specialization(request.specialization())
+                        .build())
+        );
     }
 
     @Override
     public TrainerDto update(String id, TrainerRequestUpdate request) throws NotFoundException {
-        try {
-            var trainer = trainerRepository.findById(id)
-                    .orElseThrow(() -> new NotFoundException("Trainer not found"));
+        var trainer = trainerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
-            if (check(request.specialization())) trainer.setSpecialization(request.specialization());
-            if (check(request.userId())) trainer.setUser(userRepository.findById(request.userId())
-                    .orElseThrow(() -> new NotFoundException("User not found")));
-            return TrainerMapper.INSTANCE.toDto(trainerRepository.update(id, trainer));
-        } catch (NotFoundException e) {
-            log.error("Something went wrong with update: {}", e.getMessage());
-            return null;
-        }
+        if (check(request.specialization())) trainer.setSpecialization(request.specialization());
+        if (check(request.userId())) trainer.setUser(userRepository.findById(request.userId())
+                .orElseThrow(() -> new NotFoundException("User not found")));
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.update(id, trainer));
     }
 
     @Override
-    public void delete(String id) {
-        try {
-            trainerRepository.delete(id);
-        } catch (NotFoundException e) {
-            log.error("Trainer not found with id with delete: {}", id);
-        }
+    public void delete(String id) throws NotFoundException {
+        trainerRepository.delete(id);
+
     }
 
     @Override
@@ -82,48 +64,34 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public TrainerDto findById(String id) {
-        try {
-            return TrainerMapper.INSTANCE.toDto(trainerRepository.findById(id)
-                    .orElseThrow(() -> new NotFoundException("Trainer not found")));
-        } catch (NotFoundException e) {
-            log.error("Trainer not found with id: {}", id);
-            return null;
-        }
+    public TrainerDto findById(String id) throws NotFoundException {
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Trainer not found")));
     }
 
     @Override
-    public TrainerDto changePassword(String id, String oldPassword, String newPassword) {
-        try {
-            var trainer = trainerRepository.findById(id)
-                    .orElseThrow(() -> new NotFoundException("Trainer not found"));
+    public TrainerDto changePassword(String id, String oldPassword, String newPassword) throws NotFoundException, CredentialException {
+        var trainer = trainerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
-            if (!trainer.getUser().getPassword().equals(oldPassword))
-                throw new CredentialException("Old password do not match");
+        if (!trainer.getUser().getPassword().equals(oldPassword))
+            throw new CredentialException("Old password do not match");
 
-            var user = trainer.getUser();
-            user.setPassword(newPassword);
-            userRepository.update(user.getId(), user);
-            return TrainerMapper.INSTANCE.toDto(trainer);
-        } catch (NotFoundException | CredentialException e) {
-            log.error("Something went wrong with change password: {}", e.getMessage());
-            return null;
-        }
+        var user = trainer.getUser();
+        user.setPassword(newPassword);
+        userRepository.update(user.getId(), user);
+        return TrainerMapper.INSTANCE.toDto(trainer);
     }
 
     @Override
-    public TrainerDto findByUsername(String username) {
-        try {
-            return TrainerMapper.INSTANCE.toDto(trainerRepository.findByUsername(username)
-                    .orElseThrow(() -> new NotFoundException("Trainer not found")));
-        } catch (NotFoundException e) {
-            log.error("Erorr when trying to find trainer with username: {}", username);
-            return null;
-        }
+    public TrainerDto findByUsername(String username) throws NotFoundException {
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Trainer not found")));
+
     }
 
     @Override
-    public TrainerDto activateAction(String username) {
+    public TrainerDto activateAction(String username) throws NotFoundException {
         var trainer = trainerRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
@@ -134,7 +102,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public TrainerDto deactivateAction(String username) {
+    public TrainerDto deactivateAction(String username) throws NotFoundException {
         var trainer = trainerRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
 

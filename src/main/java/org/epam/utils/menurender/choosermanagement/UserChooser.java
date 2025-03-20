@@ -27,11 +27,10 @@ public class UserChooser implements Chooser {
 
         while (userMenuRunning) {
             System.out.println("\n===== USER MANAGEMENT =====");
-            System.out.println("1. Create User");
-            System.out.println("2. Find User by ID");
-            System.out.println("3. Update User");
-            System.out.println("4. Delete User");
-            System.out.println("5. List All Users");
+            System.out.println("1. Find User by ID");
+            System.out.println("2. Update User");
+            System.out.println("3. Delete User");
+            System.out.println("4. List All Users");
             System.out.println("0. Back to Main Menu");
             System.out.print("Enter your choice: ");
 
@@ -40,15 +39,6 @@ public class UserChooser implements Chooser {
             switch (choice) {
                 case 1:
                     try {
-                        UserDto newUser = transExec.executeWithTransaction(()
-                                -> userController.createUser(scanner));
-                        System.out.println("User created: " + newUser);
-                    } catch (Exception e) {
-                        System.out.println("Error creating user: " + e.getMessage());
-                    }
-                    break;
-                case 2:
-                    try {
                         UserDto user = transExec.executeWithTransaction(()
                                 -> userController.getUser(securityContextHolder.getUserId()));
                         System.out.println("Found user: " + user);
@@ -56,7 +46,7 @@ public class UserChooser implements Chooser {
                         System.out.println("Error finding user: " + e.getMessage());
                     }
                     break;
-                case 3:
+                case 2:
                     try {
                         UserDto updatedUser = transExec.executeWithTransaction(()
                                 -> userController.updateUser(securityContextHolder.getUserId(), scanner));
@@ -65,7 +55,7 @@ public class UserChooser implements Chooser {
                         System.out.println("Error updating user: " + e.getMessage());
                     }
                     break;
-                case 4:
+                case 3:
                     try {
                         transExec.executeVoidWithTransaction(() -> userController.deleteUser(scanner));
                         System.out.println("User deleted successfully");
@@ -73,7 +63,7 @@ public class UserChooser implements Chooser {
                         System.out.println("Error deleting user: " + e.getMessage());
                     }
                     break;
-                case 5:
+                case 4:
                     try {
                         transExec.executeVoidWithTransaction(userController::findAll);
                     } catch (Exception e) {

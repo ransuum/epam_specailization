@@ -1,8 +1,5 @@
 package org.epam.service.impl;
 
-import jakarta.persistence.EntityManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainingDto;
 import org.epam.models.dto.TrainingDtoForTrainee;
@@ -26,7 +23,6 @@ import static org.epam.utils.CheckerField.check;
 
 @Service
 public class TrainingServiceImpl implements TrainingService {
-    private static final Logger log = LogManager.getLogger(TrainingServiceImpl.class);
     private final TrainingRepository trainingRepository;
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
@@ -41,65 +37,52 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public TrainingDto save(TrainingRequestCreate request) {
-        try {
-            var trainer = trainerRepository.findById(request.trainerId())
-                    .orElseThrow(() -> new NotFoundException("Trainer not found"));
-            var trainee = traineeRepository.findById(request.traineeId())
-                    .orElseThrow(() -> new NotFoundException("Trainee not found"));
-            var trainingView = trainingViewRepository.findById(request.trainingViewId())
-                    .orElseThrow(() -> new NotFoundException("Training view not found"));
+    public TrainingDto save(TrainingRequestCreate request) throws NotFoundException {
+        var trainer = trainerRepository.findById(request.trainerId())
+                .orElseThrow(() -> new NotFoundException("Trainer not found"));
+        var trainee = traineeRepository.findById(request.traineeId())
+                .orElseThrow(() -> new NotFoundException("Trainee not found"));
+        var trainingView = trainingViewRepository.findById(request.trainingViewId())
+                .orElseThrow(() -> new NotFoundException("Training view not found"));
 
-            return TrainingMapper.INSTANCE.toDto(trainingRepository.save(
-                    Training.builder()
-                            .trainer(trainer)
-                            .trainee(trainee)
-                            .trainingView(trainingView)
-                            .trainingName(request.trainingName())
-                            .startTime(request.startTime())
-                            .duration(request.duration())
-                            .build())
-            );
-        } catch (NotFoundException e) {
-            log.error("Something went wrong with create Training: {}", e.getMessage());
-            return null;
-        }
+        return TrainingMapper.INSTANCE.toDto(trainingRepository.save(
+                Training.builder()
+                        .trainer(trainer)
+                        .trainee(trainee)
+                        .trainingView(trainingView)
+                        .trainingName(request.trainingName())
+                        .startTime(request.startTime())
+                        .duration(request.duration())
+                        .build())
+        );
     }
 
     @Override
-    public TrainingDto update(String id, TrainingRequestUpdate request) {
-        try {
-            var training = trainingRepository.findById(id)
-                    .orElseThrow(() -> new NotFoundException("Training not found"));
+    public TrainingDto update(String id, TrainingRequestUpdate request) throws NotFoundException {
+        var training = trainingRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Training not found"));
 
-            if (check(request.traineeId()))
-                training.setTrainee(traineeRepository.findById(id)
-                        .orElseThrow(() -> new NotFoundException("Trainee not found")));
+        if (check(request.traineeId()))
+            training.setTrainee(traineeRepository.findById(id)
+                    .orElseThrow(() -> new NotFoundException("Trainee not found")));
 
-            if (check(request.trainerId()))
-                training.setTrainer(trainerRepository.findById(id)
-                        .orElseThrow(() -> new NotFoundException("Trainer not found")));
+        if (check(request.trainerId()))
+            training.setTrainer(trainerRepository.findById(id)
+                    .orElseThrow(() -> new NotFoundException("Trainer not found")));
 
-            if (check(request.trainingViewId()))
-                training.setTrainingView(trainingViewRepository.findById(request.trainingViewId())
-                        .orElseThrow(() -> new NotFoundException("Training view not found")));
+        if (check(request.trainingViewId()))
+            training.setTrainingView(trainingViewRepository.findById(request.trainingViewId())
+                    .orElseThrow(() -> new NotFoundException("Training view not found")));
 
-            if (check(request.trainingName())) training.setTrainingName(request.trainingName());
-            if (check(request.duration())) training.setDuration(request.duration());
-            return TrainingMapper.INSTANCE.toDto(trainingRepository.save(training));
-        } catch (NotFoundException e) {
-            log.error("Something went wrong with update: {}", e.getMessage());
-            return null;
-        }
+        if (check(request.trainingName())) training.setTrainingName(request.trainingName());
+        if (check(request.duration())) training.setDuration(request.duration());
+        return TrainingMapper.INSTANCE.toDto(trainingRepository.save(training));
     }
 
     @Override
-    public void delete(String id) {
-        try {
-            trainingRepository.delete(id);
-        } catch (NotFoundException e) {
-            log.error("Training with id not found that why it can't delete with this id: {}", id);
-        }
+    public void delete(String id) throws NotFoundException {
+        trainingRepository.delete(id);
+
     }
 
     @Override
@@ -111,14 +94,9 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public TrainingDto findById(String id) {
-        try {
-            return TrainingMapper.INSTANCE.toDto(trainingRepository.findById(id)
-                    .orElseThrow(() -> new NotFoundException("Trainee not found by id " + id)));
-        } catch (NotFoundException e) {
-            log.error("Training with id not found: {}", id);
-            return null;
-        }
+    public TrainingDto findById(String id) throws NotFoundException {
+        return TrainingMapper.INSTANCE.toDto(trainingRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Trainee not found by id " + id)));
     }
 
     @Override
