@@ -1,6 +1,7 @@
 package org.epam.utils.mappers;
 
 import org.epam.models.dto.TrainingViewDto;
+import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
 import org.epam.models.entity.TrainingView;
 import org.mapstruct.Mapper;
@@ -17,6 +18,7 @@ public interface TrainingViewMapper {
     TrainingViewMapper INSTANCE = Mappers.getMapper(TrainingViewMapper.class);
 
     @Mapping(target = "trainingsIds", source = "trainings", qualifiedByName = "toTrainingIds")
+    @Mapping(target = "specializationIds", source = "trainers", qualifiedByName = "toSpecializationIds")
     TrainingViewDto toDto(TrainingView trainingView);
 
     @Named("toTrainingIds")
@@ -24,6 +26,14 @@ public interface TrainingViewMapper {
         if (trainings == null) return Collections.emptyList();
         return trainings.stream()
                 .map(Training::getId)
+                .collect(Collectors.toList());
+    }
+
+    @Named("toSpecializationIds")
+    default List<String> toSpecializationIds(List<Trainer> trainers) {
+        if (trainers == null) return Collections.emptyList();
+        return trainers.stream()
+                .map(Trainer::getId)
                 .collect(Collectors.toList());
     }
 }

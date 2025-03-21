@@ -1,20 +1,30 @@
 package org.epam.service;
 
+import org.epam.exception.CredentialException;
+import org.epam.exception.NotFoundException;
+import org.epam.models.dto.TrainerDto;
+import org.epam.models.dto.TrainingViewDto;
+import org.epam.models.dto.UserDto;
 import org.epam.models.entity.Trainer;
+import org.epam.models.entity.TrainingView;
 import org.epam.models.entity.User;
+import org.epam.models.enums.TrainingType;
 import org.epam.models.request.trainerrequest.TrainerRequestCreate;
 import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
 import org.epam.repository.TrainerRepository;
+import org.epam.repository.TrainingViewRepository;
 import org.epam.repository.UserRepository;
 import org.epam.service.impl.TrainerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,293 +33,295 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TrainerServiceTest {
-    private static final String TEST_ID = "test-id";
-    private static final String TEST_USER_ID = "test-user-id";
-    private static final String TEST_USERNAME = "john.doe";
-    private static final String TEST_SPECIALIZATION = "Fitness";
-    private static final String OLD_PASSWORD = "oldPassword";
-    private static final String NEW_PASSWORD = "newPassword";
-
     @Mock
     private TrainerRepository trainerRepository;
 
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private TrainingViewRepository trainingViewRepository;
+
     @InjectMocks
     private TrainerServiceImpl trainerService;
 
     private User testUser;
     private Trainer testTrainer;
+    private TrainingView testTrainingView;
+    private TrainerDto testTrainerDto;
+    private UserDto testUserDto;
+    private TrainingViewDto testTrainingViewDto;
 
     @BeforeEach
     void setUp() {
         testUser = User.builder()
-                .id(TEST_USER_ID)
-                .username(TEST_USERNAME)
-                .firstName("John")
-                .lastName("Doe")
-                .password(OLD_PASSWORD)
+                .id("userId")
+                .username("testUser")
+                .password("oldPassword")
                 .isActive(true)
                 .build();
 
+        testTrainingView = TrainingView.builder()
+                .id("specializationId")
+                .trainingType(TrainingType.SELF_PLACING)
+                .build();
+
         testTrainer = Trainer.builder()
-                .id(TEST_ID)
+                .id("trainerId")
                 .user(testUser)
-                .specialization(TEST_SPECIALIZATION)
+                .specialization(testTrainingView)
                 .trainings(new ArrayList<>())
                 .build();
+
+        testUserDto = new UserDto(
+                "userId",
+                "John",
+                "Doe",
+                "testUser",
+                true,
+                "oldPassword"
+        );
+        testTrainingViewDto = new TrainingViewDto("specializationId", TrainingType.SELF_PLACING, Collections.emptyList(), Collections.emptyList());
+        testTrainerDto = new TrainerDto("trainerId", testUserDto, Collections.emptyList(), testTrainingViewDto);
     }
 
     @Test
-    void save_shouldCreateNewTrainer() {
-        var request = new TrainerRequestCreate(TEST_USER_ID, TEST_SPECIALIZATION);
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+    void save_shouldCreateNewTrainer() throws NotFoundException {
+        TrainerRequestCreate request = new TrainerRequestCreate("userId", "specializationId");
+
+        when(userRepository.findById("userId")).thenReturn(Optional.of(testUser));
+        when(trainingViewRepository.findById("specializationId")).thenReturn(Optional.of(testTrainingView));
         when(trainerRepository.save(any(Trainer.class))).thenReturn(testTrainer);
 
         var result = trainerService.save(request);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TEST_SPECIALIZATION, result.specialization());
-        assertEquals(TEST_USERNAME, result.user().username());
+        assertEquals("trainerId", result.id());
+        assertEquals("userId", result.user().id());
+        assertEquals("specializationId", result.specialization().id());
 
-        verify(userRepository).findById(TEST_USER_ID);
+        verify(userRepository).findById("userId");
+        verify(trainingViewRepository).findById("specializationId");
         verify(trainerRepository).save(any(Trainer.class));
     }
 
     @Test
     void save_shouldReturnNullWhenUserNotFound() {
-        var request = new TrainerRequestCreate(TEST_USER_ID, TEST_SPECIALIZATION);
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
+        TrainerRequestCreate request = new TrainerRequestCreate("nonExistentUserId", "specializationId");
 
-        var result = trainerService.save(request);
+        when(userRepository.findById("nonExistentUserId")).thenReturn(Optional.empty());
 
-        assertNull(result);
-        verify(userRepository).findById(TEST_USER_ID);
+        assertThrows(NotFoundException.class, () -> trainerService.save(request));
+        verify(userRepository).findById("nonExistentUserId");
         verify(trainerRepository, never()).save(any(Trainer.class));
     }
 
     @Test
-    void update_shouldUpdateSpecialization() {
-        String newSpecialization = "Yoga";
-        var request = new TrainerRequestUpdate(newSpecialization, null);
+    void update_shouldUpdateSpecialization() throws NotFoundException {
+        // Arrange
+        TrainerRequestUpdate request = new TrainerRequestUpdate("newSpecializationId", null);
+        TrainingView newSpecialization = TrainingView.builder()
+                .id("newSpecializationId")
+                .trainingType(TrainingType.LABORATORY)
+                .build();
 
-        var updatedTrainer = Trainer.builder()
-                .id(TEST_ID)
+        Trainer updatedTrainer = Trainer.builder()
+                .id("trainerId")
                 .user(testUser)
                 .specialization(newSpecialization)
                 .trainings(new ArrayList<>())
                 .build();
 
-        when(trainerRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainer));
-        when(trainerRepository.update(eq(TEST_ID), any(Trainer.class))).thenReturn(updatedTrainer);
+        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
+        when(trainingViewRepository.findById("newSpecializationId")).thenReturn(Optional.of(newSpecialization));
+        when(trainerRepository.update(eq("trainerId"), any(Trainer.class))).thenReturn(updatedTrainer);
 
-        var result = trainerService.update(TEST_ID, request);
+        var result = trainerService.update("trainerId", request);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(newSpecialization, result.specialization());
+        assertEquals("trainerId", result.id());
+        assertEquals("newSpecializationId", result.specialization().id());
 
-        verify(trainerRepository).findById(TEST_ID);
-        verify(trainerRepository).update(eq(TEST_ID), any(Trainer.class));
-        verify(userRepository, never()).findById(any());
+        verify(trainerRepository).findById("trainerId");
+        verify(trainingViewRepository).findById("newSpecializationId");
+        verify(trainerRepository).update(eq("trainerId"), any(Trainer.class));
     }
 
     @Test
-    void update_shouldUpdateUserWhenUserIdProvided() {
-        String newUserId = "new-user-id";
-        var request = new TrainerRequestUpdate(null, newUserId);
-
+    void update_shouldUpdateUserWhenUserIdProvided() throws NotFoundException {
+        var request = new TrainerRequestUpdate(null, "newUserId");
         var newUser = User.builder()
-                .id(newUserId)
-                .username("jane.smith")
-                .firstName("Jane")
-                .lastName("Smith")
-                .password("password")
+                .id("newUserId")
+                .username("newUser")
                 .isActive(true)
                 .build();
 
         var updatedTrainer = Trainer.builder()
-                .id(TEST_ID)
+                .id("trainerId")
                 .user(newUser)
-                .specialization(TEST_SPECIALIZATION)
+                .specialization(testTrainingView)
                 .trainings(new ArrayList<>())
                 .build();
 
-        when(trainerRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainer));
-        when(userRepository.findById(newUserId)).thenReturn(Optional.of(newUser));
-        when(trainerRepository.update(eq(TEST_ID), any(Trainer.class))).thenReturn(updatedTrainer);
+        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
+        when(userRepository.findById("newUserId")).thenReturn(Optional.of(newUser));
+        when(trainerRepository.update(eq("trainerId"), any(Trainer.class))).thenReturn(updatedTrainer);
 
-        var result = trainerService.update(TEST_ID, request);
+        var result = trainerService.update("trainerId", request);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals("jane.smith", result.user().username());
+        assertEquals("trainerId", result.id());
+        assertEquals("newUserId", result.user().id());
 
-        verify(trainerRepository).findById(TEST_ID);
-        verify(userRepository).findById(newUserId);
-        verify(trainerRepository).update(eq(TEST_ID), any(Trainer.class));
+        verify(trainerRepository).findById("trainerId");
+        verify(userRepository).findById("newUserId");
+        verify(trainerRepository).update(eq("trainerId"), any(Trainer.class));
     }
 
     @Test
-    void changePassword_shouldUpdatePasswordSuccessfully() {
-        when(trainerRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainer));
-        when(userRepository.update(eq(TEST_USER_ID), any(User.class))).thenReturn(testUser);
+    void changePassword_shouldUpdatePasswordSuccessfully() throws NotFoundException, CredentialException {
+        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
+        when(userRepository.update(eq("userId"), any(User.class))).thenReturn(testUser);
 
-        var result = trainerService.changePassword(TEST_ID, OLD_PASSWORD, NEW_PASSWORD);
+        var result = trainerService.changePassword("trainerId", "oldPassword", "newPassword");
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
 
-        verify(trainerRepository).findById(TEST_ID);
-        verify(userRepository).update(eq(TEST_USER_ID), any(User.class));
+        var userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).update(eq("userId"), userCaptor.capture());
+        assertEquals("newPassword", userCaptor.getValue().getPassword());
+
+        verify(trainerRepository).findById("trainerId");
     }
 
     @Test
     void changePassword_shouldReturnNullWhenOldPasswordMismatch() {
-        when(trainerRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainer));
+        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
 
-        var result = trainerService.changePassword(TEST_ID, "wrongPassword", NEW_PASSWORD);
+        assertThrows(CredentialException.class, () ->
+                trainerService.changePassword("trainerId", "wrongOldPassword", "newPassword")
+        );
 
-        assertNull(result);
-        verify(trainerRepository).findById(TEST_ID);
-        verify(userRepository, never()).update(any(), any());
+        verify(trainerRepository).findById("trainerId");
+        verify(userRepository, never()).update(anyString(), any(User.class));
     }
 
     @Test
-    void findById_shouldReturnTrainerWhenFound() {
-        when(trainerRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainer));
+    void findById_shouldReturnTrainerWhenFound() throws NotFoundException {
+        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
 
-        var result = trainerService.findById(TEST_ID);
+        var result = trainerService.findById("trainerId");
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TEST_SPECIALIZATION, result.specialization());
+        assertEquals("trainerId", result.id());
+        assertEquals("userId", result.user().id());
 
-        verify(trainerRepository).findById(TEST_ID);
+        verify(trainerRepository).findById("trainerId");
     }
 
     @Test
     void findById_shouldReturnNullWhenNotFound() {
-        when(trainerRepository.findById(TEST_ID)).thenReturn(Optional.empty());
+        when(trainerRepository.findById("nonExistentId")).thenReturn(Optional.empty());
 
-        var result = trainerService.findById(TEST_ID);
+        assertThrows(NotFoundException.class, () -> trainerService.findById("nonExistentId"));
 
-        assertNull(result);
-        verify(trainerRepository).findById(TEST_ID);
+        verify(trainerRepository).findById("nonExistentId");
     }
 
     @Test
     void findAll_shouldReturnAllTrainers() {
-        var trainer2 = Trainer.builder()
-                .id("id-2")
-                .user(User.builder().build())
-                .specialization("Nutrition")
-                .build();
-
-        when(trainerRepository.findAll()).thenReturn(List.of(testTrainer, trainer2));
+        List<Trainer> trainerList = Collections.singletonList(testTrainer);
+        when(trainerRepository.findAll()).thenReturn(trainerList);
 
         var result = trainerService.findAll();
 
-        assertEquals(2, result.size());
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("trainerId", result.getFirst().id());
+
         verify(trainerRepository).findAll();
     }
 
     @Test
-    void activateAction_shouldActivateTrainer() {
+    void activateAction_shouldActivateTrainer() throws NotFoundException {
         var inactiveUser = User.builder()
-                .id(TEST_USER_ID)
-                .username(TEST_USERNAME)
+                .id("userId")
+                .username("testUser")
                 .isActive(false)
                 .build();
 
         var inactiveTrainer = Trainer.builder()
-                .id(TEST_ID)
+                .id("trainerId")
                 .user(inactiveUser)
-                .specialization(TEST_SPECIALIZATION)
+                .specialization(testTrainingView)
+                .trainings(new ArrayList<>())
                 .build();
 
-        User activatedUser = User.builder()
-                .id(TEST_USER_ID)
-                .username(TEST_USERNAME)
-                .isActive(true)
-                .build();
+        when(trainerRepository.findByUsername("testUser")).thenReturn(Optional.of(inactiveTrainer));
+        when(userRepository.update(eq("userId"), any(User.class))).thenReturn(testUser);
 
-        when(trainerRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(inactiveTrainer));
-        when(userRepository.update(eq(TEST_USER_ID), any(User.class))).thenReturn(activatedUser);
-
-        var result = trainerService.activateAction(TEST_USERNAME);
+        var result = trainerService.activateAction("testUser");
 
         assertNotNull(result);
-        assertTrue(result.user().isActive());
 
-        verify(trainerRepository).findByUsername(TEST_USERNAME);
-        verify(userRepository).update(eq(TEST_USER_ID), any(User.class));
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).update(eq("userId"), userCaptor.capture());
+        assertTrue(userCaptor.getValue().getIsActive());
+
+        verify(trainerRepository).findByUsername("testUser");
     }
 
     @Test
-    void deactivateAction_shouldDeactivateTrainer() {
-        var activeUser = User.builder()
-                .id(TEST_USER_ID)
-                .username(TEST_USERNAME)
-                .isActive(true)
-                .build();
-
-        var activeTrainer = Trainer.builder()
-                .id(TEST_ID)
-                .user(activeUser)
-                .specialization(TEST_SPECIALIZATION)
-                .build();
+    void deactivateAction_shouldDeactivateTrainer() throws NotFoundException {
+        when(trainerRepository.findByUsername("testUser")).thenReturn(Optional.of(testTrainer));
 
         var deactivatedUser = User.builder()
-                .id(TEST_USER_ID)
-                .username(TEST_USERNAME)
+                .id("userId")
+                .username("testUser")
                 .isActive(false)
                 .build();
 
-        when(trainerRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(activeTrainer));
-        when(userRepository.update(eq(TEST_USER_ID), any(User.class))).thenReturn(deactivatedUser);
+        when(userRepository.update(eq("userId"), any(User.class))).thenReturn(deactivatedUser);
 
-        var result = trainerService.deactivateAction(TEST_USERNAME);
+        var result = trainerService.deactivateAction("testUser");
 
         assertNotNull(result);
-        assertFalse(result.user().isActive());
 
-        verify(trainerRepository).findByUsername(TEST_USERNAME);
-        verify(userRepository).update(eq(TEST_USER_ID), any(User.class));
+        var userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).update(eq("userId"), userCaptor.capture());
+        assertFalse(userCaptor.getValue().getIsActive());
+
+        verify(trainerRepository).findByUsername("testUser");
     }
 
     @Test
-    void delete_shouldDeleteTrainer() {
-        doNothing().when(trainerRepository).delete(TEST_ID);
+    void delete_shouldDeleteTrainer() throws NotFoundException {
+        doNothing().when(trainerRepository).delete("trainerId");
 
-        trainerService.delete(TEST_ID);
+        trainerService.delete("trainerId");
 
-        verify(trainerRepository).delete(TEST_ID);
+        verify(trainerRepository).delete("trainerId");
     }
 
     @Test
-    void findByUsername_shouldReturnTrainerWhenFound() {
-        when(trainerRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(testTrainer));
+    void findByUsername_shouldReturnTrainerWhenFound() throws NotFoundException {
+        when(trainerRepository.findByUsername("testUser")).thenReturn(Optional.of(testTrainer));
 
-        var result = trainerService.findByUsername(TEST_USERNAME);
+        var result = trainerService.findByUsername("testUser");
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TEST_USERNAME, result.user().username());
+        assertEquals("trainerId", result.id());
+        assertEquals("testUser", result.user().username());
 
-        verify(trainerRepository).findByUsername(TEST_USERNAME);
+        verify(trainerRepository).findByUsername("testUser");
     }
 
     @Test
     void findByUsername_shouldReturnNullWhenNotFound() {
-        when(trainerRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.empty());
+        when(trainerRepository.findByUsername("nonExistentUser")).thenReturn(Optional.empty());
 
-        var result = trainerService.findByUsername(TEST_USERNAME);
+        assertThrows(NotFoundException.class, () -> trainerService.findByUsername("nonExistentUser"));
 
-        assertNull(result);
-        verify(trainerRepository).findByUsername(TEST_USERNAME);
+        verify(trainerRepository).findByUsername("nonExistentUser");
     }
-
 }

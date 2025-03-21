@@ -49,18 +49,18 @@ public class TrainerController {
         }
     }
 
-    public TrainerDto updateTrainer(String id, Scanner scanner) {
-        try {
-            System.out.print("Enter user's id: ");
-            var userId = scanner.nextLine().trim();
-            System.out.print("Enter specialization: ");
-            var specialization = scanner.nextLine().trim();
-            return trainerService.update(id, new TrainerRequestUpdate(userId, specialization));
-        } catch (Exception e) {
-            logger.error("Error updating trainer: {}", e.getMessage(), e);
-            return null;
+        public TrainerDto updateTrainer(String id, Scanner scanner) {
+            try {
+                System.out.print("Enter user's id: ");
+                var userId = scanner.nextLine().trim();
+                System.out.print("Enter specialization: ");
+                var specialization = scanner.nextLine().trim();
+                return trainerService.update(id, new TrainerRequestUpdate(userId, specialization));
+            } catch (Exception e) {
+                logger.error("Error updating trainer: {}", e.getMessage());
+                return null;
+            }
         }
-    }
 
     public void findAll() {
         try {

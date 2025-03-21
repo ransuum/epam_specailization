@@ -25,10 +25,9 @@ public class TrainingView {
     @Column(nullable = false, name = "training_type")
     private TrainingType trainingType;
 
-    @OneToMany(mappedBy = "trainingView", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "trainingType", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Training> trainings;
 
-    public TrainingView(TrainingType trainingType) {
-        this.trainingType = trainingType;
-    }
+    @OneToMany(mappedBy = "specialization", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Trainer> trainers;
 }

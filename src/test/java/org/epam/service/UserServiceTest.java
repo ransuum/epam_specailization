@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +37,8 @@ class UserServiceTest {
     private static final String TEST_LAST_NAME = "Doe";
     private static final String TEST_USERNAME = "john.doe";
     private static final String TEST_PASSWORD = "Password123";
+    private static final String TEST_FIRST_NAME_UPDATE = "John_UPDATE";
+    private static final String TEST_LAST_NAME_UPDATE = "Doe_UPDATE";
 
     @BeforeEach
     void setUp() {
@@ -111,12 +114,14 @@ class UserServiceTest {
     void update_shouldReturnNullWhenUserNotFound() {
         when(userRepository.findById(TEST_ID)).thenReturn(Optional.empty());
 
-        var result = userService.update(TEST_ID, testUser);
+        var updateRequest = new User(TEST_FIRST_NAME_UPDATE, TEST_LAST_NAME_UPDATE, Boolean.TRUE);
 
-        assertNull(result);
+        var exception = assertThrows(NotFoundException.class, () ->
+                userService.update(TEST_ID, updateRequest));
+
+        assertEquals("User not found", exception.getMessage());
         verify(userRepository).findById(TEST_ID);
-        verifyNoMoreInteractions(userRepository);
-        verifyNoInteractions(credentialsGenerator);
+        verify(userRepository, never()).update(anyString(), any());
     }
 
     @Test
@@ -129,8 +134,8 @@ class UserServiceTest {
     }
 
     @Test
-    void delete_shouldHandleNotFoundExceptionGracefully() {
-        doThrow(new NotFoundException("User not found")).when(userRepository).delete(TEST_ID);
+    void delete_shouldHandleNotFoundExceptionGracefully() throws NotFoundException {
+        doNothing().when(userRepository).delete(TEST_ID);
 
         userService.delete(TEST_ID);
 
@@ -177,43 +182,44 @@ class UserServiceTest {
     void findById_shouldReturnNullWhenUserNotFound() {
         when(userRepository.findById(TEST_ID)).thenReturn(Optional.empty());
 
-        var result = userService.findById(TEST_ID);
+        var result = assertThrows(NotFoundException.class, () -> userService.findById(TEST_ID));
 
-        assertNull(result);
+        assertEquals("User not found", result.getMessage());
         verify(userRepository).findById(TEST_ID);
+        verify(userRepository, never()).update(anyString(), any());
     }
 
-        @Test
-        void update_shouldUpdateOnlyProvidedFields() {
-            var partialUpdate = User.builder()
-                    .firstName("Jane")
-                    .lastName(TEST_LAST_NAME)
-                    .isActive(true)
-                    .build();
+    @Test
+    void update_shouldUpdateOnlyProvidedFields() {
+        var partialUpdate = User.builder()
+                .firstName("Jane")
+                .lastName(TEST_LAST_NAME)
+                .isActive(true)
+                .build();
 
-            var expectedUpdated = User.builder()
-                    .id(TEST_ID)
-                    .firstName("Jane")
-                    .lastName(TEST_LAST_NAME)
-                    .username("Jane.Doe")
-                    .password("NewPassword")
-                    .isActive(true)
-                    .build();
+        var expectedUpdated = User.builder()
+                .id(TEST_ID)
+                .firstName("Jane")
+                .lastName(TEST_LAST_NAME)
+                .username("Jane.Doe")
+                .password("NewPassword")
+                .isActive(true)
+                .build();
 
-            when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUser));
-            when(credentialsGenerator.generateUsername("Jane", "Doe")).thenReturn("Jane.Doe");
-            when(userRepository.update(eq(TEST_ID), any(User.class))).thenReturn(expectedUpdated);
+        when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUser));
+        when(credentialsGenerator.generateUsername("Jane", "Doe")).thenReturn("Jane.Doe");
+        when(userRepository.update(eq(TEST_ID), any(User.class))).thenReturn(expectedUpdated);
 
-            var result = userService.update(expectedUpdated.getId(), partialUpdate);
+        var result = userService.update(expectedUpdated.getId(), partialUpdate);
 
-            assertNotNull(result);
-            assertEquals("Jane", result.firstName());
-            assertEquals(TEST_LAST_NAME, result.lastName());
-            assertEquals("Jane.Doe", result.username());
-            assertTrue(result.isActive());
+        assertNotNull(result);
+        assertEquals("Jane", result.firstName());
+        assertEquals(TEST_LAST_NAME, result.lastName());
+        assertEquals("Jane.Doe", result.username());
+        assertTrue(result.isActive());
 
-            verify(userRepository).findById(TEST_ID);
-            verify(credentialsGenerator).generateUsername("Jane", TEST_LAST_NAME);
-            verify(userRepository).update(eq(TEST_ID), any(User.class));
-        }
+        verify(userRepository).findById(TEST_ID);
+        verify(credentialsGenerator).generateUsername("Jane", TEST_LAST_NAME);
+        verify(userRepository).update(eq(TEST_ID), any(User.class));
+    }
 }

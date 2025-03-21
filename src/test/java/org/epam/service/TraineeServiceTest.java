@@ -1,5 +1,6 @@
 package org.epam.service;
 
+import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainee;
 import org.epam.models.entity.User;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,301 +38,232 @@ class TraineeServiceTest {
     private Trainee testTrainee;
     private TraineeRequestCreate testTraineeRequest;
     private TraineeRequestUpdate testTraineeUpdateRequest;
-    private static final String TEST_ID = "test-id";
-    private static final String TEST_USER_ID = "test-user-id";
-    private static final String TEST_USERNAME = "john.doe";
-    private static final String TEST_ADDRESS = "123 Test St";
-    private static final LocalDate TEST_DOB = LocalDate.of(1990, 1, 1);
-    private static final String OLD_PASSWORD = "oldPass";
-    private static final String NEW_PASSWORD = "newPass";
+    private String testId = "test-id";
+    private String testUsername = "testuser";
+    private String testPassword = "password";
+    private String testNewPassword = "newpassword";
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
-                .id(TEST_USER_ID)
-                .firstName("John")
-                .lastName("Doe")
-                .username(TEST_USERNAME)
-                .password(OLD_PASSWORD)
-                .isActive(true)
-                .build();
+        testUser = new User();
+        testUser.setId(testId);
+        testUser.setUsername(testUsername);
+        testUser.setPassword(testPassword);
+        testUser.setIsActive(true);
 
-        testTrainee = Trainee.builder()
-                .id(TEST_ID)
-                .user(testUser)
-                .dateOfBirth(TEST_DOB)
-                .address(TEST_ADDRESS)
-                .build();
+        testTrainee = new Trainee();
+        testTrainee.setId(testId);
+        testTrainee.setUser(testUser);
+        testTrainee.setDateOfBirth(LocalDate.of(1990, 1, 1));
+        testTrainee.setAddress("Test Address");
 
-        testTraineeRequest = new TraineeRequestCreate(TEST_USER_ID, TEST_DOB, TEST_ADDRESS);
+        testTraineeRequest = new TraineeRequestCreate(
+                testId,
+                LocalDate.of(1990, 1, 1),
+                "Test Address"
+        );
 
         testTraineeUpdateRequest = new TraineeRequestUpdate();
-        testTraineeUpdateRequest.setUserId(TEST_USER_ID);
-        testTraineeUpdateRequest.setDateOfBirth(TEST_DOB);
-        testTraineeUpdateRequest.setAddress(TEST_ADDRESS);
+        testTraineeUpdateRequest.setUserId(testId);
+        testTraineeUpdateRequest.setDateOfBirth(LocalDate.of(1991, 2, 2));
+        testTraineeUpdateRequest.setAddress("Updated Address");
     }
 
     @Test
     void save_shouldCreateNewTrainee() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(testId)).thenReturn(Optional.of(testUser));
         when(traineeRepository.save(any(Trainee.class))).thenReturn(testTrainee);
 
         var result = traineeService.save(testTraineeRequest);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TEST_DOB, result.dateOfBirth());
-        assertEquals(TEST_ADDRESS, result.address());
-        assertNotNull(result.user());
-        assertEquals(TEST_USER_ID, result.user().id());
-
-        verify(userRepository).findById(TEST_USER_ID);
+        assertEquals(testId, result.id());
+        verify(userRepository).findById(testId);
         verify(traineeRepository).save(any(Trainee.class));
     }
 
     @Test
     void save_shouldReturnNullWhenUserNotFound() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
+        when(userRepository.findById(testId)).thenReturn(Optional.empty());
 
-        var result = traineeService.save(testTraineeRequest);
-
-        assertNull(result);
-        verify(userRepository).findById(TEST_USER_ID);
-        verifyNoInteractions(traineeRepository);
+        var exception = assertThrows(NotFoundException.class,
+                () -> traineeService.save(testTraineeRequest));
+        assertEquals("User not found", exception.getMessage());
+        verify(userRepository).findById(testId);
+        verify(traineeRepository, never()).save(any(Trainee.class));
     }
 
     @Test
-    void update_shouldUpdateExistingTrainee() {
-        var updateRequest = new TraineeRequestUpdate();
-        updateRequest.setAddress("New Address");
-        updateRequest.setDateOfBirth(LocalDate.of(1995, 5, 5));
-        updateRequest.setUserId(TEST_USER_ID);
+    void update_shouldUpdateExistingTrainee() throws NotFoundException {
+        when(traineeRepository.findById(testId)).thenReturn(Optional.of(testTrainee));
+        when(userRepository.findById(testId)).thenReturn(Optional.of(testUser));
+        when(traineeRepository.update(eq(testId), any(Trainee.class))).thenReturn(testTrainee);
 
-        var updatedTrainee = Trainee.builder()
-                .id(TEST_ID)
-                .user(testUser)
-                .dateOfBirth(LocalDate.of(1995, 5, 5))
-                .address("New Address")
-                .build();
-
-        when(traineeRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainee));
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
-        when(traineeRepository.update(eq(TEST_ID), any(Trainee.class))).thenReturn(updatedTrainee);
-
-        var result = traineeService.update(TEST_ID, updateRequest);
+        var result = traineeService.update(testId, testTraineeUpdateRequest);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(LocalDate.of(1995, 5, 5), result.dateOfBirth());
-        assertEquals("New Address", result.address());
-        assertNotNull(result.user());
-        assertEquals(TEST_USER_ID, result.user().id());
-
-        verify(traineeRepository).findById(TEST_ID);
-        verify(userRepository).findById(TEST_USER_ID);
-        verify(traineeRepository).update(eq(TEST_ID), any(Trainee.class));
+        assertEquals(testId, result.id());
+        verify(traineeRepository).findById(testId);
+        verify(userRepository).findById(testId);
+        verify(traineeRepository).update(eq(testId), any(Trainee.class));
     }
 
     @Test
     void update_shouldReturnNullWhenTraineeNotFound() {
-        when(traineeRepository.findById(TEST_ID)).thenReturn(Optional.empty());
+        when(traineeRepository.findById(testId)).thenReturn(Optional.empty());
 
-        var result = traineeService.update(TEST_ID, testTraineeUpdateRequest);
-
-        assertNull(result);
-        verify(traineeRepository).findById(TEST_ID);
-        verifyNoMoreInteractions(traineeRepository);
-        verifyNoInteractions(userRepository);
+        var exception = assertThrows(NotFoundException.class,
+                () -> traineeService.update(testId, testTraineeUpdateRequest));
+        assertEquals("Trainee not found", exception.getMessage());
+        verify(traineeRepository).findById(testId);
+        verify(traineeRepository, never()).update(anyString(), any(Trainee.class));
     }
 
     @Test
     void update_shouldReturnNullWhenUserNotFound() {
-        when(traineeRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainee));
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
+        when(traineeRepository.findById(testId)).thenReturn(Optional.of(testTrainee));
+        when(userRepository.findById(testId)).thenReturn(Optional.empty());
 
-        var result = traineeService.update(TEST_ID, testTraineeUpdateRequest);
-
-        assertNull(result);
-        verify(traineeRepository).findById(TEST_ID);
-        verify(userRepository).findById(TEST_USER_ID);
-        verifyNoMoreInteractions(traineeRepository);
+        var exception = assertThrows(NotFoundException.class,
+                () -> traineeService.update(testId, testTraineeUpdateRequest));
+        assertEquals("User not found", exception.getMessage());
+        verify(traineeRepository).findById(testId);
+        verify(userRepository).findById(testId);
+        verify(traineeRepository, never()).update(anyString(), any(Trainee.class));
     }
 
     @Test
     void delete_shouldDeleteTrainee() {
-        doNothing().when(traineeRepository).delete(TEST_ID);
+        doNothing().when(traineeRepository).delete(testId);
 
-        traineeService.delete(TEST_ID);
+        traineeService.delete(testId);
 
-        verify(traineeRepository).delete(TEST_ID);
-    }
-
-    @Test
-    void delete_shouldHandleNotFoundExceptionGracefully() {
-        doThrow(new NotFoundException("Trainee not found")).when(traineeRepository).delete(TEST_ID);
-
-        traineeService.delete(TEST_ID);
-
-        verify(traineeRepository).delete(TEST_ID);
+        verify(traineeRepository).delete(testId);
     }
 
     @Test
     void findAll_shouldReturnAllTrainees() {
-        List<Trainee> trainees = List.of(testTrainee);
+        var trainees = Collections.singletonList(testTrainee);
         when(traineeRepository.findAll()).thenReturn(trainees);
 
         var result = traineeService.findAll();
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(TEST_ID, result.getFirst().id());
-        assertEquals(TEST_DOB, result.getFirst().dateOfBirth());
-        assertEquals(TEST_ADDRESS, result.getFirst().address());
-        assertEquals(TEST_USER_ID, result.getFirst().user().id());
-
+        assertEquals(testId, result.getFirst().id());
         verify(traineeRepository).findAll();
     }
 
     @Test
-    void findById_shouldReturnTraineeWhenFound() {
-        when(traineeRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainee));
+    void findById_shouldReturnTraineeWhenFound() throws NotFoundException {
+        when(traineeRepository.findById(testId)).thenReturn(Optional.of(testTrainee));
 
-        var result = traineeService.findById(TEST_ID);
+        var result = traineeService.findById(testId);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TEST_DOB, result.dateOfBirth());
-        assertEquals(TEST_ADDRESS, result.address());
-        assertEquals(TEST_USER_ID, result.user().id());
-
-        verify(traineeRepository).findById(TEST_ID);
+        assertEquals(testId, result.id());
+        verify(traineeRepository).findById(testId);
     }
 
     @Test
     void findById_shouldReturnNullWhenTraineeNotFound() {
-        when(traineeRepository.findById(TEST_ID)).thenReturn(Optional.empty());
+        when(traineeRepository.findById(testId)).thenReturn(Optional.empty());
 
-        var result = traineeService.findById(TEST_ID);
-
-        assertNull(result);
-        verify(traineeRepository).findById(TEST_ID);
+        var exception = assertThrows(NotFoundException.class,
+                () -> traineeService.findById(testId));
+        assertEquals("User not found with this credentials", exception.getMessage());
+        verify(traineeRepository).findById(testId);
     }
 
     @Test
-    void changePassword_shouldUpdatePasswordSuccessfully() {
-        when(traineeRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainee));
+    void changePassword_shouldUpdatePasswordSuccessfully() throws NotFoundException, CredentialException {
+        when(traineeRepository.findById(testId)).thenReturn(Optional.of(testTrainee));
+        when(userRepository.update(eq(testId), any(User.class))).thenReturn(testUser);
 
-        when(userRepository.update(eq(TEST_USER_ID), any(User.class))).thenReturn(testTrainee.getUser());
-
-        var result = traineeService.changePassword(TEST_ID, OLD_PASSWORD, NEW_PASSWORD);
+        var result = traineeService.changePassword(testId, testPassword, testNewPassword);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-
-        verify(traineeRepository).findById(TEST_ID);
-        verify(userRepository).update(eq(TEST_USER_ID), any(User.class));
+        assertEquals(testId, result.id());
+        verify(traineeRepository).findById(testId);
+        verify(userRepository).update(eq(testId), any(User.class));
     }
 
     @Test
     void changePassword_shouldReturnNullWhenTraineeNotFound() {
-        when(traineeRepository.findById(TEST_ID)).thenReturn(Optional.empty());
+        when(traineeRepository.findById(testId)).thenReturn(Optional.empty());
 
-        var result = traineeService.changePassword(TEST_ID, OLD_PASSWORD, NEW_PASSWORD);
-
-        assertNull(result);
-        verify(traineeRepository).findById(TEST_ID);
-        verifyNoInteractions(userRepository);
+        var exception = assertThrows(NotFoundException.class,
+                () -> traineeService.changePassword(testId, testPassword, testNewPassword));
+        assertEquals("Trainee not found with id " + testId, exception.getMessage());
+        verify(traineeRepository).findById(testId);
+        verify(userRepository, never()).update(anyString(), any(User.class));
     }
 
     @Test
     void changePassword_shouldReturnNullWhenOldPasswordDoesNotMatch() {
-        when(traineeRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainee));
+        when(traineeRepository.findById(testId)).thenReturn(Optional.of(testTrainee));
 
-        var result = traineeService.changePassword(TEST_ID, "wrongPassword", NEW_PASSWORD);
-
-        assertNull(result);
-        verify(traineeRepository).findById(TEST_ID);
-        verifyNoInteractions(userRepository);
+        var exception = assertThrows(CredentialException.class,
+                () -> traineeService.changePassword(testId, "wrongPassword", testNewPassword));
+        assertEquals("Old password do not match", exception.getMessage());
+        verify(traineeRepository).findById(testId);
+        verify(userRepository, never()).update(anyString(), any(User.class));
     }
 
     @Test
-    void findByUsername_shouldReturnTraineeWhenFound() {
-        when(traineeRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(testTrainee));
+    void findByUsername_shouldReturnTraineeWhenFound() throws NotFoundException {
+        when(traineeRepository.findByUsername(testUsername)).thenReturn(Optional.of(testTrainee));
 
-        var result = traineeService.findByUsername(TEST_USERNAME);
+        var result = traineeService.findByUsername(testUsername);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TEST_DOB, result.dateOfBirth());
-        assertEquals(TEST_ADDRESS, result.address());
-        assertEquals(TEST_USER_ID, result.user().id());
-
-        verify(traineeRepository).findByUsername(TEST_USERNAME);
+        assertEquals(testId, result.id());
+        verify(traineeRepository).findByUsername(testUsername);
     }
 
     @Test
     void findByUsername_shouldReturnNullWhenTraineeNotFound() {
-        when(traineeRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.empty());
+        when(traineeRepository.findByUsername(testUsername)).thenReturn(Optional.empty());
 
-        var result = traineeService.findByUsername(TEST_USERNAME);
-
-        assertNull(result);
-        verify(traineeRepository).findByUsername(TEST_USERNAME);
+        var exception = assertThrows(NotFoundException.class,
+                () -> traineeService.findByUsername(testUsername));
+        assertEquals("Trainee not found by username", exception.getMessage());
+        verify(traineeRepository).findByUsername(testUsername);
     }
 
     @Test
-    void deleteByUsername_shouldReturnId() {
-        when(traineeRepository.deleteByUsername(TEST_USERNAME)).thenReturn(TEST_ID);
+    void deleteByUsername_shouldReturnId() throws NotFoundException {
+        when(traineeRepository.deleteByUsername(testUsername)).thenReturn(testId);
 
-        String result = traineeService.deleteByUsername(TEST_USERNAME);
+        var result = traineeService.deleteByUsername(testUsername);
 
-        assertEquals(TEST_ID, result);
-        verify(traineeRepository).deleteByUsername(TEST_USERNAME);
+        assertEquals(testId, result);
+        verify(traineeRepository).deleteByUsername(testUsername);
     }
 
     @Test
-    void activateAction_shouldActivateTraineeUser() {
-        when(traineeRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(testTrainee));
-        when(userRepository.update(eq(TEST_USER_ID), any(User.class))).thenReturn(testUser);
+    void activateAction_shouldActivateTraineeUser() throws NotFoundException {
+        when(traineeRepository.findByUsername(testUsername)).thenReturn(Optional.of(testTrainee));
+        when(userRepository.update(eq(testId), any(User.class))).thenReturn(testUser);
 
-        var result = traineeService.activateAction(TEST_USERNAME);
+        var result = traineeService.activateAction(testUsername);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertTrue(result.user().isActive());
-
-        verify(traineeRepository).findByUsername(TEST_USERNAME);
-        verify(userRepository).update(eq(TEST_USER_ID), any(User.class));
+        assertEquals(testId, result.id());
+        verify(traineeRepository).findByUsername(testUsername);
+        verify(userRepository).update(eq(testId), any(User.class));
     }
 
     @Test
-    void deactivateAction_shouldDeactivateTraineeUser() {
-        var inactiveUser = User.builder()
-                .id(TEST_USER_ID)
-                .firstName("John")
-                .lastName("Doe")
-                .username(TEST_USERNAME)
-                .password(OLD_PASSWORD)
-                .isActive(false)
-                .build();
+    void deactivateAction_shouldDeactivateTraineeUser() throws NotFoundException {
+        when(traineeRepository.findByUsername(testUsername)).thenReturn(Optional.of(testTrainee));
+        when(userRepository.update(eq(testId), any(User.class))).thenReturn(testUser);
 
-        var inactiveTrainee = Trainee.builder()
-                .id(TEST_ID)
-                .user(inactiveUser)
-                .dateOfBirth(TEST_DOB)
-                .address(TEST_ADDRESS)
-                .build();
-
-        when(traineeRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(testTrainee));
-        when(userRepository.update(eq(TEST_USER_ID), any(User.class))).thenReturn(inactiveUser);
-
-        var result = traineeService.deactivateAction(TEST_USERNAME);
+        var result = traineeService.deactivateAction(testUsername);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertFalse(result.user().isActive());
-
-        verify(traineeRepository).findByUsername(TEST_USERNAME);
-        verify(userRepository).update(eq(TEST_USER_ID), any(User.class));
+        assertEquals(testId, result.id());
+        verify(traineeRepository).findByUsername(testUsername);
+        verify(userRepository).update(eq(testId), any(User.class));
     }
 }

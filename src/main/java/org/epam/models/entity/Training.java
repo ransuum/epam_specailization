@@ -32,10 +32,12 @@ public class Training {
     private String trainingName;
 
     @ManyToOne
-    @JoinColumn(referencedColumnName = "id", nullable = false, name = "training_view_id")
-    private TrainingView trainingView;
+    @JoinColumn(referencedColumnName = "id", nullable = false, name = "training_type_id")
+    private TrainingView trainingType;
 
+    @Column(nullable = false, name = "start_time")
     private LocalDate startTime;
 
+    @Column(nullable = false)
     private Long duration;
 }

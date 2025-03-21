@@ -2,16 +2,14 @@ package org.epam.models.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.SneakyThrows;
 
 import java.util.List;
 
 public record TrainerDto(String id,
                          UserDto user,
-                         String specialization,
-                         List<String> trainingsIds) {
+                         List<String> trainingsIds,
+                         TrainingViewDto specialization) {
 
     @Override
     public String toString() {

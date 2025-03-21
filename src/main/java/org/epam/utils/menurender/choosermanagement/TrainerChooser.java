@@ -48,6 +48,7 @@ public class TrainerChooser implements Chooser {
                     TrainerDto updatedTrainer = transExec.executeWithTransaction(()
                             -> trainerController.updateTrainer(securityContextHolder.getUserId(), scanner));
                     System.out.println("Trainer updated: " + updatedTrainer);
+                    break;
                 case 3:
                     transExec.executeVoidWithTransaction(() -> trainerController.deleteById(scanner));
                     System.out.println("Trainer deleted successfully");

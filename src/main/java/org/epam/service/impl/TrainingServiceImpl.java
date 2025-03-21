@@ -49,7 +49,7 @@ public class TrainingServiceImpl implements TrainingService {
                 Training.builder()
                         .trainer(trainer)
                         .trainee(trainee)
-                        .trainingView(trainingView)
+                        .trainingType(trainingView)
                         .trainingName(request.trainingName())
                         .startTime(request.startTime())
                         .duration(request.duration())
@@ -63,15 +63,15 @@ public class TrainingServiceImpl implements TrainingService {
                 .orElseThrow(() -> new NotFoundException("Training not found"));
 
         if (check(request.traineeId()))
-            training.setTrainee(traineeRepository.findById(id)
+            training.setTrainee(traineeRepository.findById(request.traineeId())
                     .orElseThrow(() -> new NotFoundException("Trainee not found")));
 
         if (check(request.trainerId()))
-            training.setTrainer(trainerRepository.findById(id)
+            training.setTrainer(trainerRepository.findById(request.trainerId())
                     .orElseThrow(() -> new NotFoundException("Trainer not found")));
 
         if (check(request.trainingViewId()))
-            training.setTrainingView(trainingViewRepository.findById(request.trainingViewId())
+            training.setTrainingType(trainingViewRepository.findById(request.trainingViewId())
                     .orElseThrow(() -> new NotFoundException("Training view not found")));
 
         if (check(request.trainingName())) training.setTrainingName(request.trainingName());

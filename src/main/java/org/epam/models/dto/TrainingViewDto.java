@@ -9,7 +9,8 @@ import java.util.List;
 
 public record TrainingViewDto(String id,
                               TrainingType trainingType,
-                              List<String> trainingsIds) {
+                              List<String> trainingsIds,
+                              List<String> specializationIds) {
 
     @Override
     public String toString() {

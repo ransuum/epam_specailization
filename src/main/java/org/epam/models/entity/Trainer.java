@@ -24,7 +24,9 @@ public class Trainer {
     @JoinColumn(name = "id")
     private User user;
 
-    private String specialization;
+    @ManyToOne
+    @JoinColumn(name = "specialization_id", referencedColumnName = "id", nullable = false)
+    private TrainingView specialization;
 
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Training> trainings;

@@ -18,14 +18,13 @@ import java.util.stream.Collectors;
 
 @Component
 public class Menu {
-    private final Scanner scanner;
+    private final Scanner scanner = new Scanner(System.in);
     private boolean running;
     private final Map<Integer, Chooser> chooserIntegerMap;
     private static final Logger log = LogManager.getLogger(Menu.class);
     private SecurityContextHolder securityContextHolder;
 
     public Menu(List<Chooser> choosers) {
-        this.scanner = new Scanner(System.in);
         this.running = true;
         this.chooserIntegerMap = choosers.stream()
                 .collect(Collectors.toMap(Chooser::getChoice, o -> o));

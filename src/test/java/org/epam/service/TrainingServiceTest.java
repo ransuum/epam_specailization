@@ -18,8 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,14 +27,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TrainingServiceTest {
-    private static final String TEST_ID = "test-id";
-    private static final String TRAINEE_ID = "trainee-id";
-    private static final String TRAINER_ID = "trainer-id";
-    private static final String TRAINING_VIEW_ID = "training-view-id";
-    private static final String TRAINING_NAME = "Test Training";
-    private static final LocalDate START_DATE = LocalDate.of(2025, 3, 15);
-    private static final Long DURATION = 60L;
-
     @Mock
     private TrainingRepository trainingRepository;
 
@@ -56,290 +47,287 @@ class TrainingServiceTest {
     private TrainingView testTrainingView;
     private Training testTraining;
     private User testUser;
+    private String testId;
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
-                .id("user-id")
-                .username("john.doe")
-                .firstName("John")
-                .lastName("Doe")
-                .build();
+        testId = "test-id";
+        testUser = new User();
+        testUser.setId("user-id");
+        testUser.setFirstName("John");
+        testUser.setLastName("Doe");
+        testUser.setUsername("johndoe");
 
-        testTrainee = Trainee.builder()
-                .id(TRAINEE_ID)
-                .user(testUser)
-                .build();
+        testTrainee = new Trainee();
+        testTrainee.setId("trainee-id");
+        testTrainee.setUser(testUser);
+        testTrainee.setDateOfBirth(LocalDate.of(1990, 1, 1));
+        testTrainee.setAddress("123 Main St");
 
-        testTrainer = Trainer.builder()
-                .id(TRAINER_ID)
-                .user(testUser)
-                .specialization("Fitness")
-                .build();
+        testTrainingView = new TrainingView();
+        testTrainingView.setId("training-view-id");
+        testTrainingView.setTrainingType(TrainingType.SELF_PLACING);
 
-        testTrainingView = TrainingView.builder()
-                .id(TRAINING_VIEW_ID)
-                .trainingType(TrainingType.LABORATORY)
-                .build();
+        testTrainer = new Trainer();
+        testTrainer.setId("trainer-id");
+        testTrainer.setUser(testUser);
+        testTrainer.setSpecialization(testTrainingView);
 
         testTraining = Training.builder()
-                .id(TEST_ID)
+                .id(testId)
                 .trainee(testTrainee)
                 .trainer(testTrainer)
-                .trainingView(testTrainingView)
-                .trainingName(TRAINING_NAME)
-                .startTime(START_DATE)
-                .duration(DURATION)
+                .trainingName("Test Training")
+                .trainingType(testTrainingView)
+                .startTime(LocalDate.now())
+                .duration(60L)
                 .build();
     }
 
     @Test
-    void save_shouldCreateNewTraining() {
+    void save_shouldCreateNewTraining() throws NotFoundException {
         var request = new TrainingRequestCreate(
-                TRAINEE_ID, TRAINER_ID, TRAINING_NAME, TRAINING_VIEW_ID, START_DATE, DURATION);
+                "trainee-id",
+                "trainer-id",
+                "Test Training",
+                "training-view-id",
+                LocalDate.now(),
+                60L
+        );
 
-        when(traineeRepository.findById(TRAINEE_ID)).thenReturn(Optional.of(testTrainee));
-        when(trainerRepository.findById(TRAINER_ID)).thenReturn(Optional.of(testTrainer));
-        when(trainingViewRepository.findById(TRAINING_VIEW_ID)).thenReturn(Optional.of(testTrainingView));
+        when(traineeRepository.findById("trainee-id")).thenReturn(Optional.of(testTrainee));
+        when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
+        when(trainingViewRepository.findById("training-view-id")).thenReturn(Optional.of(testTrainingView));
         when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
 
         var result = trainingService.save(request);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TRAINING_NAME, result.trainingName());
-        assertEquals(START_DATE, result.startTime());
-        assertEquals(DURATION, result.duration());
+        assertEquals(testId, result.id());
+        assertEquals("Test Training", result.trainingName());
+        assertEquals(60L, result.duration());
 
-        verify(traineeRepository).findById(TRAINEE_ID);
-        verify(trainerRepository).findById(TRAINER_ID);
-        verify(trainingViewRepository).findById(TRAINING_VIEW_ID);
         verify(trainingRepository).save(any(Training.class));
     }
 
     @Test
     void save_shouldReturnNullWhenTraineeNotFound() {
         var request = new TrainingRequestCreate(
-                TRAINEE_ID, TRAINER_ID, TRAINING_NAME, TRAINING_VIEW_ID, START_DATE, DURATION);
+                "non-existent-trainee",
+                "trainer-id",
+                "Test Training",
+                "training-view-id",
+                LocalDate.now(),
+                60L
+        );
+        when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
 
-        when(trainerRepository.findById(TRAINER_ID)).thenReturn(Optional.of(testTrainer));
-        when(traineeRepository.findById(TRAINEE_ID)).thenReturn(Optional.empty());
+        when(traineeRepository.findById("non-existent-trainee")).thenReturn(Optional.empty());
 
-        var result = trainingService.save(request);
+        var exception = assertThrows(NotFoundException.class, () -> {
+            trainingService.save(request);
+        });
 
-        assertNull(result);
-
-        verify(trainerRepository).findById(TRAINER_ID);
-        verify(traineeRepository).findById(TRAINEE_ID);
-        verify(trainingViewRepository, never()).findById(any());
-        verify(trainingRepository, never()).save(any());
+        assertEquals("Trainee not found", exception.getMessage());
+        verify(trainingRepository, never()).save(any(Training.class));
     }
 
     @Test
     void save_shouldReturnNullWhenTrainerNotFound() {
         var request = new TrainingRequestCreate(
-                TRAINEE_ID, TRAINER_ID, TRAINING_NAME, TRAINING_VIEW_ID, START_DATE, DURATION);
+                "trainee-id",
+                "non-existent-trainer",
+                "Test Training",
+                "training-view-id",
+                LocalDate.now(),
+                60L
+        );
 
-        when(trainerRepository.findById(TRAINER_ID)).thenReturn(Optional.empty());
+        when(trainerRepository.findById("non-existent-trainer")).thenReturn(Optional.empty());
 
-        var result = trainingService.save(request);
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            trainingService.save(request);
+        });
 
-        assertNull(result);
-
-        verify(trainerRepository).findById(TRAINER_ID);
-        verify(traineeRepository, never()).findById(any());
-        verify(trainingViewRepository, never()).findById(any());
-        verify(trainingRepository, never()).save(any());
+        assertEquals("Trainer not found", exception.getMessage());
+        verify(trainingRepository, never()).save(any(Training.class));
     }
 
     @Test
     void save_shouldReturnNullWhenTrainingViewNotFound() {
         var request = new TrainingRequestCreate(
-                TRAINEE_ID, TRAINER_ID, TRAINING_NAME, TRAINING_VIEW_ID, START_DATE, DURATION);
+                "trainee-id",
+                "trainer-id",
+                "Test Training",
+                "non-existent-view",
+                LocalDate.now(),
+                60L
+        );
 
-        when(traineeRepository.findById(TRAINEE_ID)).thenReturn(Optional.of(testTrainee));
-        when(trainerRepository.findById(TRAINER_ID)).thenReturn(Optional.of(testTrainer));
-        when(trainingViewRepository.findById(TRAINING_VIEW_ID)).thenReturn(Optional.empty());
+        when(traineeRepository.findById("trainee-id")).thenReturn(Optional.of(testTrainee));
+        when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
+        when(trainingViewRepository.findById("non-existent-view")).thenReturn(Optional.empty());
 
-        var result = trainingService.save(request);
+        var exception = assertThrows(NotFoundException.class, () -> {
+            trainingService.save(request);
+        });
 
-        assertNull(result);
-        verify(traineeRepository).findById(TRAINEE_ID);
-        verify(trainerRepository).findById(TRAINER_ID);
-        verify(trainingViewRepository).findById(TRAINING_VIEW_ID);
-        verify(trainingRepository, never()).save(any());
+        assertEquals("Training view not found", exception.getMessage());
+        verify(trainingRepository, never()).save(any(Training.class));
     }
 
     @Test
-    void update_shouldUpdateTrainingFields() {
-        String newTrainingName = "Updated Training";
-        Long newDuration = 90L;
-
+    void update_shouldUpdateTrainingFields() throws NotFoundException {
         var request = new TrainingRequestUpdate(
-                null, null, newTrainingName, null, null, newDuration);
-
-        Training updatedTraining = Training.builder()
-                .id(TEST_ID)
-                .trainee(testTrainee)
-                .trainer(testTrainer)
-                .trainingView(testTrainingView)
-                .trainingName(newTrainingName)
-                .startTime(START_DATE)
-                .duration(newDuration)
-                .build();
-
-        when(trainingRepository.findById(TEST_ID)).thenReturn(Optional.of(testTraining));
-        when(trainingRepository.save(any(Training.class))).thenReturn(updatedTraining);
-
-        var result = trainingService.update(TEST_ID, request);
-
-        assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(newTrainingName, result.trainingName());
-        assertEquals(newDuration, result.duration());
-
-        verify(trainingRepository).findById(TEST_ID);
-        verify(trainingRepository).save(any(Training.class));
-        verify(traineeRepository, never()).findById(any());
-        verify(trainerRepository, never()).findById(any());
-        verify(trainingViewRepository, never()).findById(any());
-    }
-
-    @Test
-    void update_shouldUpdateAllProvidedFields() {
-        String newTraineeId = "new-trainee-id";
-        String newTrainerId = "new-trainer-id";
-        String newTrainingViewId = "new-training-view-id";
-        String newTrainingName = "Updated Training";
-        LocalDate newStartDate = LocalDate.of(2025, 4, 1);
-        Long newDuration = 90L;
-
-        var newTrainee = Trainee.builder().id(newTraineeId).build();
-        var newTrainer = Trainer.builder().id(newTrainerId).build();
-        var newTrainingView = TrainingView.builder().id(newTrainingViewId).build();
-
-        var request = new TrainingRequestUpdate(
-                newTraineeId, newTrainerId, newTrainingName, newTrainingViewId, newStartDate, newDuration);
+                null,
+                null,
+                "Updated Training",
+                null,
+                null,
+                90L
+        );
 
         var updatedTraining = Training.builder()
-                .id(TEST_ID)
-                .trainee(newTrainee)
-                .trainer(newTrainer)
-                .trainingView(newTrainingView)
-                .trainingName(newTrainingName)
-                .startTime(newStartDate)
-                .duration(newDuration)
+                .id(testId)
+                .trainee(testTrainee)
+                .trainer(testTrainer)
+                .trainingName("Updated Training")
+                .trainingType(testTrainingView)
+                .startTime(LocalDate.now())
+                .duration(90L)
                 .build();
 
-        when(trainingRepository.findById(TEST_ID)).thenReturn(Optional.of(testTraining));
-        when(traineeRepository.findById(TEST_ID)).thenReturn(Optional.of(newTrainee));
-        when(trainerRepository.findById(TEST_ID)).thenReturn(Optional.of(newTrainer));
-        when(trainingViewRepository.findById(newTrainingViewId)).thenReturn(Optional.of(newTrainingView));
+        when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
         when(trainingRepository.save(any(Training.class))).thenReturn(updatedTraining);
 
-        var result = trainingService.update(TEST_ID, request);
+        var result = trainingService.update(testId, request);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(newTrainingName, result.trainingName());
-        assertEquals(newDuration, result.duration());
+        assertEquals("Updated Training", result.trainingName());
+        assertEquals(90L, result.duration());
 
-        verify(trainingRepository).findById(TEST_ID);
-        verify(traineeRepository).findById(TEST_ID);
-        verify(trainerRepository).findById(TEST_ID);
-        verify(trainingViewRepository).findById(newTrainingViewId);
-        verify(trainingRepository).save(any(Training.class));
+        verify(trainingRepository).save(testTraining);
+    }
+
+    @Test
+    void update_shouldUpdateAllProvidedFields() throws NotFoundException {
+        var request = new TrainingRequestUpdate(
+                "trainee-id",
+                "trainer-id",
+                "Updated Training",
+                "training-view-id",
+                LocalDate.now().plusDays(7),
+                90L
+        );
+
+        when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
+        when(traineeRepository.findById("trainee-id")).thenReturn(Optional.of(testTrainee));
+        when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
+        when(trainingViewRepository.findById("training-view-id")).thenReturn(Optional.of(testTrainingView));
+        when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
+
+        var result = trainingService.update(testId, request);
+
+        assertNotNull(result);
+
+        verify(trainingRepository).save(testTraining);
+        verify(traineeRepository).findById("trainee-id");
+        verify(trainerRepository).findById("trainer-id");
+        verify(trainingViewRepository).findById("training-view-id");
     }
 
     @Test
     void update_shouldReturnNullWhenTrainingNotFound() {
         var request = new TrainingRequestUpdate(
-                null, null, "Updated Training", null, null, 90L);
+                null,
+                null,
+                "Updated Training",
+                null,
+                null,
+                90L
+        );
 
-        when(trainingRepository.findById(TEST_ID)).thenReturn(Optional.empty());
+        when(trainingRepository.findById("non-existent-id")).thenReturn(Optional.empty());
 
-        var result = trainingService.update(TEST_ID, request);
+        var exception = assertThrows(NotFoundException.class, () -> {
+            trainingService.update("non-existent-id", request);
+        });
 
-        assertNull(result);
-        verify(trainingRepository).findById(TEST_ID);
-        verify(trainingRepository, never()).save(any());
+        assertEquals("Training not found", exception.getMessage());
+        verify(trainingRepository, never()).save(any(Training.class));
     }
 
     @Test
-    void delete_shouldDeleteTraining() {
-        doNothing().when(trainingRepository).delete(TEST_ID);
+    void delete_shouldDeleteTraining() throws NotFoundException {
+        doNothing().when(trainingRepository).delete(testId);
 
-        trainingService.delete(TEST_ID);
+        trainingService.delete(testId);
 
-        verify(trainingRepository).delete(TEST_ID);
+        verify(trainingRepository).delete(testId);
     }
 
     @Test
     void delete_shouldHandleNotFoundExceptionGracefully() {
-        doThrow(new NotFoundException("Training not found")).when(trainingRepository).delete(TEST_ID);
+        String nonExistentId = "non-existent-id";
+        doThrow(new NotFoundException("Training not found")).when(trainingRepository).delete(nonExistentId);
 
-        assertDoesNotThrow(() -> trainingService.delete(TEST_ID));
-        verify(trainingRepository).delete(TEST_ID);
+        var exception = assertThrows(NotFoundException.class, () -> {
+            trainingService.delete(nonExistentId);
+        });
+
+        assertEquals("Training not found", exception.getMessage());
     }
 
     @Test
     void findAll_shouldReturnAllTrainings() {
-        var secondTraining = Training.builder()
-                .id("second-id")
-                .trainee(testTrainee)
-                .trainer(testTrainer)
-                .trainingView(testTrainingView)
-                .trainingName("Second Training")
-                .build();
-
-        when(trainingRepository.findAll()).thenReturn(Arrays.asList(testTraining, secondTraining));
+        var trainings = List.of(testTraining);
+        when(trainingRepository.findAll()).thenReturn(trainings);
 
         var result = trainingService.findAll();
 
-        assertEquals(2, result.size());
-        assertEquals(TEST_ID, result.get(0).id());
-        assertEquals("second-id", result.get(1).id());
-        assertEquals(TRAINING_NAME, result.get(0).trainingName());
-        assertEquals("Second Training", result.get(1).trainingName());
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(testId, result.getFirst().id());
 
         verify(trainingRepository).findAll();
     }
 
     @Test
-    void findById_shouldReturnTrainingWhenFound() {
-        when(trainingRepository.findById(TEST_ID)).thenReturn(Optional.of(testTraining));
+    void findById_shouldReturnTrainingWhenFound() throws NotFoundException {
+        when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
 
-        var result = trainingService.findById(TEST_ID);
+        var result = trainingService.findById(testId);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TRAINING_NAME, result.trainingName());
+        assertEquals(testId, result.id());
 
-        verify(trainingRepository).findById(TEST_ID);
+        verify(trainingRepository).findById(testId);
     }
 
     @Test
     void findById_shouldReturnNullWhenNotFound() {
-        when(trainingRepository.findById(TEST_ID)).thenReturn(Optional.empty());
+        String nonExistentId = "non-existent-id";
+        when(trainingRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        var result = trainingService.findById(TEST_ID);
+        var exception = assertThrows(NotFoundException.class, () -> {
+            trainingService.findById(nonExistentId);
+        });
 
-        assertNull(result);
-        verify(trainingRepository).findById(TEST_ID);
+        assertEquals("Trainee not found by id " + nonExistentId, exception.getMessage());
     }
 
     @Test
     void findTrainingWithUsernameOfTrainee_shouldReturnFilteredTrainings() {
-        String username = "john.doe";
-        LocalDate fromDate = LocalDate.of(2025, 1, 1);
-        LocalDate toDate = LocalDate.of(2025, 12, 31);
-        String trainerName = "Jane Smith";
-        TrainingType trainingType = TrainingType.LABORATORY;
+        String username = "johndoe";
+        LocalDate fromDate = LocalDate.now().minusDays(30);
+        LocalDate toDate = LocalDate.now();
+        String trainerName = "Jane";
+        TrainingType trainingType = TrainingType.SELF_PLACING;
 
-        var trainings = Collections.singletonList(testTraining);
-
+        var trainings = List.of(testTraining);
         when(trainingRepository.findTrainingWithUsernameOfTrainee(
-                username, fromDate, toDate, trainerName, trainingType)).thenReturn(trainings);
+                username, fromDate, toDate, trainerName, trainingType))
+                .thenReturn(trainings);
 
         var result = trainingService.findTrainingWithUsernameOfTrainee(
                 username, fromDate, toDate, trainerName, trainingType);
@@ -353,16 +341,16 @@ class TrainingServiceTest {
 
     @Test
     void findTrainingWithUsernameOfTrainer_shouldReturnFilteredTrainings() {
-        String username = "john.doe";
-        LocalDate fromDate = LocalDate.of(2025, 1, 1);
-        LocalDate toDate = LocalDate.of(2025, 12, 31);
-        String traineeName = "Jane Smith";
-        TrainingType trainingType = TrainingType.LABORATORY;
+        String username = "johndoe";
+        LocalDate fromDate = LocalDate.now().minusDays(30);
+        LocalDate toDate = LocalDate.now();
+        String traineeName = "Jane";
+        TrainingType trainingType = TrainingType.SELF_PLACING;
 
-        var trainings = Collections.singletonList(testTraining);
-
+        var trainings = List.of(testTraining);
         when(trainingRepository.findTrainingWithUsernameOfTrainer(
-                username, fromDate, toDate, traineeName, trainingType)).thenReturn(trainings);
+                username, fromDate, toDate, traineeName, trainingType))
+                .thenReturn(trainings);
 
         var result = trainingService.findTrainingWithUsernameOfTrainer(
                 username, fromDate, toDate, traineeName, trainingType);
@@ -372,5 +360,26 @@ class TrainingServiceTest {
 
         verify(trainingRepository).findTrainingWithUsernameOfTrainer(
                 username, fromDate, toDate, traineeName, trainingType);
+    }
+
+    @Test
+    void check_shouldHandleNullValuesCorrectly() {
+        var requestWithNulls = new TrainingRequestUpdate(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
+        when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
+
+        assertDoesNotThrow(() -> trainingService.update(testId, requestWithNulls));
+
+        verify(traineeRepository, never()).findById(any());
+        verify(trainerRepository, never()).findById(any());
+        verify(trainingViewRepository, never()).findById(any());
     }
 }

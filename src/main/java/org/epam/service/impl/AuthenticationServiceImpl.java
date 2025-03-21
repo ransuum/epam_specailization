@@ -1,5 +1,7 @@
 package org.epam.service.impl;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.SecurityContextHolder;
@@ -14,6 +16,7 @@ import java.time.LocalDateTime;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
+    private static final Logger log = LogManager.getLogger(AuthenticationServiceImpl.class);
     private final UserRepository userRepository;
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
@@ -32,10 +35,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (!user.getPassword().equals(password))
             throw new CredentialException("Password or username doesn't match");
 
-        var trainee = traineeRepository.findById(user.getId())
-                .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));
-        if (trainee != null)
-            return new SecurityContextHolder(username, trainee.getId(), LocalDateTime.now(), LocalDateTime.now().plusDays(12), UserType.TRAINEE);
+        try {
+            var trainee = traineeRepository.findById(user.getId())
+                    .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));
+            if (trainee != null)
+                return new SecurityContextHolder(username, trainee.getId(), LocalDateTime.now(), LocalDateTime.now().plusDays(12), UserType.TRAINEE);
+        } catch (Exception e) {
+            log.info("You are not trainee");
+        }
 
         var trainer = trainerRepository.findById(user.getId())
                 .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));

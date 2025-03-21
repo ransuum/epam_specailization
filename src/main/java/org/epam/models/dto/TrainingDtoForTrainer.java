@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public record TrainingDtoForTrainer(String id,
                                    TraineeDto trainee,
                                    String trainingName,
-                                   TrainingViewDto trainingView,
+                                   TrainingViewDto trainingType,
                                    LocalDate startTime,
                                    Long duration) {
 

@@ -7,6 +7,7 @@ import org.epam.models.entity.Trainer;
 import org.epam.models.request.trainerrequest.TrainerRequestCreate;
 import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
 import org.epam.repository.TrainerRepository;
+import org.epam.repository.TrainingViewRepository;
 import org.epam.repository.UserRepository;
 import org.epam.service.TrainerService;
 import org.epam.utils.mappers.TrainerMapper;
@@ -16,15 +17,17 @@ import java.util.List;
 
 import static org.epam.utils.CheckerField.check;
 
-
 @Service
 public class TrainerServiceImpl implements TrainerService {
     private final TrainerRepository trainerRepository;
     private final UserRepository userRepository;
+    private final TrainingViewRepository trainingViewRepository;
 
-    public TrainerServiceImpl(TrainerRepository trainerRepository, UserRepository userRepository) {
+    public TrainerServiceImpl(TrainerRepository trainerRepository, UserRepository userRepository,
+                              TrainingViewRepository trainingViewRepository) {
         this.trainerRepository = trainerRepository;
         this.userRepository = userRepository;
+        this.trainingViewRepository = trainingViewRepository;
     }
 
     @Override
@@ -33,7 +36,8 @@ public class TrainerServiceImpl implements TrainerService {
                 Trainer.builder()
                         .user(userRepository.findById(request.userId())
                                 .orElseThrow(() -> new NotFoundException("User not found")))
-                        .specialization(request.specialization())
+                        .specialization(trainingViewRepository.findById(request.specializationId())
+                                .orElseThrow(() -> new NotFoundException("Specialization Not Found")))
                         .build())
         );
     }
@@ -43,9 +47,13 @@ public class TrainerServiceImpl implements TrainerService {
         var trainer = trainerRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
-        if (check(request.specialization())) trainer.setSpecialization(request.specialization());
         if (check(request.userId())) trainer.setUser(userRepository.findById(request.userId())
                 .orElseThrow(() -> new NotFoundException("User not found")));
+
+        if (check(request.specializationId()))
+            trainer.setSpecialization(trainingViewRepository.findById(request.specializationId())
+                    .orElseThrow(() -> new NotFoundException("Specialization Not Found")));
+
         return TrainerMapper.INSTANCE.toDto(trainerRepository.update(id, trainer));
     }
 

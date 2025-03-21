@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 public class CheckerField {
     public static boolean check(String val) {
-        return val != null && !val.isEmpty() && !val.isBlank();
+        return val != null && !val.trim().isEmpty() && !val.isBlank() && !val.equals(" ");
     }
 
     public static boolean check(Integer val) {

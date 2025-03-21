@@ -1,6 +1,8 @@
 package org.epam.service;
 
 import org.epam.exception.NotFoundException;
+import org.epam.models.entity.Trainer;
+import org.epam.models.entity.Training;
 import org.epam.models.entity.TrainingView;
 import org.epam.models.enums.TrainingType;
 import org.epam.repository.TrainingViewRepository;
@@ -12,9 +14,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,7 +24,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TrainingViewServiceTest {
-    private static final String TEST_ID = "test-id";
 
     @Mock
     private TrainingViewRepository trainingViewRepository;
@@ -32,13 +32,35 @@ class TrainingViewServiceTest {
     private TrainingViewServiceImpl trainingViewService;
 
     private TrainingView testTrainingView;
+    private String testId;
+    private TrainingType testTrainingType;
+    private TrainingType updatedTrainingType;
+    private List<Training> testTrainings;
+    private List<Trainer> testTrainers;
 
     @BeforeEach
     void setUp() {
+        testId = "test-id-123";
+        testTrainingType = TrainingType.LABORATORY;
+        updatedTrainingType = TrainingType.FUNDAMENTALS;
+
+        var training1 = new Training();
+        training1.setId("training-1");
+        var training2 = new Training();
+        training2.setId("training-2");
+        testTrainings = List.of(training1, training2);
+
+        var trainer1 = new Trainer();
+        trainer1.setId("trainer-1");
+        var trainer2 = new Trainer();
+        trainer2.setId("trainer-2");
+        testTrainers = List.of(trainer1, trainer2);
+
         testTrainingView = TrainingView.builder()
-                .id(TEST_ID)
-                .trainingType(TrainingType.LABORATORY)
-                .trainings(new ArrayList<>())
+                .id(testId)
+                .trainingType(testTrainingType)
+                .trainings(testTrainings)
+                .trainers(testTrainers)
                 .build();
     }
 
@@ -46,107 +68,149 @@ class TrainingViewServiceTest {
     void save_shouldCreateNewTrainingView() {
         when(trainingViewRepository.save(any(TrainingView.class))).thenReturn(testTrainingView);
 
-        var result = trainingViewService.save(TrainingType.LABORATORY);
+        var result = trainingViewService.save(testTrainingType);
 
-        // Assert
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TrainingType.LABORATORY, result.trainingType());
-        assertTrue(result.trainingsIds().isEmpty());
+        assertEquals(testId, result.id());
+        assertEquals(testTrainingType, result.trainingType());
 
-        verify(trainingViewRepository).save(any(TrainingView.class));
+        var expectedTrainingIds = testTrainings.stream()
+                .map(Training::getId)
+                .collect(Collectors.toList());
+        assertEquals(expectedTrainingIds, result.trainingsIds());
+
+        var expectedSpecializationIds = testTrainers.stream()
+                .map(Trainer::getId)
+                .collect(Collectors.toList());
+        assertEquals(expectedSpecializationIds, result.specializationIds());
+
+        verify(trainingViewRepository).save(argThat(view ->
+                view.getTrainingType() == testTrainingType));
     }
 
     @Test
-    void update_shouldUpdateTrainingType() {
+    void update_shouldUpdateTrainingType() throws NotFoundException {
         var updatedTrainingView = TrainingView.builder()
-                .id(TEST_ID)
-                .trainingType(TrainingType.FUNDAMENTALS)
-                .trainings(new ArrayList<>())
+                .id(testId)
+                .trainingType(updatedTrainingType)
+                .trainings(testTrainings)
+                .trainers(testTrainers)
                 .build();
 
-        when(trainingViewRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainingView));
-        when(trainingViewRepository.update(eq(TEST_ID), any(TrainingView.class))).thenReturn(updatedTrainingView);
+        when(trainingViewRepository.findById(testId)).thenReturn(Optional.of(testTrainingView));
+        when(trainingViewRepository.update(eq(testId), any(TrainingView.class))).thenReturn(updatedTrainingView);
 
-        var result = trainingViewService.update(TEST_ID, TrainingType.FUNDAMENTALS);
+        var result = trainingViewService.update(testId, updatedTrainingType);
 
         assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TrainingType.FUNDAMENTALS, result.trainingType());
+        assertEquals(testId, result.id());
+        assertEquals(updatedTrainingType, result.trainingType());
 
-        verify(trainingViewRepository).findById(TEST_ID);
-        verify(trainingViewRepository).update(eq(TEST_ID), any(TrainingView.class));
+        verify(trainingViewRepository).findById(testId);
+        verify(trainingViewRepository).update(eq(testId), argThat(view ->
+                view.getTrainingType() == updatedTrainingType));
     }
 
     @Test
-    void update_shouldReturnNullWhenTrainingViewNotFound() {
-        when(trainingViewRepository.findById(TEST_ID)).thenReturn(Optional.empty());
+    void update_shouldThrowNotFoundExceptionWhenTrainingViewNotFound() {
+        when(trainingViewRepository.findById(testId)).thenReturn(Optional.empty());
 
-        var result = trainingViewService.update(TEST_ID, TrainingType.SELF_PLACING);
+        var exception = assertThrows(NotFoundException.class, () ->
+                trainingViewService.update(testId, updatedTrainingType));
 
-        assertNull(result);
-        verify(trainingViewRepository).findById(TEST_ID);
-        verify(trainingViewRepository, never()).update(any(), any());
+        assertEquals("Training view not found", exception.getMessage());
+        verify(trainingViewRepository).findById(testId);
+        verify(trainingViewRepository, never()).update(anyString(), any());
     }
 
     @Test
-    void delete_shouldDeleteTrainingView() {
-        doNothing().when(trainingViewRepository).delete(TEST_ID);
+    void delete_shouldDeleteTrainingView() throws NotFoundException {
+        doNothing().when(trainingViewRepository).delete(testId);
 
-        trainingViewService.delete(TEST_ID);
+        trainingViewService.delete(testId);
 
-        verify(trainingViewRepository).delete(TEST_ID);
+        verify(trainingViewRepository).delete(testId);
     }
 
     @Test
-    void delete_shouldHandleNotFoundExceptionGracefully() {
-        doThrow(new NotFoundException("Training view not found")).when(trainingViewRepository).delete(TEST_ID);
+    void delete_shouldHandleNotFoundExceptionGracefully() throws NotFoundException {
+        doThrow(new NotFoundException("Training view not found")).when(trainingViewRepository).delete(testId);
 
-        assertDoesNotThrow(() -> trainingViewService.delete(TEST_ID));
-        verify(trainingViewRepository).delete(TEST_ID);
+        var exception = assertThrows(NotFoundException.class, () ->
+                trainingViewService.delete(testId));
+
+        assertEquals("Training view not found", exception.getMessage());
+        verify(trainingViewRepository).delete(testId);
     }
 
     @Test
-    void findAll_shouldReturnAllTrainingViews() {
+    void findAll_shouldReturnAllTrainingViews() throws NotFoundException {
         var secondTrainingView = TrainingView.builder()
-                .id("second-id")
+                .id("test-id-456")
                 .trainingType(TrainingType.SELF_PLACING)
-                .trainings(new ArrayList<>())
+                .trainings(Collections.emptyList())
+                .trainers(Collections.emptyList())
                 .build();
 
-        when(trainingViewRepository.findAll()).thenReturn(Arrays.asList(testTrainingView, secondTrainingView));
+        var trainingViews = List.of(testTrainingView, secondTrainingView);
 
-        var result = trainingViewService.findAll();
+        when(trainingViewRepository.findAll()).thenReturn(trainingViews);
 
-        assertEquals(2, result.size());
-        assertEquals(TEST_ID, result.get(0).id());
-        assertEquals("second-id", result.get(1).id());
-        assertEquals(TrainingType.LABORATORY, result.get(0).trainingType());
-        assertEquals(TrainingType.SELF_PLACING, result.get(1).trainingType());
+        var results = trainingViewService.findAll();
+
+        assertNotNull(results);
+        assertEquals(2, results.size());
+        assertEquals(testId, results.get(0).id());
+        assertEquals(testTrainingType, results.get(0).trainingType());
+        assertEquals("test-id-456", results.get(1).id());
+        assertEquals(TrainingType.SELF_PLACING, results.get(1).trainingType());
 
         verify(trainingViewRepository).findAll();
     }
 
     @Test
-    void findById_shouldReturnTrainingViewWhenFound() {
-        when(trainingViewRepository.findById(TEST_ID)).thenReturn(Optional.of(testTrainingView));
+    void findAll_shouldHandleEmptyList() throws NotFoundException {
+        when(trainingViewRepository.findAll()).thenReturn(Collections.emptyList());
 
-        var result = trainingViewService.findById(TEST_ID);
+        var results = trainingViewService.findAll();
 
-        assertNotNull(result);
-        assertEquals(TEST_ID, result.id());
-        assertEquals(TrainingType.LABORATORY, result.trainingType());
+        assertNotNull(results);
+        assertTrue(results.isEmpty());
 
-        verify(trainingViewRepository).findById(TEST_ID);
+        verify(trainingViewRepository).findAll();
     }
 
     @Test
-    void findById_shouldReturnNullWhenNotFound() {
-        when(trainingViewRepository.findById(TEST_ID)).thenReturn(Optional.empty());
+    void findById_shouldReturnTrainingViewWhenFound() throws NotFoundException {
+        when(trainingViewRepository.findById(testId)).thenReturn(Optional.of(testTrainingView));
 
-        var result = trainingViewService.findById(TEST_ID);
+        var result = trainingViewService.findById(testId);
 
-        assertNull(result);
-        verify(trainingViewRepository).findById(TEST_ID);
+        assertNotNull(result);
+        assertEquals(testId, result.id());
+        assertEquals(testTrainingType, result.trainingType());
+
+        var expectedTrainingIds = testTrainings.stream()
+                .map(Training::getId)
+                .collect(Collectors.toList());
+        assertEquals(expectedTrainingIds, result.trainingsIds());
+
+        var expectedSpecializationIds = testTrainers.stream()
+                .map(Trainer::getId)
+                .collect(Collectors.toList());
+        assertEquals(expectedSpecializationIds, result.specializationIds());
+
+        verify(trainingViewRepository).findById(testId);
+    }
+
+    @Test
+    void findById_shouldThrowNotFoundExceptionWhenNotFound() {
+        when(trainingViewRepository.findById(testId)).thenReturn(Optional.empty());
+
+        var exception = assertThrows(NotFoundException.class, () ->
+                trainingViewService.findById(testId));
+
+        assertEquals("Training view not found", exception.getMessage());
+        verify(trainingViewRepository).findById(testId);
     }
 }
