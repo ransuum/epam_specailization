@@ -31,6 +31,7 @@ public class TraineeChooser implements Chooser {
             System.out.println("5. List All Trainees");
             System.out.println("6. Change Password");
             System.out.println("7. deactivate/activate Trainee");
+            System.out.println("8. add list of Training to Trainee");
             System.out.println("0. Back to Main Menu");
             System.out.print("Enter your choice: ");
 
@@ -66,6 +67,10 @@ public class TraineeChooser implements Chooser {
                 case 7:
                     System.out.println(transExec.executeWithTransaction(()
                             -> traineeController.activeAction(securityContextHolder.getUserId(), scanner)));
+                case 8:
+                    transExec.executeWithTransaction(()
+                            -> traineeController.addListToTrainee(securityContextHolder.getUserId(), scanner)).forEach(System.out::println);
+                    break;
                 case 0:
                     traineeMenuRunning = false;
                     break;

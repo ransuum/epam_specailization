@@ -8,6 +8,7 @@ import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
 import org.epam.service.TrainerService;
 import org.springframework.stereotype.Controller;
 
+import java.util.List;
 import java.util.Scanner;
 
 @Controller
@@ -49,18 +50,18 @@ public class TrainerController {
         }
     }
 
-        public TrainerDto updateTrainer(String id, Scanner scanner) {
-            try {
-                System.out.print("Enter user's id: ");
-                var userId = scanner.nextLine().trim();
-                System.out.print("Enter specialization: ");
-                var specialization = scanner.nextLine().trim();
-                return trainerService.update(id, new TrainerRequestUpdate(userId, specialization));
-            } catch (Exception e) {
-                logger.error("Error updating trainer: {}", e.getMessage());
-                return null;
-            }
+    public TrainerDto updateTrainer(String id, Scanner scanner) {
+        try {
+            System.out.print("Enter user's id: ");
+            var userId = scanner.nextLine().trim();
+            System.out.print("Enter specialization: ");
+            var specialization = scanner.nextLine().trim();
+            return trainerService.update(id, new TrainerRequestUpdate(userId, specialization));
+        } catch (Exception e) {
+            logger.error("Error updating trainer: {}", e.getMessage());
+            return null;
         }
+    }
 
     public void findAll() {
         try {
@@ -93,5 +94,17 @@ public class TrainerController {
             logger.error("Error updating activation status: {}", e.getMessage(), e);
             return null;
         }
+    }
+
+    public List<TrainerDto> getUnassignedTrainersForTrainee(Scanner scanner) {
+        try {
+            System.out.print("Enter trainee's username: ");
+            var username = scanner.next();
+            return trainerService.getUnassignedTrainersForTrainee(username);
+        } catch (Exception e) {
+            logger.error("Error get unassigned Trainers by trainee's username: {}", e.getMessage(), e);
+            return null;
+        }
+
     }
 }

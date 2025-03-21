@@ -5,12 +5,11 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.dto.TrainingViewDto;
 import org.epam.models.dto.UserDto;
-import org.epam.models.entity.Trainer;
-import org.epam.models.entity.TrainingView;
-import org.epam.models.entity.User;
+import org.epam.models.entity.*;
 import org.epam.models.enums.TrainingType;
 import org.epam.models.request.trainerrequest.TrainerRequestCreate;
 import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
+import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingViewRepository;
 import org.epam.repository.UserRepository;
@@ -38,6 +37,9 @@ class TrainerServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private TraineeRepository traineeRepository;
 
     @Mock
     private TrainingViewRepository trainingViewRepository;
@@ -324,4 +326,48 @@ class TrainerServiceTest {
 
         verify(trainerRepository).findByUsername("nonExistentUser");
     }
+
+    @Test
+    void getUnassignedTrainersForTrainee_shouldReturnUnassignedTrainers() throws NotFoundException {
+        var trainee = Trainee.builder()
+                .id("traineeId")
+                .user(User.builder().id("assignedUserId").username("assignedTrainer").build())
+                .trainings(new ArrayList<>())
+                .build();
+
+        var assignedTrainer = Trainer.builder()
+                .id("assignedTrainerId")
+                .user(User.builder().id("assignedUserId").username("assignedTrainer").build())
+                .specialization(testTrainingView)
+                .trainings(new ArrayList<>())
+                .build();
+
+        var unassignedTrainer = Trainer.builder()
+                .id("unassignedTrainerId")
+                .user(User.builder().id("unassignedUserId").username("unassignedTrainer").build())
+                .specialization(testTrainingView)
+                .trainings(new ArrayList<>())
+                .build();
+
+        var assignedTraining = Training.builder()
+                .id("trainingId")
+                .trainer(assignedTrainer)
+                .trainee(trainee)
+                .build();
+
+        trainee.getTrainings().add(assignedTraining);
+
+        when(traineeRepository.findByUsername("testTrainee")).thenReturn(Optional.of(trainee));
+        when(trainerRepository.findAll()).thenReturn(List.of(assignedTrainer, unassignedTrainer));
+
+        var result = trainerService.getUnassignedTrainersForTrainee("testTrainee");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("unassignedTrainerId", result.get(0).id());
+
+        verify(traineeRepository).findByUsername("testTrainee");
+        verify(trainerRepository).findAll();
+    }
+
 }

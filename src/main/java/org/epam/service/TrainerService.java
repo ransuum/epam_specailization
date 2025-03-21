@@ -27,4 +27,6 @@ public interface TrainerService {
     TrainerDto activateAction(String username) throws NotFoundException;
 
     TrainerDto deactivateAction(String username) throws NotFoundException;
+
+    List<TrainerDto> getUnassignedTrainersForTrainee(String username) throws NotFoundException;
 }

@@ -4,8 +4,10 @@ import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
+import org.epam.models.entity.Training;
 import org.epam.models.request.trainerrequest.TrainerRequestCreate;
 import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
+import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingViewRepository;
 import org.epam.repository.UserRepository;
@@ -22,12 +24,14 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainerRepository trainerRepository;
     private final UserRepository userRepository;
     private final TrainingViewRepository trainingViewRepository;
+    private final TraineeRepository traineeRepository;
 
     public TrainerServiceImpl(TrainerRepository trainerRepository, UserRepository userRepository,
-                              TrainingViewRepository trainingViewRepository) {
+                              TrainingViewRepository trainingViewRepository, TraineeRepository traineeRepository) {
         this.trainerRepository = trainerRepository;
         this.userRepository = userRepository;
         this.trainingViewRepository = trainingViewRepository;
+        this.traineeRepository = traineeRepository;
     }
 
     @Override
@@ -118,5 +122,22 @@ public class TrainerServiceImpl implements TrainerService {
         user.setIsActive(Boolean.FALSE);
         trainer.setUser(userRepository.update(user.getId(), user));
         return TrainerMapper.INSTANCE.toDto(trainer);
+    }
+
+    @Override
+    public List<TrainerDto> getUnassignedTrainersForTrainee(String username) throws NotFoundException {
+        var trainee = traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Trainee not found with username: " + username));
+
+        var assignedTrainers = trainee.getTrainings().stream()
+                .map(Training::getTrainer)
+                .distinct()
+                .toList();
+
+        return trainerRepository.findAll()
+                .stream()
+                .filter(trainer -> !assignedTrainers.contains(trainer))
+                .map(TrainerMapper.INSTANCE::toDto)
+                .toList();
     }
 }

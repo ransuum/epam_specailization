@@ -4,6 +4,8 @@ package org.epam.service;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TraineeDto;
+import org.epam.models.dto.TrainingDto;
+import org.epam.models.entity.Training;
 import org.epam.models.request.traineerequest.TraineeRequestCreate;
 import org.epam.models.request.traineerequest.TraineeRequestUpdate;
 
@@ -29,4 +31,6 @@ public interface TraineeService {
     TraineeDto activateAction(String username) throws NotFoundException;
 
     TraineeDto deactivateAction(String username) throws NotFoundException;
+
+    List<TrainingDto> addTrainingsToTrainee(String traineeId, List<String> trainingIds) throws NotFoundException;
 }

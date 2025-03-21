@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TraineeDto;
+import org.epam.models.dto.TrainingDto;
 import org.epam.models.request.traineerequest.TraineeRequestCreate;
 import org.epam.models.request.traineerequest.TraineeRequestUpdate;
 import org.epam.service.TraineeService;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Controller;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 @Controller
@@ -116,5 +119,23 @@ public class TraineeController {
             logger.info("Error active action: {}", e.getMessage());
             return null;
         }
+    }
+
+    public List<TrainingDto> addListToTrainee(String traineeId, Scanner scanner) {
+        try {
+            System.out.print("Enter trainings with ',' like this (id1,id2,id3): ");
+            var trainings = scanner.nextLine().trim();
+            return traineeService.addTrainingsToTrainee(traineeId, getIds(trainings));
+        } catch (Exception e) {
+            logger.info("Error add list to Trainee: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private List<String> getIds(String val) {
+        return Arrays.stream(val.split(","))
+                .map(String::trim)
+                .filter(id -> !id.isEmpty())
+                .toList();
     }
 }
