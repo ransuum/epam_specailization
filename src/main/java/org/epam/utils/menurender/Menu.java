@@ -46,12 +46,10 @@ public class Menu {
 
     private void displayMainMenu() {
         System.out.println("\n===== MAIN MENU =====");
-        System.out.println("1. User Management");
-        System.out.println("2. Trainee Management");
-        System.out.println("3. Trainer Management");
-        System.out.println("4. Training Management");
-        System.out.println("5. Training Type Management");
-        System.out.println("6. Authorization Management");
+        System.out.println("1. Trainee Management");
+        System.out.println("2. Trainer Management");
+        System.out.println("3. Training Management");
+        System.out.println("4. Authorization Management");
         System.out.println("0. Exit");
         System.out.print("Enter your choice: ");
     }
@@ -69,19 +67,6 @@ public class Menu {
         switch (choice) {
             case 1:
                 try {
-                    if (Boolean.TRUE.equals(forTrainee)){
-                        System.out.println("Trainee User Menu");
-                        chooserIntegerMap.get(1).show(scanner, securityContextHolder);
-                    } else if (Boolean.TRUE.equals(forTrainer)) {
-                        System.out.println("Trainer User Menu");
-                        chooserIntegerMap.get(1).show(scanner, securityContextHolder);
-                    } else throw new PermissionException("Permission denied please authorize");
-                } catch (Exception e) {
-                    log.error("Security exception with user: {}", e.getMessage());
-                }
-                break;
-            case 2:
-                try {
                     if (Boolean.TRUE.equals(forTrainee))
                         chooserIntegerMap.get(2).show(scanner, securityContextHolder);
                     else throw new PermissionException("Permission denied");
@@ -89,7 +74,7 @@ public class Menu {
                     log.error("Security exception with Trainee: {}", e.getMessage());
                 }
                 break;
-            case 3:
+            case 2:
                 try {
                     if (Boolean.TRUE.equals(forTrainer))
                         chooserIntegerMap.get(3).show(scanner, securityContextHolder);
@@ -98,7 +83,7 @@ public class Menu {
                     log.error("Security exception with Trainer: {}", e.getMessage());
                 }
                 break;
-            case 4:
+            case 3:
                 try {
                     if (checkForContext(forTrainee, forTrainer))
                         chooserIntegerMap.get(4).show(scanner, securityContextHolder);
@@ -107,16 +92,7 @@ public class Menu {
                     log.error("Security exception with training: {}", e.getMessage());
                 }
                 break;
-            case 5:
-                try {
-                    if (checkForContext(forTrainee, forTrainer))
-                        chooserIntegerMap.get(5).show(scanner, securityContextHolder);
-                    else throw new PermissionException("Permission denied please authorize");
-                } catch (PermissionException e) {
-                    log.error("Security exception: {}", e.getMessage());
-                }
-                break;
-            case 6:
+            case 4:
                 chooserIntegerMap.get(6).show(scanner, securityContextHolder);
                 break;
             case 0:

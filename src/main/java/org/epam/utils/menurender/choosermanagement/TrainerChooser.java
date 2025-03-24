@@ -32,7 +32,7 @@ public class TrainerChooser implements Chooser {
             System.out.println("3. Delete Trainer");
             System.out.println("4. List All Trainers");
             System.out.println("5. Change Password");
-            System.out.println("6. deactivate/activate Trainer");
+            System.out.println("6. change status Trainer");
             System.out.println("0. Back to Main Menu");
             System.out.print("Enter your choice: ");
 
@@ -63,7 +63,7 @@ public class TrainerChooser implements Chooser {
                     break;
                 case 6:
                     System.out.println(transExec.executeWithTransaction(()
-                            -> trainerController.activeAction(securityContextHolder.getUserId(), scanner)));
+                            -> trainerController.changeStatus(securityContextHolder.getUsername())));
                 case 0:
                     trainerMenuRunning = false;
                     break;

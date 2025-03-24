@@ -4,8 +4,7 @@ import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
-import org.epam.models.request.createrequest.TraineeRequestCreate;
-import org.epam.models.request.updaterequest.TraineeRequestUpdate;
+import org.epam.models.request.create.TraineeRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.UserRepository;
 import org.epam.service.TraineeService;
@@ -28,7 +27,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public TraineeDto save(TraineeRequestCreate request) throws NotFoundException {
+    public TraineeDto save(TraineeRequestUpdate request) throws NotFoundException {
         return TraineeMapper.INSTANCE.toDto(traineeRepository.save(Trainee.builder()
                 .address(request.address())
                 .dateOfBirth(request.dateOfBirth())
@@ -38,14 +37,12 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public TraineeDto update(String id, TraineeRequestUpdate requestUpdate) throws NotFoundException {
+    public TraineeDto update(String id, org.epam.models.request.update.TraineeRequestUpdate requestUpdate) throws NotFoundException {
         var traineeById = traineeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         if (check(requestUpdate.getAddress())) traineeById.setAddress(requestUpdate.getAddress());
         if (check(requestUpdate.getDateOfBirth())) traineeById.setDateOfBirth(requestUpdate.getDateOfBirth());
-        if (check(requestUpdate.getUserId())) traineeById.setUser(userRepository.findById(requestUpdate.getUserId())
-                .orElseThrow(() -> new NotFoundException("User not found")));
         return TraineeMapper.INSTANCE.toDto(traineeRepository.update(id, traineeById));
     }
 
@@ -95,23 +92,13 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public TraineeDto activateAction(String username) throws NotFoundException {
+    public TraineeDto changeStatus(String username) throws NotFoundException {
         var trainee = traineeRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         var user = trainee.getUser();
-        user.setIsActive(Boolean.TRUE);
-        trainee.setUser(userRepository.update(user.getId(), user));
-        return TraineeMapper.INSTANCE.toDto(trainee);
-    }
-
-    @Override
-    public TraineeDto deactivateAction(String username) throws NotFoundException {
-        var trainee = traineeRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Trainee not found"));
-
-        var user = trainee.getUser();
-        user.setIsActive(Boolean.FALSE);
+        user.setIsActive(user.getIsActive().equals(Boolean.TRUE)
+                ? Boolean.FALSE : Boolean.TRUE);
         trainee.setUser(userRepository.update(user.getId(), user));
         return TraineeMapper.INSTANCE.toDto(trainee);
     }

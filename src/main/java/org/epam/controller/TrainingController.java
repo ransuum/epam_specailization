@@ -6,8 +6,7 @@ import org.epam.models.dto.TrainingDto;
 import org.epam.models.dto.TrainingDtoForTrainee;
 import org.epam.models.dto.TrainingDtoForTrainer;
 import org.epam.models.enums.TrainingName;
-import org.epam.models.request.createrequest.TrainingRequestCreate;
-import org.epam.models.request.updaterequest.TrainingRequestUpdate;
+import org.epam.models.request.create.TrainingRequestUpdate;
 import org.epam.service.TrainingService;
 import org.springframework.stereotype.Controller;
 
@@ -24,10 +23,10 @@ public class TrainingController {
     private final TrainingService trainingService;
     private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-    private List<TrainingRequestCreate> setTrainingRequestCreateList(String userId) {
+    private List<TrainingRequestUpdate> setTrainingRequestCreateList(String userId) {
         return List.of(
-                new TrainingRequestCreate(userId, "uuid3", "FIRST NAME", "type1", LocalDate.now(), 50L),
-                new TrainingRequestCreate(userId, "uuid4", "FIRST NAME", "type2", LocalDate.now(), 75L));
+                new TrainingRequestUpdate(userId, "uuid3", "FIRST NAME", "type1", LocalDate.now(), 50L),
+                new TrainingRequestUpdate(userId, "uuid4", "FIRST NAME", "type2", LocalDate.now(), 75L));
     }
 
     public TrainingController(TrainingService trainingService) {
@@ -50,7 +49,7 @@ public class TrainingController {
             System.out.print("Enter duration: ");
             var duration = scanner.nextLong();
 
-            return trainingService.save(new TrainingRequestCreate(traineeId, trainerId, trainingName,
+            return trainingService.save(new TrainingRequestUpdate(traineeId, trainerId, trainingName,
                     trainingViewId, LocalDate.parse(date, formatter), duration));
         } catch (Exception e) {
             logger.error("Error creating training: {}", e.getMessage());
@@ -95,7 +94,7 @@ public class TrainingController {
             System.out.print("Enter duration: ");
             var duration = Long.valueOf(scanner.nextLine());
 
-            return trainingService.update(trainingId, new TrainingRequestUpdate(traineeId, trainerId, trainingName,
+            return trainingService.update(trainingId, new org.epam.models.request.update.TrainingRequestUpdate(traineeId, trainerId, trainingName,
                     trainingViewId, LocalDate.parse(date, formatter), duration));
         } catch (Exception e) {
             logger.error("Error updating training: {}", e.getMessage());

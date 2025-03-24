@@ -5,8 +5,7 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
-import org.epam.models.request.createrequest.TrainerRequestCreate;
-import org.epam.models.request.updaterequest.TrainerRequestUpdate;
+import org.epam.models.request.create.TrainerRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
@@ -35,7 +34,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public TrainerDto save(TrainerRequestCreate request) throws NotFoundException {
+    public TrainerDto save(TrainerRequestUpdate request) throws NotFoundException {
         return TrainerMapper.INSTANCE.toDto(trainerRepository.save(
                 Trainer.builder()
                         .user(userRepository.findById(request.userId())
@@ -47,11 +46,11 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public TrainerDto update(String id, TrainerRequestUpdate request) throws NotFoundException {
+    public TrainerDto update(String id, org.epam.models.request.update.TrainerRequestUpdate request) throws NotFoundException {
         var trainer = trainerRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
-        if (check(request.userId())) trainer.setUser(userRepository.findById(request.userId())
+        if (check(request.userId()) && !request.userId().equals(id)) trainer.setUser(userRepository.findById(request.userId())
                 .orElseThrow(() -> new NotFoundException("User not found")));
 
         if (check(request.specializationId()))
@@ -64,7 +63,6 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     public void delete(String id) throws NotFoundException {
         trainerRepository.delete(id);
-
     }
 
     @Override
@@ -103,23 +101,13 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public TrainerDto activateAction(String username) throws NotFoundException {
+    public TrainerDto changeStatus(String username) throws NotFoundException {
         var trainer = trainerRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
         var user = trainer.getUser();
-        user.setIsActive(Boolean.TRUE);
-        trainer.setUser(userRepository.update(user.getId(), user));
-        return TrainerMapper.INSTANCE.toDto(trainer);
-    }
-
-    @Override
-    public TrainerDto deactivateAction(String username) throws NotFoundException {
-        var trainer = trainerRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Trainer not found"));
-
-        var user = trainer.getUser();
-        user.setIsActive(Boolean.FALSE);
+        user.setIsActive(user.getIsActive().equals(Boolean.TRUE)
+                ? Boolean.FALSE : Boolean.TRUE);
         trainer.setUser(userRepository.update(user.getId(), user));
         return TrainerMapper.INSTANCE.toDto(trainer);
     }

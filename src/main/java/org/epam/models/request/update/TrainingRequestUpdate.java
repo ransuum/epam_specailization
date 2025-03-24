@@ -1,4 +1,4 @@
-package org.epam.models.request.updaterequest;
+package org.epam.models.request.update;
 
 
 import java.time.LocalDate;

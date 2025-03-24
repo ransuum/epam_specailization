@@ -1,4 +1,4 @@
-package org.epam.models.request.updaterequest;
+package org.epam.models.request.update;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

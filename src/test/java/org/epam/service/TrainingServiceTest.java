@@ -3,8 +3,7 @@ package org.epam.service;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.*;
 import org.epam.models.enums.TrainingName;
-import org.epam.models.request.createrequest.TrainingRequestCreate;
-import org.epam.models.request.updaterequest.TrainingRequestUpdate;
+import org.epam.models.request.create.TrainingRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingRepository;
@@ -86,7 +85,7 @@ class TrainingServiceTest {
 
     @Test
     void save_shouldCreateNewTraining() throws NotFoundException {
-        var request = new TrainingRequestCreate(
+        var request = new TrainingRequestUpdate(
                 "trainee-id",
                 "trainer-id",
                 "Test Training",
@@ -112,7 +111,7 @@ class TrainingServiceTest {
 
     @Test
     void save_shouldReturnNullWhenTraineeNotFound() {
-        var request = new TrainingRequestCreate(
+        var request = new TrainingRequestUpdate(
                 "non-existent-trainee",
                 "trainer-id",
                 "Test Training",
@@ -134,7 +133,7 @@ class TrainingServiceTest {
 
     @Test
     void save_shouldReturnNullWhenTrainerNotFound() {
-        var request = new TrainingRequestCreate(
+        var request = new TrainingRequestUpdate(
                 "trainee-id",
                 "non-existent-trainer",
                 "Test Training",
@@ -155,7 +154,7 @@ class TrainingServiceTest {
 
     @Test
     void save_shouldReturnNullWhenTrainingViewNotFound() {
-        var request = new TrainingRequestCreate(
+        var request = new TrainingRequestUpdate(
                 "trainee-id",
                 "trainer-id",
                 "Test Training",
@@ -178,7 +177,7 @@ class TrainingServiceTest {
 
     @Test
     void update_shouldUpdateTrainingFields() throws NotFoundException {
-        var request = new TrainingRequestUpdate(
+        var request = new org.epam.models.request.update.TrainingRequestUpdate(
                 null,
                 null,
                 "Updated Training",
@@ -211,7 +210,7 @@ class TrainingServiceTest {
 
     @Test
     void update_shouldUpdateAllProvidedFields() throws NotFoundException {
-        var request = new TrainingRequestUpdate(
+        var request = new org.epam.models.request.update.TrainingRequestUpdate(
                 "trainee-id",
                 "trainer-id",
                 "Updated Training",
@@ -238,7 +237,7 @@ class TrainingServiceTest {
 
     @Test
     void update_shouldReturnNullWhenTrainingNotFound() {
-        var request = new TrainingRequestUpdate(
+        var request = new org.epam.models.request.update.TrainingRequestUpdate(
                 null,
                 null,
                 "Updated Training",
@@ -364,7 +363,7 @@ class TrainingServiceTest {
 
     @Test
     void check_shouldHandleNullValuesCorrectly() {
-        var requestWithNulls = new TrainingRequestUpdate(
+        var requestWithNulls = new org.epam.models.request.update.TrainingRequestUpdate(
                 null,
                 null,
                 null,

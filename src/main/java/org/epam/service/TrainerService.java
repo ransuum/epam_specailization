@@ -4,15 +4,14 @@ package org.epam.service;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
-import org.epam.models.request.createrequest.TrainerRequestCreate;
-import org.epam.models.request.updaterequest.TrainerRequestUpdate;
+import org.epam.models.request.create.TrainerRequestUpdate;
 
 import java.util.List;
 
 public interface TrainerService {
-    TrainerDto save(TrainerRequestCreate request) throws NotFoundException;
+    TrainerDto save(TrainerRequestUpdate request) throws NotFoundException;
 
-    TrainerDto update(String id, TrainerRequestUpdate request) throws NotFoundException;
+    TrainerDto update(String id, org.epam.models.request.update.TrainerRequestUpdate request) throws NotFoundException;
 
     void delete(String id) throws NotFoundException;
 
@@ -24,9 +23,7 @@ public interface TrainerService {
 
     TrainerDto findByUsername(String username) throws NotFoundException;
 
-    TrainerDto activateAction(String username) throws NotFoundException;
-
-    TrainerDto deactivateAction(String username) throws NotFoundException;
+    TrainerDto changeStatus(String username) throws NotFoundException;
 
     List<TrainerDto> getUnassignedTrainersForTrainee(String username) throws NotFoundException;
 }

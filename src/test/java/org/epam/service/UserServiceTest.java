@@ -2,7 +2,7 @@ package org.epam.service;
 
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.User;
-import org.epam.models.request.createrequest.UserRequestCreate;
+import org.epam.models.request.create.UserRequestUpdate;
 import org.epam.repository.UserRepository;
 import org.epam.service.impl.UserServiceImpl;
 import org.epam.utils.CredentialsGenerator;
@@ -31,7 +31,7 @@ class UserServiceTest {
     private UserServiceImpl userService;
 
     private User testUser;
-    private UserRequestCreate testUserRequest;
+    private UserRequestUpdate testUserRequest;
     private static final String TEST_ID = "test-id";
     private static final String TEST_FIRST_NAME = "John";
     private static final String TEST_LAST_NAME = "Doe";
@@ -51,7 +51,7 @@ class UserServiceTest {
                 .isActive(true)
                 .build();
 
-        testUserRequest = new UserRequestCreate();
+        testUserRequest = new UserRequestUpdate();
         testUserRequest.setFirstName(TEST_FIRST_NAME);
         testUserRequest.setLastName(TEST_LAST_NAME);
         testUserRequest.setIsActive(true);

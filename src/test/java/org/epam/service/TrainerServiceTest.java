@@ -7,8 +7,7 @@ import org.epam.models.dto.TrainingTypeDto;
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.*;
 import org.epam.models.enums.TrainingName;
-import org.epam.models.request.createrequest.TrainerRequestCreate;
-import org.epam.models.request.updaterequest.TrainerRequestUpdate;
+import org.epam.models.request.create.TrainerRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
@@ -89,7 +88,7 @@ class TrainerServiceTest {
 
     @Test
     void save_shouldCreateNewTrainer() throws NotFoundException {
-        TrainerRequestCreate request = new TrainerRequestCreate("userId", "specializationId");
+        TrainerRequestUpdate request = new TrainerRequestUpdate("userId", "specializationId");
 
         when(userRepository.findById("userId")).thenReturn(Optional.of(testUser));
         when(trainingTypeRepository.findById("specializationId")).thenReturn(Optional.of(testTrainingType));
@@ -109,7 +108,7 @@ class TrainerServiceTest {
 
     @Test
     void save_shouldReturnNullWhenUserNotFound() {
-        TrainerRequestCreate request = new TrainerRequestCreate("nonExistentUserId", "specializationId");
+        TrainerRequestUpdate request = new TrainerRequestUpdate("nonExistentUserId", "specializationId");
 
         when(userRepository.findById("nonExistentUserId")).thenReturn(Optional.empty());
 
@@ -120,7 +119,7 @@ class TrainerServiceTest {
 
     @Test
     void update_shouldUpdateSpecialization() throws NotFoundException {
-        var request = new TrainerRequestUpdate("newSpecializationId", null);
+        var request = new org.epam.models.request.update.TrainerRequestUpdate("newSpecializationId", null);
         var newSpecialization = TrainingType.builder()
                 .id("newSpecializationId")
                 .trainingName(TrainingName.LABORATORY)
@@ -150,7 +149,7 @@ class TrainerServiceTest {
 
     @Test
     void update_shouldUpdateUserWhenUserIdProvided() throws NotFoundException {
-        var request = new TrainerRequestUpdate(null, "newUserId");
+        var request = new org.epam.models.request.update.TrainerRequestUpdate(null, "newUserId");
         var newUser = User.builder()
                 .id("newUserId")
                 .username("newUser")
@@ -261,7 +260,7 @@ class TrainerServiceTest {
         when(trainerRepository.findByUsername("testUser")).thenReturn(Optional.of(inactiveTrainer));
         when(userRepository.update(eq("userId"), any(User.class))).thenReturn(testUser);
 
-        var result = trainerService.activateAction("testUser");
+        var result = trainerService.changeStatus("testUser");
 
         assertNotNull(result);
 
@@ -284,7 +283,7 @@ class TrainerServiceTest {
 
         when(userRepository.update(eq("userId"), any(User.class))).thenReturn(deactivatedUser);
 
-        var result = trainerService.deactivateAction("testUser");
+        var result = trainerService.changeStatus("testUser");
 
         assertNotNull(result);
 

@@ -3,9 +3,10 @@ package org.epam.controller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.models.dto.TrainerDto;
-import org.epam.models.request.createrequest.TrainerRequestCreate;
-import org.epam.models.request.updaterequest.TrainerRequestUpdate;
+import org.epam.models.entity.User;
+import org.epam.models.request.create.TrainerRequestUpdate;
 import org.epam.service.TrainerService;
+import org.epam.service.UserService;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -15,16 +16,18 @@ import java.util.Scanner;
 public class TrainerController {
     private final TrainerService trainerService;
     private static final Logger logger = LogManager.getLogger(TrainerController.class);
+    private final UserService userService;
 
-    public TrainerController(TrainerService trainerService) {
+    public TrainerController(TrainerService trainerService, UserService userService) {
         this.trainerService = trainerService;
+        this.userService = userService;
     }
 
     public TrainerDto addTrainer(String userId, Scanner scanner) {
         try {
             System.out.print("Enter specialization: ");
             var specialization = scanner.next();
-            return trainerService.save(new TrainerRequestCreate(userId, specialization));
+            return trainerService.save(new TrainerRequestUpdate(userId, specialization));
         } catch (Exception e) {
             logger.error("Error adding trainer: {}", e.getMessage());
             return null;
@@ -52,11 +55,16 @@ public class TrainerController {
 
     public TrainerDto updateTrainer(String id, Scanner scanner) {
         try {
-            System.out.print("Enter user's id: ");
-            var userId = scanner.nextLine().trim();
+            System.out.print("Enter firstName: ");
+            var firstName = scanner.nextLine().trim();
+            System.out.print("Enter lastName: ");
+            var lastName = scanner.nextLine().trim();
+            System.out.print("Active?(true/false): ");
+            var active = Boolean.valueOf(scanner.nextLine());
+            userService.update(id, new User(firstName, lastName, active));
             System.out.print("Enter specialization: ");
             var specialization = scanner.nextLine().trim();
-            return trainerService.update(id, new TrainerRequestUpdate(userId, specialization));
+            return trainerService.update(id, new org.epam.models.request.update.TrainerRequestUpdate(id, specialization));
         } catch (Exception e) {
             logger.error("Error updating trainer: {}", e.getMessage());
             return null;
@@ -84,14 +92,11 @@ public class TrainerController {
         }
     }
 
-    public TrainerDto activeAction(String username, Scanner scanner) {
+    public TrainerDto changeStatus(String username) {
         try {
-            System.out.print("Enter active action(activate/deactivate): ");
-            var activeAction = scanner.next();
-            return activeAction.equals("activate") ? trainerService.activateAction(username)
-                    : trainerService.deactivateAction(username);
+            return trainerService.changeStatus(username);
         } catch (Exception e) {
-            logger.error("Error updating activation status: {}", e.getMessage(), e);
+            logger.info("Error activate action: {}", e.getMessage());
             return null;
         }
     }

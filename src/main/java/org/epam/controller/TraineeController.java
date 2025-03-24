@@ -5,16 +5,15 @@ import org.apache.logging.log4j.Logger;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TraineeDto;
-import org.epam.models.dto.TrainingDto;
-import org.epam.models.request.createrequest.TraineeRequestCreate;
-import org.epam.models.request.updaterequest.TraineeRequestUpdate;
+import org.epam.models.entity.User;
+import org.epam.models.request.create.TraineeRequestUpdate;
+import org.epam.models.request.create.UserRequestUpdate;
 import org.epam.service.TraineeService;
+import org.epam.service.UserService;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Scanner;
 
 @Controller
@@ -22,9 +21,11 @@ public class TraineeController {
     private final TraineeService traineeService;
     private static final Logger logger = LogManager.getLogger(TraineeController.class);
     private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private final UserService userService;
 
-    public TraineeController(TraineeService traineeService) {
+    public TraineeController(TraineeService traineeService, UserService userService) {
         this.traineeService = traineeService;
+        this.userService = userService;
     }
 
     public TraineeDto addTrainee(String userid, Scanner scanner) {
@@ -34,7 +35,7 @@ public class TraineeController {
             scanner.nextLine();
             System.out.print("Enter address: ");
             var address = scanner.nextLine().trim();
-            return traineeService.save(new TraineeRequestCreate(userid, LocalDate.parse(dateOfBirth, formatter), address));
+            return traineeService.save(new TraineeRequestUpdate(userid, LocalDate.parse(dateOfBirth, formatter), address));
         } catch (Exception e) {
             logger.info("Error adding trainee: {}", e.getMessage());
             return null;
@@ -62,13 +63,18 @@ public class TraineeController {
 
     public TraineeDto updateTrainee(String id, Scanner scanner) {
         try {
-            System.out.print("Enter user's id: ");
-            var userId = scanner.nextLine().trim();
+            System.out.print("Enter firstName: ");
+            var firstName = scanner.nextLine().trim();
+            System.out.print("Enter lastName: ");
+            var lastName = scanner.nextLine().trim();
+            System.out.print("Active?(true/false): ");
+            var active = Boolean.valueOf(scanner.nextLine());
+            userService.update(id, new User(firstName, lastName, active));
             System.out.print("Enter address: ");
             var address = scanner.nextLine().trim();
             System.out.print("Enter your date of birth (dd-MM-yyyy): ");
             var dateOfBirth = scanner.nextLine().trim();
-            return traineeService.update(id, new TraineeRequestUpdate(userId, LocalDate.parse(dateOfBirth, formatter), address));
+            return traineeService.update(id, new org.epam.models.request.update.TraineeRequestUpdate(id, LocalDate.parse(dateOfBirth, formatter), address));
         } catch (Exception e) {
             logger.info("Error updating trainee: {}", e.getMessage());
             return null;
@@ -110,28 +116,12 @@ public class TraineeController {
         }
     }
 
-    public TraineeDto activateAction(String username) {
+    public TraineeDto changeStatus(String username) {
         try {
-            return traineeService.activateAction(username);
+            return traineeService.changeStatus(username);
         } catch (Exception e) {
             logger.info("Error activate action: {}", e.getMessage());
             return null;
         }
-    }
-
-    public TraineeDto deactivateAction(String username) {
-        try {
-            return traineeService.deactivateAction(username);
-        } catch (Exception e) {
-            logger.info("Error deactivate action: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    private List<String> getIds(String val) {
-        return Arrays.stream(val.split(","))
-                .map(String::trim)
-                .filter(id -> !id.isEmpty())
-                .toList();
     }
 }
