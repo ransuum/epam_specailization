@@ -23,12 +23,12 @@ public class TrainingTypeChooser implements Chooser {
         boolean trainingViewMenuRunning = true;
 
         while (trainingViewMenuRunning) {
-            System.out.println("\n===== TRAINING VIEW MANAGEMENT =====");
-            System.out.println("1. Create Training View");
-            System.out.println("2. Find Training View by ID");
-            System.out.println("3. Update Training View");
-            System.out.println("4. Delete Training View");
-            System.out.println("5. List All Training Views");
+            System.out.println("\n===== TRAINING TYPE MANAGEMENT =====");
+            System.out.println("1. Create Training Type");
+            System.out.println("2. Find Training Type by ID");
+            System.out.println("3. Update Training Type");
+            System.out.println("4. Delete Training Type");
+            System.out.println("5. List All Training Type");
             System.out.println("0. Back to Main Menu");
             System.out.print("Enter your choice: ");
 
