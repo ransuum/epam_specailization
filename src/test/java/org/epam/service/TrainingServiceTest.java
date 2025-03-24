@@ -2,13 +2,13 @@ package org.epam.service;
 
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.*;
-import org.epam.models.enums.TrainingType;
-import org.epam.models.request.trainingrequest.TrainingRequestCreate;
-import org.epam.models.request.trainingrequest.TrainingRequestUpdate;
+import org.epam.models.enums.TrainingName;
+import org.epam.models.request.createrequest.TrainingRequestCreate;
+import org.epam.models.request.updaterequest.TrainingRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingRepository;
-import org.epam.repository.TrainingViewRepository;
+import org.epam.repository.TrainingTypeRepository;
 import org.epam.service.impl.TrainingServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,14 +37,14 @@ class TrainingServiceTest {
     private TrainerRepository trainerRepository;
 
     @Mock
-    private TrainingViewRepository trainingViewRepository;
+    private TrainingTypeRepository trainingTypeRepository;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
 
     private Trainee testTrainee;
     private Trainer testTrainer;
-    private TrainingView testTrainingView;
+    private TrainingType testTrainingType;
     private Training testTraining;
     private User testUser;
     private String testId;
@@ -64,21 +64,21 @@ class TrainingServiceTest {
         testTrainee.setDateOfBirth(LocalDate.of(1990, 1, 1));
         testTrainee.setAddress("123 Main St");
 
-        testTrainingView = new TrainingView();
-        testTrainingView.setId("training-view-id");
-        testTrainingView.setTrainingType(TrainingType.SELF_PLACING);
+        testTrainingType = new TrainingType();
+        testTrainingType.setId("training-view-id");
+        testTrainingType.setTrainingName(TrainingName.SELF_PLACING);
 
         testTrainer = new Trainer();
         testTrainer.setId("trainer-id");
         testTrainer.setUser(testUser);
-        testTrainer.setSpecialization(testTrainingView);
+        testTrainer.setSpecialization(testTrainingType);
 
         testTraining = Training.builder()
                 .id(testId)
                 .trainee(testTrainee)
                 .trainer(testTrainer)
                 .trainingName("Test Training")
-                .trainingType(testTrainingView)
+                .trainingType(testTrainingType)
                 .startTime(LocalDate.now())
                 .duration(60L)
                 .build();
@@ -97,7 +97,7 @@ class TrainingServiceTest {
 
         when(traineeRepository.findById("trainee-id")).thenReturn(Optional.of(testTrainee));
         when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
-        when(trainingViewRepository.findById("training-view-id")).thenReturn(Optional.of(testTrainingView));
+        when(trainingTypeRepository.findById("training-view-id")).thenReturn(Optional.of(testTrainingType));
         when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
 
         var result = trainingService.save(request);
@@ -166,13 +166,13 @@ class TrainingServiceTest {
 
         when(traineeRepository.findById("trainee-id")).thenReturn(Optional.of(testTrainee));
         when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
-        when(trainingViewRepository.findById("non-existent-view")).thenReturn(Optional.empty());
+        when(trainingTypeRepository.findById("non-existent-view")).thenReturn(Optional.empty());
 
         var exception = assertThrows(NotFoundException.class, () -> {
             trainingService.save(request);
         });
 
-        assertEquals("Training view not found", exception.getMessage());
+        assertEquals("Training type not found", exception.getMessage());
         verify(trainingRepository, never()).save(any(Training.class));
     }
 
@@ -192,7 +192,7 @@ class TrainingServiceTest {
                 .trainee(testTrainee)
                 .trainer(testTrainer)
                 .trainingName("Updated Training")
-                .trainingType(testTrainingView)
+                .trainingType(testTrainingType)
                 .startTime(LocalDate.now())
                 .duration(90L)
                 .build();
@@ -223,7 +223,7 @@ class TrainingServiceTest {
         when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
         when(traineeRepository.findById("trainee-id")).thenReturn(Optional.of(testTrainee));
         when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
-        when(trainingViewRepository.findById("training-view-id")).thenReturn(Optional.of(testTrainingView));
+        when(trainingTypeRepository.findById("training-view-id")).thenReturn(Optional.of(testTrainingType));
         when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
 
         var result = trainingService.update(testId, request);
@@ -233,7 +233,7 @@ class TrainingServiceTest {
         verify(trainingRepository).save(testTraining);
         verify(traineeRepository).findById("trainee-id");
         verify(trainerRepository).findById("trainer-id");
-        verify(trainingViewRepository).findById("training-view-id");
+        verify(trainingTypeRepository).findById("training-view-id");
     }
 
     @Test
@@ -322,21 +322,21 @@ class TrainingServiceTest {
         LocalDate fromDate = LocalDate.now().minusDays(30);
         LocalDate toDate = LocalDate.now();
         String trainerName = "Jane";
-        TrainingType trainingType = TrainingType.SELF_PLACING;
+        TrainingName trainingName = TrainingName.SELF_PLACING;
 
         var trainings = List.of(testTraining);
         when(trainingRepository.findTrainingWithUsernameOfTrainee(
-                username, fromDate, toDate, trainerName, trainingType))
+                username, fromDate, toDate, trainerName, trainingName))
                 .thenReturn(trainings);
 
         var result = trainingService.findTrainingWithUsernameOfTrainee(
-                username, fromDate, toDate, trainerName, trainingType);
+                username, fromDate, toDate, trainerName, trainingName);
 
         assertNotNull(result);
         assertEquals(1, result.size());
 
         verify(trainingRepository).findTrainingWithUsernameOfTrainee(
-                username, fromDate, toDate, trainerName, trainingType);
+                username, fromDate, toDate, trainerName, trainingName);
     }
 
     @Test
@@ -345,21 +345,21 @@ class TrainingServiceTest {
         LocalDate fromDate = LocalDate.now().minusDays(30);
         LocalDate toDate = LocalDate.now();
         String traineeName = "Jane";
-        TrainingType trainingType = TrainingType.SELF_PLACING;
+        var trainingName = TrainingName.SELF_PLACING;
 
         var trainings = List.of(testTraining);
         when(trainingRepository.findTrainingWithUsernameOfTrainer(
-                username, fromDate, toDate, traineeName, trainingType))
+                username, fromDate, toDate, traineeName, trainingName))
                 .thenReturn(trainings);
 
         var result = trainingService.findTrainingWithUsernameOfTrainer(
-                username, fromDate, toDate, traineeName, trainingType);
+                username, fromDate, toDate, traineeName, trainingName);
 
         assertNotNull(result);
         assertEquals(1, result.size());
 
         verify(trainingRepository).findTrainingWithUsernameOfTrainer(
-                username, fromDate, toDate, traineeName, trainingType);
+                username, fromDate, toDate, traineeName, trainingName);
     }
 
     @Test
@@ -380,6 +380,6 @@ class TrainingServiceTest {
 
         verify(traineeRepository, never()).findById(any());
         verify(trainerRepository, never()).findById(any());
-        verify(trainingViewRepository, never()).findById(any());
+        verify(trainingTypeRepository, never()).findById(any());
     }
 }

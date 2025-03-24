@@ -35,7 +35,7 @@ public class AppConfig {
     public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setConfigLocation(new ClassPathResource("hibernate.cfg.xml"));
-        sessionFactory.setAnnotatedClasses(User.class, Trainee.class, Training.class, TrainingView.class, Trainer.class);
+        sessionFactory.setAnnotatedClasses(User.class, Trainee.class, Training.class, TrainingType.class, Trainer.class);
         return sessionFactory;
     }
 

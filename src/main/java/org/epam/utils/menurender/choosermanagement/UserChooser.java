@@ -29,8 +29,7 @@ public class UserChooser implements Chooser {
             System.out.println("\n===== USER MANAGEMENT =====");
             System.out.println("1. Find User by ID");
             System.out.println("2. Update User");
-            System.out.println("3. Delete User");
-            System.out.println("4. List All Users");
+            System.out.println("3. List All Users");
             System.out.println("0. Back to Main Menu");
             System.out.print("Enter your choice: ");
 
@@ -56,14 +55,6 @@ public class UserChooser implements Chooser {
                     }
                     break;
                 case 3:
-                    try {
-                        transExec.executeVoidWithTransaction(() -> userController.deleteUser(scanner));
-                        System.out.println("User deleted successfully");
-                    } catch (Exception e) {
-                        System.out.println("Error deleting user: " + e.getMessage());
-                    }
-                    break;
-                case 4:
                     try {
                         transExec.executeVoidWithTransaction(userController::findAll);
                     } catch (Exception e) {

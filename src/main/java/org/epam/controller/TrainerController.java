@@ -3,8 +3,8 @@ package org.epam.controller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.models.dto.TrainerDto;
-import org.epam.models.request.trainerrequest.TrainerRequestCreate;
-import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
+import org.epam.models.request.createrequest.TrainerRequestCreate;
+import org.epam.models.request.updaterequest.TrainerRequestUpdate;
 import org.epam.service.TrainerService;
 import org.springframework.stereotype.Controller;
 
@@ -42,7 +42,7 @@ public class TrainerController {
 
     public void deleteById(Scanner scanner) {
         try {
-            System.out.print("Enter id of trainee: ");
+            System.out.print("Enter id of trainer: ");
             var id = scanner.next();
             trainerService.delete(id);
         } catch (Exception e) {

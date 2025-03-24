@@ -1,4 +1,4 @@
-package org.epam.models.request.trainingrequest;
+package org.epam.models.request.updaterequest;
 
 
 import java.time.LocalDate;

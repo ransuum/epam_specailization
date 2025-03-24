@@ -3,7 +3,7 @@ package org.epam.service;
 
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.User;
-import org.epam.models.request.userrequest.UserRequestCreate;
+import org.epam.models.request.createrequest.UserRequestCreate;
 
 import java.util.List;
 

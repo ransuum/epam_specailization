@@ -5,11 +5,11 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
-import org.epam.models.request.trainerrequest.TrainerRequestCreate;
-import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
+import org.epam.models.request.createrequest.TrainerRequestCreate;
+import org.epam.models.request.updaterequest.TrainerRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
-import org.epam.repository.TrainingViewRepository;
+import org.epam.repository.TrainingTypeRepository;
 import org.epam.repository.UserRepository;
 import org.epam.service.TrainerService;
 import org.epam.utils.mappers.TrainerMapper;
@@ -23,14 +23,14 @@ import static org.epam.utils.CheckerField.check;
 public class TrainerServiceImpl implements TrainerService {
     private final TrainerRepository trainerRepository;
     private final UserRepository userRepository;
-    private final TrainingViewRepository trainingViewRepository;
+    private final TrainingTypeRepository trainingTypeRepository;
     private final TraineeRepository traineeRepository;
 
     public TrainerServiceImpl(TrainerRepository trainerRepository, UserRepository userRepository,
-                              TrainingViewRepository trainingViewRepository, TraineeRepository traineeRepository) {
+                              TrainingTypeRepository trainingTypeRepository, TraineeRepository traineeRepository) {
         this.trainerRepository = trainerRepository;
         this.userRepository = userRepository;
-        this.trainingViewRepository = trainingViewRepository;
+        this.trainingTypeRepository = trainingTypeRepository;
         this.traineeRepository = traineeRepository;
     }
 
@@ -40,7 +40,7 @@ public class TrainerServiceImpl implements TrainerService {
                 Trainer.builder()
                         .user(userRepository.findById(request.userId())
                                 .orElseThrow(() -> new NotFoundException("User not found")))
-                        .specialization(trainingViewRepository.findById(request.specializationId())
+                        .specialization(trainingTypeRepository.findById(request.specializationId())
                                 .orElseThrow(() -> new NotFoundException("Specialization Not Found")))
                         .build())
         );
@@ -55,7 +55,7 @@ public class TrainerServiceImpl implements TrainerService {
                 .orElseThrow(() -> new NotFoundException("User not found")));
 
         if (check(request.specializationId()))
-            trainer.setSpecialization(trainingViewRepository.findById(request.specializationId())
+            trainer.setSpecialization(trainingTypeRepository.findById(request.specializationId())
                     .orElseThrow(() -> new NotFoundException("Specialization Not Found")));
 
         return TrainerMapper.INSTANCE.toDto(trainerRepository.update(id, trainer));

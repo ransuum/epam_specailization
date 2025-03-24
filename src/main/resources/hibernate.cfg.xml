@@ -19,7 +19,7 @@
     <mapping class="org.epam.models.entity.User"/>
     <mapping class="org.epam.models.entity.Trainee"/>
     <mapping class="org.epam.models.entity.Training"/>
-    <mapping class="org.epam.models.entity.TrainingView"/>
+    <mapping class="org.epam.models.entity.TrainingType"/>
     <mapping class="org.epam.models.entity.Trainer"/>
   </session-factory>
 </hibernate-configuration>

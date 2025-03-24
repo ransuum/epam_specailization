@@ -6,8 +6,8 @@ import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.dto.TrainingDto;
-import org.epam.models.request.traineerequest.TraineeRequestCreate;
-import org.epam.models.request.traineerequest.TraineeRequestUpdate;
+import org.epam.models.request.createrequest.TraineeRequestCreate;
+import org.epam.models.request.updaterequest.TraineeRequestUpdate;
 import org.epam.service.TraineeService;
 import org.springframework.stereotype.Controller;
 
@@ -30,9 +30,10 @@ public class TraineeController {
     public TraineeDto addTrainee(String userid, Scanner scanner) {
         try {
             System.out.print("Enter your date of birth (dd-MM-yyyy): ");
-            var dateOfBirth = scanner.next();
+            var dateOfBirth = scanner.next().trim();
+            scanner.nextLine();
             System.out.print("Enter address: ");
-            var address = scanner.next();
+            var address = scanner.nextLine().trim();
             return traineeService.save(new TraineeRequestCreate(userid, LocalDate.parse(dateOfBirth, formatter), address));
         } catch (Exception e) {
             logger.info("Error adding trainee: {}", e.getMessage());
@@ -109,25 +110,20 @@ public class TraineeController {
         }
     }
 
-    public TraineeDto activeAction(String username, Scanner scanner) {
+    public TraineeDto activateAction(String username) {
         try {
-            System.out.print("Enter active action(activate/deactivate): ");
-            var activeAction = scanner.next();
-            return activeAction.equals("activate") ? traineeService.activateAction(username)
-                    : traineeService.deactivateAction(username);
+            return traineeService.activateAction(username);
         } catch (Exception e) {
-            logger.info("Error active action: {}", e.getMessage());
+            logger.info("Error activate action: {}", e.getMessage());
             return null;
         }
     }
 
-    public List<TrainingDto> addListToTrainee(String traineeId, Scanner scanner) {
+    public TraineeDto deactivateAction(String username) {
         try {
-            System.out.print("Enter trainings with ',' like this (id1,id2,id3): ");
-            var trainings = scanner.nextLine().trim();
-            return traineeService.addTrainingsToTrainee(traineeId, getIds(trainings));
+            return traineeService.deactivateAction(username);
         } catch (Exception e) {
-            logger.info("Error add list to Trainee: {}", e.getMessage());
+            logger.info("Error deactivate action: {}", e.getMessage());
             return null;
         }
     }

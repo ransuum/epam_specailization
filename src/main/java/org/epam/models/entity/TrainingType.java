@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.epam.models.enums.TrainingType;
+import org.epam.models.enums.TrainingName;
 
 import java.util.List;
 
@@ -15,15 +15,15 @@ import java.util.List;
 @Data
 @Builder
 @AllArgsConstructor
-public class TrainingView {
+public class TrainingType {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false)
     private String id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, name = "training_type")
-    private TrainingType trainingType;
+    @Column(nullable = false, name = "training_name")
+    private TrainingName trainingName;
 
     @OneToMany(mappedBy = "trainingType", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Training> trainings;

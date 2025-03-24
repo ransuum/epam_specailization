@@ -1,20 +1,20 @@
 package org.epam.utils.menurender.choosermanagement;
 
-import org.epam.controller.TrainingViewController;
+import org.epam.controller.TrainingTypeController;
 import org.epam.models.SecurityContextHolder;
-import org.epam.models.dto.TrainingViewDto;
+import org.epam.models.dto.TrainingTypeDto;
 import org.epam.utils.menurender.transactionconfiguration.TransactionExecution;
 import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
 
 @Component
-public class TrainingViewChooser implements Chooser {
-    private final TrainingViewController trainingViewController;
+public class TrainingTypeChooser implements Chooser {
+    private final TrainingTypeController trainingTypeController;
     private final TransactionExecution transExec;
 
-    public TrainingViewChooser(TrainingViewController trainingViewController, TransactionExecution transExec) {
-        this.trainingViewController = trainingViewController;
+    public TrainingTypeChooser(TrainingTypeController trainingTypeController, TransactionExecution transExec) {
+        this.trainingTypeController = trainingTypeController;
         this.transExec = transExec;
     }
 
@@ -36,26 +36,26 @@ public class TrainingViewChooser implements Chooser {
             scanner.nextLine();
             switch (choice) {
                 case 1:
-                    TrainingViewDto newTrainingView = transExec.executeWithTransaction(()
-                            -> trainingViewController.create(scanner));
+                    TrainingTypeDto newTrainingView = transExec.executeWithTransaction(()
+                            -> trainingTypeController.create(scanner));
                     System.out.println("Training View created: " + newTrainingView);
                     break;
                 case 2:
-                    TrainingViewDto trainingView = transExec.executeWithTransaction(()
-                            -> trainingViewController.findById(scanner));
+                    TrainingTypeDto trainingView = transExec.executeWithTransaction(()
+                            -> trainingTypeController.findById(scanner));
                     System.out.println("Found training view: " + trainingView);
                     break;
                 case 3:
-                    TrainingViewDto updatedTrainingView = transExec.executeWithTransaction(()
-                            -> trainingViewController.update(scanner));
+                    TrainingTypeDto updatedTrainingView = transExec.executeWithTransaction(()
+                            -> trainingTypeController.update(scanner));
                     System.out.println("Training View updated: " + updatedTrainingView);
                     break;
                 case 4:
-                    transExec.executeVoidWithTransaction(() -> trainingViewController.delete(scanner));
+                    transExec.executeVoidWithTransaction(() -> trainingTypeController.delete(scanner));
                     System.out.println("Training View deleted successfully");
                     break;
                 case 5:
-                    transExec.executeVoidWithTransaction(trainingViewController::findAll);
+                    transExec.executeVoidWithTransaction(trainingTypeController::findAll);
                     break;
                 case 0:
                     trainingViewMenuRunning = false;

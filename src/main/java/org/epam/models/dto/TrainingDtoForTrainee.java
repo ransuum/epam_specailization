@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public record TrainingDtoForTrainee(String id,
                                     TrainerDto trainer,
                                     String trainingName,
-                                    TrainingViewDto trainingType,
+                                    TrainingTypeDto trainingType,
                                     LocalDate startTime,
                                     Long duration) {
     @Override

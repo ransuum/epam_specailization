@@ -5,9 +5,9 @@ import org.apache.logging.log4j.Logger;
 import org.epam.models.dto.TrainingDto;
 import org.epam.models.dto.TrainingDtoForTrainee;
 import org.epam.models.dto.TrainingDtoForTrainer;
-import org.epam.models.enums.TrainingType;
-import org.epam.models.request.trainingrequest.TrainingRequestCreate;
-import org.epam.models.request.trainingrequest.TrainingRequestUpdate;
+import org.epam.models.enums.TrainingName;
+import org.epam.models.request.createrequest.TrainingRequestCreate;
+import org.epam.models.request.updaterequest.TrainingRequestUpdate;
 import org.epam.service.TrainingService;
 import org.springframework.stereotype.Controller;
 
@@ -24,6 +24,12 @@ public class TrainingController {
     private final TrainingService trainingService;
     private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
+    private List<TrainingRequestCreate> setTrainingRequestCreateList(String userId) {
+        return List.of(
+                new TrainingRequestCreate(userId, "uuid3", "FIRST NAME", "type1", LocalDate.now(), 50L),
+                new TrainingRequestCreate(userId, "uuid4", "FIRST NAME", "type2", LocalDate.now(), 75L));
+    }
+
     public TrainingController(TrainingService trainingService) {
         this.trainingService = trainingService;
     }
@@ -34,8 +40,9 @@ public class TrainingController {
             var traineeId = scanner.next().trim();
             System.out.print("Enter trainer id: ");
             var trainerId = scanner.next().trim();
+            scanner.nextLine();
             System.out.print("Enter training name: ");
-            var trainingName = scanner.next().trim();
+            var trainingName = scanner.nextLine().trim();
             System.out.print("Enter training trainingView id: ");
             var trainingViewId = scanner.next().trim();
             System.out.print("Enter start time date(dd-MM-yyyy): ");
@@ -122,7 +129,7 @@ public class TrainingController {
                 check(fromDate) ? LocalDate.parse(fromDate, formatter) : null,
                 check(toDate) ? LocalDate.parse(toDate, formatter) : null,
                 trainerName,
-                TrainingType.valueOf(trainingType.toUpperCase()));
+                TrainingName.valueOf(trainingType.toUpperCase()));
     }
 
     public List<TrainingDtoForTrainer> findTrainingWithUsernameOfTrainer(Scanner scanner) {
@@ -141,6 +148,10 @@ public class TrainingController {
                 check(fromDate) ? LocalDate.parse(fromDate, formatter) : null,
                 check(toDate) ? LocalDate.parse(toDate, formatter) : null,
                 traineeName,
-                TrainingType.valueOf(trainingType.toUpperCase()));
+                TrainingName.valueOf(trainingType.toUpperCase()));
+    }
+
+    public List<TrainingDto> addListToTrainee(String userId) {
+        return trainingService.addTrainingsToTrainee(userId, setTrainingRequestCreateList(userId));
     }
 }

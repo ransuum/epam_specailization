@@ -2,7 +2,7 @@ package org.epam.service;
 
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.User;
-import org.epam.models.request.userrequest.UserRequestCreate;
+import org.epam.models.request.createrequest.UserRequestCreate;
 import org.epam.repository.UserRepository;
 import org.epam.service.impl.UserServiceImpl;
 import org.epam.utils.CredentialsGenerator;

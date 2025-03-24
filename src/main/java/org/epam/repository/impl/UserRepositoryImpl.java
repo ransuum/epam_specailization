@@ -41,7 +41,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    @Transactional
     public void delete(String id) throws NotFoundException {
         User user = findById(id).orElseThrow(()
                 -> new NotFoundException("Not found trainingView by id: " + id));
@@ -68,6 +67,14 @@ public class UserRepositoryImpl implements UserRepository {
         return Optional.ofNullable(entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
                 .setParameter("username", username)
                 .getSingleResult());
+    }
+
+    @Override
+    public void deleteByUsername(String username) {
+        User user = findByUsername(username).orElseThrow(()
+                -> new NotFoundException("User not found with username: " + username));
+        if (entityManager.contains(user)) entityManager.remove(user);
+        else entityManager.merge(user);
     }
 
     @Override

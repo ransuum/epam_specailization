@@ -19,5 +19,5 @@ public interface TrainerRepository extends CrudRepository<String, Trainer> {
 
     Optional<Trainer> findByUsername(String username);
 
-
+    void deleteByUsername(String username);
 }

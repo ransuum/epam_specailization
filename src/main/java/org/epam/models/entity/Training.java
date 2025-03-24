@@ -33,7 +33,7 @@ public class Training {
 
     @ManyToOne
     @JoinColumn(referencedColumnName = "id", nullable = false, name = "training_type_id")
-    private TrainingView trainingType;
+    private TrainingType trainingType;
 
     @Column(nullable = false, name = "start_time")
     private LocalDate startTime;

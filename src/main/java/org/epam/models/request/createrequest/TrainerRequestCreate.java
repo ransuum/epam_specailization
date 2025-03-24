@@ -1,4 +1,4 @@
-package org.epam.models.request.trainerrequest;
+package org.epam.models.request.createrequest;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -41,11 +41,13 @@ public class TrainerRepositoryImpl implements TrainerRepository {
     }
 
     @Override
-    @Transactional
     public void delete(String id) {
         Trainer trainer = findById(id).orElseThrow(()
                 -> new NotFoundException("Not found trainer by id: " + id));
-        if (entityManager.contains(trainer)) entityManager.remove(trainer);
+        if (entityManager.contains(trainer)) {
+            entityManager.remove(trainer);
+            entityManager.remove(trainer.getUser());
+        }
         else entityManager.merge(trainer);
     }
 
@@ -74,5 +76,13 @@ public class TrainerRepositoryImpl implements TrainerRepository {
             logger.error("Error finding trainer by username: {}", e.getMessage());
             return Optional.empty();
         }
+    }
+
+    @Override
+    public void deleteByUsername(String username) {
+        var trainer = findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Not found trainer by name: " + username));
+        entityManager.remove(trainer);
+        entityManager.remove(trainer.getUser());
     }
 }

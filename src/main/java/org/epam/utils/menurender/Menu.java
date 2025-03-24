@@ -50,7 +50,7 @@ public class Menu {
         System.out.println("2. Trainee Management");
         System.out.println("3. Trainer Management");
         System.out.println("4. Training Management");
-        System.out.println("5. Training View Management");
+        System.out.println("5. Training Type Management");
         System.out.println("6. Authorization Management");
         System.out.println("0. Exit");
         System.out.print("Enter your choice: ");
@@ -69,9 +69,13 @@ public class Menu {
         switch (choice) {
             case 1:
                 try {
-                    if (checkForContext(forTrainee, forTrainer))
+                    if (Boolean.TRUE.equals(forTrainee)){
+                        System.out.println("Trainee User Menu");
                         chooserIntegerMap.get(1).show(scanner, securityContextHolder);
-                    else throw new PermissionException("Permission denied please authorize");
+                    } else if (Boolean.TRUE.equals(forTrainer)) {
+                        System.out.println("Trainer User Menu");
+                        chooserIntegerMap.get(1).show(scanner, securityContextHolder);
+                    } else throw new PermissionException("Permission denied please authorize");
                 } catch (Exception e) {
                     log.error("Security exception with user: {}", e.getMessage());
                 }
@@ -113,8 +117,7 @@ public class Menu {
                 }
                 break;
             case 6:
-                AuthenticationChooser authenticationChooser = (AuthenticationChooser) chooserIntegerMap.get(6);
-                authenticationChooser.show(scanner, securityContextHolder);
+                chooserIntegerMap.get(6).show(scanner, securityContextHolder);
                 break;
             case 0:
                 running = false;

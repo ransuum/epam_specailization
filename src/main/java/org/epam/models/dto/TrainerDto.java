@@ -9,7 +9,7 @@ import java.util.List;
 public record TrainerDto(String id,
                          UserDto user,
                          List<String> trainingsIds,
-                         TrainingViewDto specialization) {
+                         TrainingTypeDto specialization) {
 
     @Override
     public String toString() {

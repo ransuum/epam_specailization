@@ -4,8 +4,8 @@ package org.epam.service;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
-import org.epam.models.request.trainerrequest.TrainerRequestCreate;
-import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
+import org.epam.models.request.createrequest.TrainerRequestCreate;
+import org.epam.models.request.updaterequest.TrainerRequestUpdate;
 
 import java.util.List;
 

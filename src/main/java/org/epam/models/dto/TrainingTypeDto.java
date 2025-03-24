@@ -3,12 +3,11 @@ package org.epam.models.dto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.epam.models.enums.TrainingType;
 
 import java.util.List;
 
-public record TrainingViewDto(String id,
-                              TrainingType trainingType,
+public record TrainingTypeDto(String id,
+                              String trainingName,
                               List<String> trainingsIds,
                               List<String> specializationIds) {
 

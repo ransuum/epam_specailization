@@ -5,29 +5,29 @@ import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.exception.NotFoundException;
-import org.epam.models.entity.TrainingView;
-import org.epam.repository.TrainingViewRepository;
+import org.epam.models.entity.TrainingType;
+import org.epam.repository.TrainingTypeRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class TrainingViewRepositoryImpl implements TrainingViewRepository {
-    private static final Logger logger = LogManager.getLogger(TrainingViewRepositoryImpl.class);
+public class TrainingTypeRepositoryImpl implements TrainingTypeRepository {
+    private static final Logger logger = LogManager.getLogger(TrainingTypeRepositoryImpl.class);
     private final EntityManager entityManager;
 
-    public TrainingViewRepositoryImpl(EntityManager entityManager) {
+    public TrainingTypeRepositoryImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
     @Override
     @Transactional
-    public TrainingView save(TrainingView trainingView) {
+    public TrainingType save(TrainingType trainingType) {
         try {
-            if (trainingView.getId() == null) entityManager.persist(trainingView);
-            else trainingView = entityManager.merge(trainingView);
-            return trainingView;
+            if (trainingType.getId() == null) entityManager.persist(trainingType);
+            else trainingType = entityManager.merge(trainingType);
+            return trainingType;
         } catch (Exception e) {
             logger.error("Error in saving trainee: {}", e.getMessage());
             return null;
@@ -35,8 +35,8 @@ public class TrainingViewRepositoryImpl implements TrainingViewRepository {
     }
 
     @Override
-    public Optional<TrainingView> findById(String id) {
-        return Optional.ofNullable(entityManager.find(TrainingView.class, id));
+    public Optional<TrainingType> findById(String id) {
+        return Optional.ofNullable(entityManager.find(TrainingType.class, id));
     }
 
     @Override
@@ -49,15 +49,15 @@ public class TrainingViewRepositoryImpl implements TrainingViewRepository {
     }
 
     @Override
-    public List<TrainingView> findAll() {
-        return entityManager.createQuery("from TrainingView ", TrainingView.class).getResultList();
+    public List<TrainingType> findAll() {
+        return entityManager.createQuery("from TrainingType ", TrainingType.class).getResultList();
     }
 
     @Override
     @Transactional
-    public TrainingView update(String id, TrainingView trainingView) {
+    public TrainingType update(String id, TrainingType trainingType) {
         findById(id).ifPresent(trainingViewById -> trainingViewById.setId(id));
 
-        return entityManager.merge(trainingView);
+        return entityManager.merge(trainingType);
     }
 }

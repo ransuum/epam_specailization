@@ -18,9 +18,9 @@ create table training_type
 (
     id            varchar(255) not null
         primary key,
-    training_type varchar(255) not null
+    training_name varchar(255) not null
         constraint training_type_training_type_check
-            check ((training_type)::text = ANY
+            check ((training_name)::text = ANY
                    ((ARRAY ['SELF_PLACING'::character varying, 'LABORATORY'::character varying, 'FUNDAMENTALS'::character varying])::text[]))
 );
 
@@ -85,7 +85,7 @@ INSERT INTO trainee (id, address, date_of_birth)
 VALUES ('uuid1', '123 Elm Street', '1990-01-01'),
        ('uuid2', '456 Oak Avenue', '1995-06-15');
 
-INSERT INTO training_type (id, training_type)
+INSERT INTO training_type (id, training_name)
 VALUES ('type1', 'SELF_PLACING'),
        ('type2', 'LABORATORY'),
        ('type3', 'FUNDAMENTALS');

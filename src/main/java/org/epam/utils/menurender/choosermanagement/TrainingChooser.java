@@ -1,8 +1,12 @@
 package org.epam.utils.menurender.choosermanagement;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.epam.controller.TrainingController;
+import org.epam.exception.PermissionException;
 import org.epam.models.SecurityContextHolder;
 import org.epam.models.dto.TrainingDto;
+import org.epam.models.enums.UserType;
 import org.epam.utils.menurender.transactionconfiguration.TransactionExecution;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +14,7 @@ import java.util.Scanner;
 
 @Component
 public class TrainingChooser implements Chooser {
+    private static final Logger log = LogManager.getLogger(TrainingChooser.class);
     private final TrainingController trainingController;
     private final TransactionExecution transExec;
 
@@ -30,6 +35,7 @@ public class TrainingChooser implements Chooser {
             System.out.println("5. List All Trainings");
             System.out.println("6. List All Trainings by criteria for Trainee");
             System.out.println("7. List All Trainings by criteria for Trainer");
+            System.out.println("8. add list of Training to Trainee");
             System.out.println("0. Back to Main Menu");
             System.out.print("Enter your choice: ");
 
@@ -65,6 +71,16 @@ public class TrainingChooser implements Chooser {
                 case 7:
                     transExec.executeWithTransaction(()
                             -> trainingController.findTrainingWithUsernameOfTrainer(scanner)).forEach(System.out::println);
+                    break;
+                case 8:
+                    try {
+                        if (securityContextHolder.getUserType().equals(UserType.TRAINEE))
+                            transExec.executeWithTransaction(()
+                                    -> trainingController.addListToTrainee(securityContextHolder.getUserId())).forEach(System.out::println);
+                        else throw new PermissionException("Permission denied because u r not a trainee");
+                    } catch (Exception e) {
+                        log.error("Error while adding list to training: {}", e.getMessage());
+                    }
                     break;
                 case 0:
                     trainingMenuRunning = false;

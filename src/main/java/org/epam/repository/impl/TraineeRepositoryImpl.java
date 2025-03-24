@@ -39,7 +39,6 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     @Transactional
     public Trainee update(String id, Trainee trainee) {
         findById(id).ifPresent(traineeById -> trainee.setId(id));
-
         return entityManager.merge(trainee);
     }
 
@@ -62,8 +61,8 @@ public class TraineeRepositoryImpl implements TraineeRepository {
         var trainee = findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
         entityManager.remove(trainee);
+        entityManager.remove(trainee.getUser());
         return username;
-
     }
 
     @Override
@@ -73,13 +72,14 @@ public class TraineeRepositoryImpl implements TraineeRepository {
 
 
     @Override
-    @Transactional
     public void delete(String id) throws NotFoundException {
         var trainee = findById(id).orElseThrow(()
                 -> new NotFoundException("Not found trainee by id: " + id));
-        if (entityManager.contains(trainee)) entityManager.remove(trainee);
+        if (entityManager.contains(trainee)) {
+            entityManager.remove(trainee);
+            entityManager.remove(trainee.getUser());
+        }
         else entityManager.merge(trainee);
-
     }
 
     @Override

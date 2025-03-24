@@ -4,8 +4,8 @@ import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainee;
 import org.epam.models.entity.User;
-import org.epam.models.request.traineerequest.TraineeRequestCreate;
-import org.epam.models.request.traineerequest.TraineeRequestUpdate;
+import org.epam.models.request.createrequest.TraineeRequestCreate;
+import org.epam.models.request.updaterequest.TraineeRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.UserRepository;
 import org.epam.service.impl.TraineeServiceImpl;
@@ -17,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -38,10 +37,10 @@ class TraineeServiceTest {
     private Trainee testTrainee;
     private TraineeRequestCreate testTraineeRequest;
     private TraineeRequestUpdate testTraineeUpdateRequest;
-    private String testId = "test-id";
-    private String testUsername = "testuser";
-    private String testPassword = "password";
-    private String testNewPassword = "newpassword";
+    private final String testId = "test-id";
+    private final String testUsername = "testuser";
+    private final String testPassword = "password";
+    private final String testNewPassword = "newpassword";
 
     @BeforeEach
     void setUp() {

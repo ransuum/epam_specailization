@@ -10,7 +10,7 @@ public record TrainingDto(String id,
                           TraineeDto trainee,
                           TrainerDto trainer,
                           String trainingName,
-                          TrainingViewDto trainingType,
+                          TrainingTypeDto trainingType,
                           LocalDate startTime,
                           Long duration) {
 

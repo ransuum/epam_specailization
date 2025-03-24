@@ -8,7 +8,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 
-@Mapper(uses = {TraineeMapper.class, TrainerMapper.class, TrainingViewMapper.class})
+@Mapper(uses = {TraineeMapper.class, TrainerMapper.class, TrainingTypeMapper.class})
 public interface TrainingMapper {
     TrainingMapper INSTANCE = Mappers.getMapper(TrainingMapper.class);
 

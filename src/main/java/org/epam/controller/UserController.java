@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.User;
-import org.epam.models.request.userrequest.UserRequestCreate;
+import org.epam.models.request.createrequest.UserRequestCreate;
 import org.epam.service.UserService;
 import org.springframework.stereotype.Controller;
 

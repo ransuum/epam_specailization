@@ -3,15 +3,15 @@ package org.epam.service;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
-import org.epam.models.dto.TrainingViewDto;
+import org.epam.models.dto.TrainingTypeDto;
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.*;
-import org.epam.models.enums.TrainingType;
-import org.epam.models.request.trainerrequest.TrainerRequestCreate;
-import org.epam.models.request.trainerrequest.TrainerRequestUpdate;
+import org.epam.models.enums.TrainingName;
+import org.epam.models.request.createrequest.TrainerRequestCreate;
+import org.epam.models.request.updaterequest.TrainerRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
-import org.epam.repository.TrainingViewRepository;
+import org.epam.repository.TrainingTypeRepository;
 import org.epam.repository.UserRepository;
 import org.epam.service.impl.TrainerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,17 +42,17 @@ class TrainerServiceTest {
     private TraineeRepository traineeRepository;
 
     @Mock
-    private TrainingViewRepository trainingViewRepository;
+    private TrainingTypeRepository trainingTypeRepository;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
 
     private User testUser;
     private Trainer testTrainer;
-    private TrainingView testTrainingView;
+    private TrainingType testTrainingType;
     private TrainerDto testTrainerDto;
     private UserDto testUserDto;
-    private TrainingViewDto testTrainingViewDto;
+    private TrainingTypeDto testTrainingTypeDto;
 
     @BeforeEach
     void setUp() {
@@ -63,15 +63,15 @@ class TrainerServiceTest {
                 .isActive(true)
                 .build();
 
-        testTrainingView = TrainingView.builder()
+        testTrainingType = TrainingType.builder()
                 .id("specializationId")
-                .trainingType(TrainingType.SELF_PLACING)
+                .trainingName(TrainingName.SELF_PLACING)
                 .build();
 
         testTrainer = Trainer.builder()
                 .id("trainerId")
                 .user(testUser)
-                .specialization(testTrainingView)
+                .specialization(testTrainingType)
                 .trainings(new ArrayList<>())
                 .build();
 
@@ -83,8 +83,8 @@ class TrainerServiceTest {
                 true,
                 "oldPassword"
         );
-        testTrainingViewDto = new TrainingViewDto("specializationId", TrainingType.SELF_PLACING, Collections.emptyList(), Collections.emptyList());
-        testTrainerDto = new TrainerDto("trainerId", testUserDto, Collections.emptyList(), testTrainingViewDto);
+        testTrainingTypeDto = new TrainingTypeDto("specializationId", TrainingName.SELF_PLACING.getVal(), Collections.emptyList(), Collections.emptyList());
+        testTrainerDto = new TrainerDto("trainerId", testUserDto, Collections.emptyList(), testTrainingTypeDto);
     }
 
     @Test
@@ -92,7 +92,7 @@ class TrainerServiceTest {
         TrainerRequestCreate request = new TrainerRequestCreate("userId", "specializationId");
 
         when(userRepository.findById("userId")).thenReturn(Optional.of(testUser));
-        when(trainingViewRepository.findById("specializationId")).thenReturn(Optional.of(testTrainingView));
+        when(trainingTypeRepository.findById("specializationId")).thenReturn(Optional.of(testTrainingType));
         when(trainerRepository.save(any(Trainer.class))).thenReturn(testTrainer);
 
         var result = trainerService.save(request);
@@ -103,7 +103,7 @@ class TrainerServiceTest {
         assertEquals("specializationId", result.specialization().id());
 
         verify(userRepository).findById("userId");
-        verify(trainingViewRepository).findById("specializationId");
+        verify(trainingTypeRepository).findById("specializationId");
         verify(trainerRepository).save(any(Trainer.class));
     }
 
@@ -120,14 +120,13 @@ class TrainerServiceTest {
 
     @Test
     void update_shouldUpdateSpecialization() throws NotFoundException {
-        // Arrange
-        TrainerRequestUpdate request = new TrainerRequestUpdate("newSpecializationId", null);
-        TrainingView newSpecialization = TrainingView.builder()
+        var request = new TrainerRequestUpdate("newSpecializationId", null);
+        var newSpecialization = TrainingType.builder()
                 .id("newSpecializationId")
-                .trainingType(TrainingType.LABORATORY)
+                .trainingName(TrainingName.LABORATORY)
                 .build();
 
-        Trainer updatedTrainer = Trainer.builder()
+        var updatedTrainer = Trainer.builder()
                 .id("trainerId")
                 .user(testUser)
                 .specialization(newSpecialization)
@@ -135,7 +134,7 @@ class TrainerServiceTest {
                 .build();
 
         when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
-        when(trainingViewRepository.findById("newSpecializationId")).thenReturn(Optional.of(newSpecialization));
+        when(trainingTypeRepository.findById("newSpecializationId")).thenReturn(Optional.of(newSpecialization));
         when(trainerRepository.update(eq("trainerId"), any(Trainer.class))).thenReturn(updatedTrainer);
 
         var result = trainerService.update("trainerId", request);
@@ -145,7 +144,7 @@ class TrainerServiceTest {
         assertEquals("newSpecializationId", result.specialization().id());
 
         verify(trainerRepository).findById("trainerId");
-        verify(trainingViewRepository).findById("newSpecializationId");
+        verify(trainingTypeRepository).findById("newSpecializationId");
         verify(trainerRepository).update(eq("trainerId"), any(Trainer.class));
     }
 
@@ -161,7 +160,7 @@ class TrainerServiceTest {
         var updatedTrainer = Trainer.builder()
                 .id("trainerId")
                 .user(newUser)
-                .specialization(testTrainingView)
+                .specialization(testTrainingType)
                 .trainings(new ArrayList<>())
                 .build();
 
@@ -255,7 +254,7 @@ class TrainerServiceTest {
         var inactiveTrainer = Trainer.builder()
                 .id("trainerId")
                 .user(inactiveUser)
-                .specialization(testTrainingView)
+                .specialization(testTrainingType)
                 .trainings(new ArrayList<>())
                 .build();
 
@@ -338,14 +337,14 @@ class TrainerServiceTest {
         var assignedTrainer = Trainer.builder()
                 .id("assignedTrainerId")
                 .user(User.builder().id("assignedUserId").username("assignedTrainer").build())
-                .specialization(testTrainingView)
+                .specialization(testTrainingType)
                 .trainings(new ArrayList<>())
                 .build();
 
         var unassignedTrainer = Trainer.builder()
                 .id("unassignedTrainerId")
                 .user(User.builder().id("unassignedUserId").username("unassignedTrainer").build())
-                .specialization(testTrainingView)
+                .specialization(testTrainingType)
                 .trainings(new ArrayList<>())
                 .build();
 
