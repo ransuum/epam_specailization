@@ -1,5 +1,7 @@
 package org.epam.utils.menurender.choosermanagement;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.epam.controller.AuthenticationController;
 import org.epam.controller.TraineeController;
 import org.epam.controller.TrainerController;
@@ -13,6 +15,7 @@ import java.util.Scanner;
 
 @Component
 public class AuthenticationChooser implements Chooser {
+    private static final Logger log = LogManager.getLogger(AuthenticationChooser.class);
     private final AuthenticationController authenticationController;
     private final UserController userController;
     private final TraineeController traineeController;
@@ -44,19 +47,30 @@ public class AuthenticationChooser implements Chooser {
             scanner.nextLine();
             switch (choice) {
                 case 1:
-                    System.out.println(transExec.executeWithTransaction(()
-                            -> authenticationController.authenticate(scanner)));
+                    System.out.println(authenticationController.authenticate(scanner));
                     break;
                 case 2:
                     System.out.println(transExec.executeWithTransaction(authenticationController::logout));
                     break;
                 case 3:
-                    System.out.println(transExec.executeWithTransaction(()
-                            -> traineeController.addTrainee(scanner)));
+                    try {
+                        var traineeDto = transExec.executeWithTransaction(() ->
+                                traineeController.addTrainee(scanner)
+                        );
+                        System.out.println("Trainee registered: " + traineeDto);
+                    } catch (Exception e) {
+                        log.error("Trainee registration error", e);
+                    }
                     break;
                 case 4:
-                    System.out.println(transExec.executeWithTransaction(()
-                            -> trainerController.addTrainer(scanner)));
+                    try {
+                        var trainer = transExec.executeWithTransaction(() ->
+                                trainerController.addTrainer(scanner)
+                        );
+                        System.out.println("Trainer registered: " + trainer);
+                    } catch (Exception e) {
+                        log.error("Trainer registration error", e);
+                    }
                     break;
                 case 0:
                     traineeMenuRunning = false;
