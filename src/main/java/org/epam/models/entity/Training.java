@@ -1,35 +1,43 @@
 package org.epam.models.entity;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.*;
-import org.epam.models.enums.TrainingType;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.concurrent.atomic.AtomicInteger;
 
-@AllArgsConstructor
 @NoArgsConstructor
+@Entity
+@Table(name = "training")
 @Data
+@Builder
+@AllArgsConstructor
 public class Training {
-    private Integer id;
-    private Trainee trainee;
-    private Trainer trainer;
-    private String trainingName;
-    private TrainingType trainingType;
-    private LocalDate trainingDate;
-    private Integer trainingDuration;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false, updatable = false)
+    private String id;
 
-    private static final AtomicInteger counter = new AtomicInteger(1);
-    public Training(Trainee trainee, Trainer trainer, String trainingName,
-                    TrainingType trainingType, LocalDate trainingDate, Integer trainingDuration) {
-        this.id = counter.getAndIncrement();
-        this.trainee = trainee;
-        this.trainer = trainer;
-        this.trainingName = trainingName;
-        this.trainingType = trainingType;
-        this.trainingDate = trainingDate;
-        this.trainingDuration = trainingDuration;
-    }
+    @ManyToOne
+    @JoinColumn(referencedColumnName = "id", nullable = false, name = "trainee_id")
+    private Trainee trainee;
+
+    @ManyToOne
+    @JoinColumn(referencedColumnName = "id", nullable = false, name = "trainer_id")
+    private Trainer trainer;
+
+    @Column(nullable = false, name = "training_name")
+    private String trainingName;
+
+    @ManyToOne
+    @JoinColumn(referencedColumnName = "id", nullable = false, name = "training_type_id")
+    private TrainingType trainingType;
+
+    @Column(nullable = false, name = "start_time")
+    private LocalDate startTime;
+
+    @Column(nullable = false)
+    private Long duration;
 }

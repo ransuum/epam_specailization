@@ -1,59 +1,54 @@
 package org.epam.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.epam.exception.EntityNotFoundException;
+import org.epam.exception.CredentialException;
+import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
+import org.epam.models.request.create.TraineeRequestCreate;
+import org.epam.models.request.update.TraineeRequestUpdate;
 import org.epam.repository.TraineeRepository;
+import org.epam.repository.UserRepository;
 import org.epam.service.TraineeService;
-import org.epam.util.CredentialsGenerator;
+import org.epam.utils.mappers.TraineeMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.epam.util.CheckerField.check;
-import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
+import static org.epam.utils.CheckerField.check;
 
 @Service
 public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
-    private final ObjectMapper objectMapper;
-    private static final Log log = LogFactory.getLog(TraineeServiceImpl.class);
+    private final UserRepository userRepository;
 
-    public TraineeServiceImpl(TraineeRepository traineeRepository, ObjectMapper objectMapper) {
+    public TraineeServiceImpl(UserRepository userRepository, TraineeRepository traineeRepository) {
         this.traineeRepository = traineeRepository;
-        this.objectMapper = objectMapper;
+        this.userRepository = userRepository;
     }
 
     @Override
-    public TraineeDto save(Trainee trainee) {
-        log.info("Saving Trainee...");
-        existingUsernames.add(trainee.getUsername());
-        return objectMapper.convertValue(traineeRepository.save(trainee), TraineeDto.class);
+    public TraineeDto save(TraineeRequestCreate request) throws NotFoundException {
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.save(Trainee.builder()
+                .address(request.address())
+                .dateOfBirth(request.dateOfBirth())
+                .user(userRepository.findById(request.userId())
+                        .orElseThrow(() -> new NotFoundException("User not found")))
+                .build()));
     }
 
     @Override
-    public TraineeDto update(Integer id, Trainee trainee) {
-        log.info("update Trainee...");
-        Trainee traineeById = traineeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Trainee not found"));
+    public TraineeDto update(String id, TraineeRequestUpdate requestUpdate) throws NotFoundException {
+        var traineeById = traineeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
-        if (check(trainee.getAddress())) traineeById.setAddress(trainee.getAddress());
-        if (check(trainee.getFirstName())) traineeById.setFirstName(trainee.getFirstName());
-        if (check(trainee.getLastName())) traineeById.setLastName(trainee.getLastName());
-        if (check(String.valueOf(trainee.getDateOfBirth()))) traineeById.setDateOfBirth(trainee.getDateOfBirth());
-
-        traineeById.setUsername(CredentialsGenerator.generateUsername(traineeById.getFirstName(), traineeById.getLastName()));
-        traineeById.setPassword(CredentialsGenerator.generatePassword(traineeById.getUsername()));
-        return objectMapper.convertValue(traineeRepository.update(traineeById), TraineeDto.class);
+        if (check(requestUpdate.getAddress())) traineeById.setAddress(requestUpdate.getAddress());
+        if (check(requestUpdate.getDateOfBirth())) traineeById.setDateOfBirth(requestUpdate.getDateOfBirth());
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.update(id, traineeById));
     }
 
     @Override
-    public void delete(Integer id) {
-        log.info("delete Trainee...");
-        existingUsernames.remove(findById(id).username());
+    public void delete(String id) {
         traineeRepository.delete(id);
     }
 
@@ -61,14 +56,51 @@ public class TraineeServiceImpl implements TraineeService {
     public List<TraineeDto> findAll() {
         return traineeRepository.findAll()
                 .stream()
-                .map(trainee ->
-                        objectMapper.convertValue(trainee, TraineeDto.class))
+                .map(TraineeMapper.INSTANCE::toDto)
                 .toList();
     }
 
     @Override
-    public TraineeDto findById(Integer id) {
-        return objectMapper.convertValue(traineeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Trainee not found")), TraineeDto.class);
+    @Transactional
+    public TraineeDto findById(String id) throws NotFoundException {
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found with this credentials")));
+
+    }
+
+    @Override
+    public TraineeDto changePassword(String id, String oldPassword, String newPassword) throws NotFoundException, CredentialException {
+        var trainee = traineeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Trainee not found with id " + id));
+
+        if (!trainee.getUser().getPassword().equals(oldPassword))
+            throw new CredentialException("Old password do not match");
+        var user = trainee.getUser();
+        user.setPassword(newPassword);
+        userRepository.update(user.getId(), user);
+        return TraineeMapper.INSTANCE.toDto(trainee);
+    }
+
+    @Override
+    public TraineeDto findByUsername(String username) throws NotFoundException {
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Trainee not found by username")));
+    }
+
+    @Override
+    public String deleteByUsername(String username) throws NotFoundException {
+        return traineeRepository.deleteByUsername(username);
+    }
+
+    @Override
+    public TraineeDto changeStatus(String username) throws NotFoundException {
+        var trainee = traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Trainee not found"));
+
+        var user = trainee.getUser();
+        user.setIsActive(user.getIsActive().equals(Boolean.TRUE)
+                ? Boolean.FALSE : Boolean.TRUE);
+        trainee.setUser(userRepository.update(user.getId(), user));
+        return TraineeMapper.INSTANCE.toDto(trainee);
     }
 }

@@ -1,15 +1,21 @@
 package org.epam.repository;
 
+
+import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainee;
 
 import java.util.Optional;
 
-public interface TraineeRepository extends CrudRepository<Integer, Trainee> {
-    Optional<Trainee> findById(Integer integer);
-
+public interface TraineeRepository extends CrudRepository<String, Trainee> {
     Trainee save(Trainee trainee);
 
-    Trainee update(Trainee trainee);
+    Optional<Trainee> findById(String id);
 
-    void delete(Integer id);
+    void delete(String id) throws NotFoundException;
+
+    Trainee update(String id, Trainee trainee);
+
+    Optional<Trainee> findByUsername(String username);
+
+    String deleteByUsername(String username) throws NotFoundException;
 }

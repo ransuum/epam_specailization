@@ -1,18 +1,30 @@
 package org.epam.repository;
 
-import org.epam.models.entity.Training;
 
+import org.epam.exception.NotFoundException;
+import org.epam.models.entity.Training;
+import org.epam.models.enums.TrainingName;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface TrainingRepository extends CrudRepository<Integer, Training> {
+public interface TrainingRepository extends CrudRepository<String, Training> {
     Training save(Training training);
 
-    Training update(Training training);
+    Optional<Training> findById(String id);
 
-    void delete(Integer integer);
+    void delete(String id) throws NotFoundException;
 
     List<Training> findAll();
 
-    Optional<Training> findById(Integer integer);
+    Training update(String id, Training training);
+
+    List<Training> findTrainingWithUsernameOfTrainee(String username, LocalDate fromDate,
+                                                     LocalDate toDate, String trainerName,
+                                                     TrainingName trainingName);
+
+    List<Training> findTrainingWithUsernameOfTrainer(String username, LocalDate fromDate,
+                                                     LocalDate toDate, String traineeName,
+                                                     TrainingName trainingName);
 }

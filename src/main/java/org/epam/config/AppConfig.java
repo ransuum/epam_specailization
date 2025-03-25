@@ -2,26 +2,21 @@ package org.epam.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.persistence.EntityManager;
+import org.epam.models.SecurityContextHolder;
+import org.epam.models.entity.*;
+import org.epam.models.enums.UserType;
+import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 
-import java.util.*;
 
 @Configuration
-@ComponentScan(value = "org.epam")
+@ComponentScan(basePackages = {"org.epam", "org.epam.models.entity"})
 public class AppConfig {
-
-    @Bean
-    public Map<String, Map<Integer, Object>> storageMap() {
-        Map<String, Map<Integer, Object>> storage = new HashMap<>();
-        storage.put("trainees", new HashMap<>());
-        storage.put("trainers", new HashMap<>());
-        storage.put("trainings", new HashMap<>());
-        return storage;
-    }
-
     @Bean
     public ObjectMapper beanMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -30,9 +25,22 @@ public class AppConfig {
     }
 
     @Bean
-    public static PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
-        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-        configurer.setIgnoreUnresolvablePlaceholders(false);
-        return configurer;
+    public SecurityContextHolder securityContextHolder() {
+        return SecurityContextHolder.builder()
+                .userType(UserType.NOT_AUTHORIZE)
+                .build();
+    }
+
+    @Bean
+    public LocalSessionFactoryBean sessionFactory() {
+        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+        sessionFactory.setConfigLocation(new ClassPathResource("hibernate.cfg.xml"));
+        sessionFactory.setAnnotatedClasses(User.class, Trainee.class, Training.class, TrainingType.class, Trainer.class);
+        return sessionFactory;
+    }
+
+    @Bean
+    public EntityManager entityManager(SessionFactory sessionFactory) {
+        return sessionFactory.createEntityManager();
     }
 }

@@ -1,32 +1,41 @@
 package org.epam.models.entity;
 
-import lombok.*;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 
-@Getter
-@Setter
-public class Trainee extends User {
+@NoArgsConstructor
+@Entity
+@Table(name = "trainee")
+@Data
+@Builder
+@AllArgsConstructor
+public class Trainee {
+    @Id
+    @Column(name = "id")
+    private String id;
+
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "id")
+    private User user;
+
+    @Column(nullable = false, name = "date_of_birth")
     private LocalDate dateOfBirth;
+
     private String address;
-    private static final AtomicInteger counter = new AtomicInteger(1);
 
-    public Trainee(String address, LocalDate dateOfBirth, String firstName, String lastName, String username, String password, Boolean isActive) {
-        super(counter.getAndIncrement(), firstName, lastName, username, password, isActive);
-        this.address = address;
-        this.dateOfBirth = dateOfBirth;
-    }
+    @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Training> trainings;
 
-    public Trainee(String address, LocalDate dateOfBirth, String firstName, String lastName, Boolean isActive) {
-        super(firstName, lastName, isActive);
-        this.address = address;
+    public Trainee(User user, LocalDate dateOfBirth, String address) {
+        this.user = user;
         this.dateOfBirth = dateOfBirth;
-    }
-
-    public Trainee(Integer id, String address, LocalDate dateOfBirth, String firstName, String lastName, String username, String password, Boolean isActive) {
-        super(id, firstName, lastName, username, password, isActive);
         this.address = address;
-        this.dateOfBirth = dateOfBirth;
     }
 }

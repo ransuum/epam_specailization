@@ -1,17 +1,15 @@
 package org.epam.models.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-public record TrainerDto(Integer id,
-                         String specialization,
-                         String firstName,
-                         String lastName,
-                         String username,
-                         @JsonIgnore String password,
-                         Boolean isActive) {
+import java.util.List;
+
+public record TrainerDto(String id,
+                         UserDto user,
+                         List<String> trainingsIds,
+                         TrainingTypeDto specialization) {
 
     @Override
     public String toString() {
@@ -23,4 +21,5 @@ public record TrainerDto(Integer id,
             throw new RuntimeException(e.getMessage());
         }
     }
+
 }

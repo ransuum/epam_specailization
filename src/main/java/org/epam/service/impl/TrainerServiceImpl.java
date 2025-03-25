@@ -1,52 +1,68 @@
 package org.epam.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.epam.exception.EntityNotFoundException;
+import org.epam.exception.CredentialException;
+import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
+import org.epam.models.entity.Training;
+import org.epam.models.request.create.TrainerRequestCreate;
+import org.epam.models.request.update.TrainerRequestUpdate;
+import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
+import org.epam.repository.TrainingTypeRepository;
+import org.epam.repository.UserRepository;
 import org.epam.service.TrainerService;
-import org.epam.util.CredentialsGenerator;
+import org.epam.utils.mappers.TrainerMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static org.epam.util.CheckerField.check;
-import static org.epam.util.subcontroller.SubControllerMenu.existingUsernames;
+import static org.epam.utils.CheckerField.check;
 
 @Service
 public class TrainerServiceImpl implements TrainerService {
     private final TrainerRepository trainerRepository;
-    private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
+    private final TrainingTypeRepository trainingTypeRepository;
+    private final TraineeRepository traineeRepository;
 
-    public TrainerServiceImpl(TrainerRepository trainerRepository, ObjectMapper objectMapper) {
+    public TrainerServiceImpl(TrainerRepository trainerRepository, UserRepository userRepository,
+                              TrainingTypeRepository trainingTypeRepository, TraineeRepository traineeRepository) {
         this.trainerRepository = trainerRepository;
-        this.objectMapper = objectMapper;
+        this.userRepository = userRepository;
+        this.trainingTypeRepository = trainingTypeRepository;
+        this.traineeRepository = traineeRepository;
     }
 
     @Override
-    public TrainerDto save(Trainer trainer) {
-        existingUsernames.add(trainer.getUsername());
-        return objectMapper.convertValue(trainerRepository.save(trainer), TrainerDto.class);
+    public TrainerDto save(TrainerRequestCreate request) throws NotFoundException {
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.save(
+                Trainer.builder()
+                        .user(userRepository.findById(request.userId())
+                                .orElseThrow(() -> new NotFoundException("User not found")))
+                        .specialization(trainingTypeRepository.findById(request.specializationId())
+                                .orElseThrow(() -> new NotFoundException("Specialization Not Found")))
+                        .build())
+        );
     }
 
     @Override
-    public TrainerDto update(Integer id, Trainer trainer) {
-        Trainer trainerById = trainerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Trainer not found"));
+    public TrainerDto update(String id, TrainerRequestUpdate request) throws NotFoundException {
+        var trainer = trainerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
-        if (check(trainer.getFirstName())) trainerById.setFirstName(trainer.getFirstName());
-        if (check(trainer.getLastName())) trainerById.setLastName(trainer.getLastName());
-        if (check(trainer.getSpecialization())) trainerById.setSpecialization(trainer.getSpecialization());
+        if (check(request.userId()) && !request.userId().equals(id)) trainer.setUser(userRepository.findById(request.userId())
+                .orElseThrow(() -> new NotFoundException("User not found")));
 
-        trainerById.setUsername(CredentialsGenerator.generateUsername(trainerById.getFirstName(), trainerById.getLastName()));
-        trainerById.setPassword(CredentialsGenerator.generatePassword(trainerById.getUsername()));
-        return objectMapper.convertValue(trainerRepository.update(trainerById), TrainerDto.class);
+        if (check(request.specializationId()))
+            trainer.setSpecialization(trainingTypeRepository.findById(request.specializationId())
+                    .orElseThrow(() -> new NotFoundException("Specialization Not Found")));
+
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.update(id, trainer));
     }
 
     @Override
-    public void delete(Integer id) {
-        existingUsernames.remove(findById(id).username());
+    public void delete(String id) throws NotFoundException {
         trainerRepository.delete(id);
     }
 
@@ -54,14 +70,63 @@ public class TrainerServiceImpl implements TrainerService {
     public List<TrainerDto> findAll() {
         return trainerRepository.findAll()
                 .stream()
-                .map(trainer ->
-                        objectMapper.convertValue(trainer, TrainerDto.class))
+                .map(TrainerMapper.INSTANCE::toDto)
                 .toList();
     }
 
     @Override
-    public TrainerDto findById(Integer id) {
-        return objectMapper.convertValue(trainerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Trainer not found")), TrainerDto.class);
+    public TrainerDto findById(String id) throws NotFoundException {
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found with this credentials")));
+    }
+
+    @Override
+    public TrainerDto changePassword(String id, String oldPassword, String newPassword) throws NotFoundException, CredentialException {
+        var trainer = trainerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Trainer not found"));
+
+        if (!trainer.getUser().getPassword().equals(oldPassword))
+            throw new CredentialException("Old password do not match");
+
+        var user = trainer.getUser();
+        user.setPassword(newPassword);
+        userRepository.update(user.getId(), user);
+        return TrainerMapper.INSTANCE.toDto(trainer);
+    }
+
+    @Override
+    public TrainerDto findByUsername(String username) throws NotFoundException {
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Trainer not found")));
+
+    }
+
+    @Override
+    public TrainerDto changeStatus(String username) throws NotFoundException {
+        var trainer = trainerRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Trainer not found"));
+
+        var user = trainer.getUser();
+        user.setIsActive(user.getIsActive().equals(Boolean.TRUE)
+                ? Boolean.FALSE : Boolean.TRUE);
+        trainer.setUser(userRepository.update(user.getId(), user));
+        return TrainerMapper.INSTANCE.toDto(trainer);
+    }
+
+    @Override
+    public List<TrainerDto> getUnassignedTrainersForTrainee(String username) throws NotFoundException {
+        var trainee = traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Trainee not found with username: " + username));
+
+        var assignedTrainers = trainee.getTrainings().stream()
+                .map(Training::getTrainer)
+                .distinct()
+                .toList();
+
+        return trainerRepository.findAll()
+                .stream()
+                .filter(trainer -> !assignedTrainers.contains(trainer))
+                .map(TrainerMapper.INSTANCE::toDto)
+                .toList();
     }
 }
