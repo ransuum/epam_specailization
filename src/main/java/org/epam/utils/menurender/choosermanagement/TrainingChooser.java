@@ -61,7 +61,7 @@ public class TrainingChooser implements Chooser {
                     System.out.println("Training deleted successfully");
                     break;
                 case 5:
-                    transExec.executeVoidWithTransaction(trainingController::findAll);
+                    trainingController.findAll();
                     break;
                 case 6:
                     trainingController.findTrainingWithUsernameOfTrainee(scanner).forEach(System.out::println);
