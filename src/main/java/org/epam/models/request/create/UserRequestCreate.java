@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserRequestUpdate {
+public class UserRequestCreate {
     @NotBlank(message = "firstName is blank")
     private String firstName;
 

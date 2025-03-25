@@ -7,7 +7,7 @@ import org.epam.models.dto.TrainingTypeDto;
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.*;
 import org.epam.models.enums.TrainingName;
-import org.epam.models.request.create.TrainerRequestUpdate;
+import org.epam.models.request.create.TrainerRequestCreate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
@@ -88,7 +88,7 @@ class TrainerServiceTest {
 
     @Test
     void save_shouldCreateNewTrainer() throws NotFoundException {
-        TrainerRequestUpdate request = new TrainerRequestUpdate("userId", "specializationId");
+        TrainerRequestCreate request = new TrainerRequestCreate("userId", "specializationId");
 
         when(userRepository.findById("userId")).thenReturn(Optional.of(testUser));
         when(trainingTypeRepository.findById("specializationId")).thenReturn(Optional.of(testTrainingType));
@@ -108,7 +108,7 @@ class TrainerServiceTest {
 
     @Test
     void save_shouldReturnNullWhenUserNotFound() {
-        TrainerRequestUpdate request = new TrainerRequestUpdate("nonExistentUserId", "specializationId");
+        TrainerRequestCreate request = new TrainerRequestCreate("nonExistentUserId", "specializationId");
 
         when(userRepository.findById("nonExistentUserId")).thenReturn(Optional.empty());
 

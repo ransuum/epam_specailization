@@ -43,17 +43,16 @@ public class TrainingChooser implements Chooser {
             scanner.nextLine();
             switch (choice) {
                 case 1:
-                    TrainingDto newTraining = transExec.executeWithTransaction(()
+                    var newTraining = transExec.executeWithTransaction(()
                             -> trainingController.create(scanner));
                     System.out.println("Training created: " + newTraining);
                     break;
                 case 2:
-                    TrainingDto training = transExec.executeWithTransaction(()
-                            -> trainingController.findById(scanner));
+                    var training = trainingController.findById(scanner);
                     System.out.println("Found training: " + training);
                     break;
                 case 3:
-                    TrainingDto updatedTraining = transExec.executeWithTransaction(()
+                    var updatedTraining = transExec.executeWithTransaction(()
                             -> trainingController.update(scanner));
                     System.out.println("Training updated: " + updatedTraining);
                     break;
@@ -65,12 +64,10 @@ public class TrainingChooser implements Chooser {
                     transExec.executeVoidWithTransaction(trainingController::findAll);
                     break;
                 case 6:
-                    transExec.executeWithTransaction(()
-                            -> trainingController.findTrainingWithUsernameOfTrainee(scanner)).forEach(System.out::println);
+                    trainingController.findTrainingWithUsernameOfTrainee(scanner).forEach(System.out::println);
                     break;
                 case 7:
-                    transExec.executeWithTransaction(()
-                            -> trainingController.findTrainingWithUsernameOfTrainer(scanner)).forEach(System.out::println);
+                    trainingController.findTrainingWithUsernameOfTrainer(scanner).forEach(System.out::println);
                     break;
                 case 8:
                     try {

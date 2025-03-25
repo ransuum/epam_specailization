@@ -4,7 +4,8 @@ import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainee;
 import org.epam.models.entity.User;
-import org.epam.models.request.create.TraineeRequestUpdate;
+import org.epam.models.request.create.TraineeRequestCreate;
+import org.epam.models.request.update.TraineeRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.UserRepository;
 import org.epam.service.impl.TraineeServiceImpl;
@@ -34,8 +35,8 @@ class TraineeServiceTest {
 
     private User testUser;
     private Trainee testTrainee;
-    private TraineeRequestUpdate testTraineeRequest;
-    private org.epam.models.request.update.TraineeRequestUpdate testTraineeUpdateRequest;
+    private TraineeRequestCreate testTraineeRequest;
+    private TraineeRequestUpdate testTraineeUpdateRequest;
     private final String testId = "test-id";
     private final String testUsername = "testuser";
     private final String testPassword = "password";
@@ -55,7 +56,7 @@ class TraineeServiceTest {
         testTrainee.setDateOfBirth(LocalDate.of(1990, 1, 1));
         testTrainee.setAddress("Test Address");
 
-        testTraineeRequest = new TraineeRequestUpdate(
+        testTraineeRequest = new TraineeRequestCreate(
                 testId,
                 LocalDate.of(1990, 1, 1),
                 "Test Address"

@@ -6,7 +6,7 @@ import org.epam.models.dto.TrainingDtoForTrainee;
 import org.epam.models.dto.TrainingDtoForTrainer;
 import org.epam.models.entity.Training;
 import org.epam.models.enums.TrainingName;
-import org.epam.models.request.create.TrainingRequestUpdate;
+import org.epam.models.request.create.TrainingRequestCreate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingRepository;
@@ -38,7 +38,7 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional
-    public TrainingDto save(TrainingRequestUpdate request) throws NotFoundException {
+    public TrainingDto save(TrainingRequestCreate request) throws NotFoundException {
         var trainer = trainerRepository.findById(request.trainerId())
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
         var trainee = traineeRepository.findById(request.traineeId())
@@ -121,7 +121,7 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public List<TrainingDto> addTrainingsToTrainee(String traineeId, List<TrainingRequestUpdate> requests) throws NotFoundException {
+    public List<TrainingDto> addTrainingsToTrainee(String traineeId, List<TrainingRequestCreate> requests) throws NotFoundException {
         return requests.stream()
                 .map(this::save)
                 .toList();

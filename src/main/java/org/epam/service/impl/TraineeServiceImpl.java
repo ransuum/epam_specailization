@@ -4,7 +4,8 @@ import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
-import org.epam.models.request.create.TraineeRequestUpdate;
+import org.epam.models.request.create.TraineeRequestCreate;
+import org.epam.models.request.update.TraineeRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.UserRepository;
 import org.epam.service.TraineeService;
@@ -27,7 +28,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public TraineeDto save(TraineeRequestUpdate request) throws NotFoundException {
+    public TraineeDto save(TraineeRequestCreate request) throws NotFoundException {
         return TraineeMapper.INSTANCE.toDto(traineeRepository.save(Trainee.builder()
                 .address(request.address())
                 .dateOfBirth(request.dateOfBirth())
@@ -37,7 +38,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public TraineeDto update(String id, org.epam.models.request.update.TraineeRequestUpdate requestUpdate) throws NotFoundException {
+    public TraineeDto update(String id, TraineeRequestUpdate requestUpdate) throws NotFoundException {
         var traineeById = traineeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 

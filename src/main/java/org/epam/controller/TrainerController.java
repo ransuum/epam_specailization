@@ -4,7 +4,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.User;
-import org.epam.models.request.create.TrainerRequestUpdate;
+import org.epam.models.request.create.TrainerRequestCreate;
+import org.epam.models.request.create.UserRequestCreate;
 import org.epam.service.TrainerService;
 import org.epam.service.UserService;
 import org.springframework.stereotype.Controller;
@@ -23,11 +24,16 @@ public class TrainerController {
         this.userService = userService;
     }
 
-    public TrainerDto addTrainer(String userId, Scanner scanner) {
+    public TrainerDto addTrainer(Scanner scanner) {
         try {
-            System.out.print("Enter specialization: ");
+            System.out.print("Enter firstName: ");
+            var firstName = scanner.next();
+            System.out.print("Enter lastName: ");
+            var lastName = scanner.next();
+            System.out.print("Enter specialization id: ");
             var specialization = scanner.next();
-            return trainerService.save(new TrainerRequestUpdate(userId, specialization));
+            var save = userService.save(new UserRequestCreate(firstName, lastName, Boolean.TRUE));
+            return trainerService.save(new TrainerRequestCreate(save.id(), specialization));
         } catch (Exception e) {
             logger.error("Error adding trainer: {}", e.getMessage());
             return null;
@@ -62,7 +68,7 @@ public class TrainerController {
             System.out.print("Active?(true/false): ");
             var active = Boolean.valueOf(scanner.nextLine());
             userService.update(id, new User(firstName, lastName, active));
-            System.out.print("Enter specialization: ");
+            System.out.print("Enter specialization id: ");
             var specialization = scanner.nextLine().trim();
             return trainerService.update(id, new org.epam.models.request.update.TrainerRequestUpdate(id, specialization));
         } catch (Exception e) {

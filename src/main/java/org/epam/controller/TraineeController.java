@@ -5,9 +5,11 @@ import org.apache.logging.log4j.Logger;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TraineeDto;
+import org.epam.models.dto.UserDto;
 import org.epam.models.entity.User;
-import org.epam.models.request.create.TraineeRequestUpdate;
-import org.epam.models.request.create.UserRequestUpdate;
+import org.epam.models.request.create.TraineeRequestCreate;
+import org.epam.models.request.create.UserRequestCreate;
+import org.epam.models.request.update.TraineeRequestUpdate;
 import org.epam.service.TraineeService;
 import org.epam.service.UserService;
 import org.springframework.stereotype.Controller;
@@ -28,14 +30,19 @@ public class TraineeController {
         this.userService = userService;
     }
 
-    public TraineeDto addTrainee(String userid, Scanner scanner) {
+    public TraineeDto addTrainee(Scanner scanner) {
         try {
+            System.out.print("Enter firstName: ");
+            var firstName = scanner.next();
+            System.out.print("Enter lastName: ");
+            var lastName = scanner.next();
             System.out.print("Enter your date of birth (dd-MM-yyyy): ");
             var dateOfBirth = scanner.next().trim();
             scanner.nextLine();
             System.out.print("Enter address: ");
             var address = scanner.nextLine().trim();
-            return traineeService.save(new TraineeRequestUpdate(userid, LocalDate.parse(dateOfBirth, formatter), address));
+            var save = userService.save(new UserRequestCreate(firstName, lastName, Boolean.TRUE));
+            return traineeService.save(new TraineeRequestCreate(save.id(), LocalDate.parse(dateOfBirth, formatter), address));
         } catch (Exception e) {
             logger.info("Error adding trainee: {}", e.getMessage());
             return null;
@@ -74,7 +81,7 @@ public class TraineeController {
             var address = scanner.nextLine().trim();
             System.out.print("Enter your date of birth (dd-MM-yyyy): ");
             var dateOfBirth = scanner.nextLine().trim();
-            return traineeService.update(id, new org.epam.models.request.update.TraineeRequestUpdate(id, LocalDate.parse(dateOfBirth, formatter), address));
+            return traineeService.update(id, new TraineeRequestUpdate(id, LocalDate.parse(dateOfBirth, formatter), address));
         } catch (Exception e) {
             logger.info("Error updating trainee: {}", e.getMessage());
             return null;

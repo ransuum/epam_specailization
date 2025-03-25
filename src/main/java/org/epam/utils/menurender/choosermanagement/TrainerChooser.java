@@ -40,8 +40,7 @@ public class TrainerChooser implements Chooser {
             scanner.nextLine();
             switch (choice) {
                 case 1:
-                    TrainerDto trainer = transExec.executeWithTransaction(()
-                            -> trainerController.findById(securityContextHolder.getUserId()));
+                    var trainer =  trainerController.findById(securityContextHolder.getUserId());
                     System.out.println("Found trainer: " + trainer);
                     break;
                 case 2:
@@ -54,10 +53,10 @@ public class TrainerChooser implements Chooser {
                     System.out.println("Trainer deleted successfully");
                     break;
                 case 4:
-                    transExec.executeVoidWithTransaction(trainerController::findAll);
+                    trainerController.findAll();
                     break;
                 case 5:
-                    TrainerDto changePassword = transExec.executeWithTransaction(()
+                    var changePassword = transExec.executeWithTransaction(()
                             -> trainerController.changePassword(securityContextHolder.getUserId(), scanner));
                     System.out.println("Password changed for trainer: " + changePassword);
                     break;

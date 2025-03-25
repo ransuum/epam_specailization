@@ -5,7 +5,8 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
-import org.epam.models.request.create.TrainerRequestUpdate;
+import org.epam.models.request.create.TrainerRequestCreate;
+import org.epam.models.request.update.TrainerRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
@@ -34,7 +35,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public TrainerDto save(TrainerRequestUpdate request) throws NotFoundException {
+    public TrainerDto save(TrainerRequestCreate request) throws NotFoundException {
         return TrainerMapper.INSTANCE.toDto(trainerRepository.save(
                 Trainer.builder()
                         .user(userRepository.findById(request.userId())
@@ -46,7 +47,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public TrainerDto update(String id, org.epam.models.request.update.TrainerRequestUpdate request) throws NotFoundException {
+    public TrainerDto update(String id, TrainerRequestUpdate request) throws NotFoundException {
         var trainer = trainerRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
 

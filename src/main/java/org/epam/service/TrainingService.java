@@ -6,13 +6,13 @@ import org.epam.models.dto.TrainingDto;
 import org.epam.models.dto.TrainingDtoForTrainee;
 import org.epam.models.dto.TrainingDtoForTrainer;
 import org.epam.models.enums.TrainingName;
-import org.epam.models.request.create.TrainingRequestUpdate;
+import org.epam.models.request.create.TrainingRequestCreate;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public interface TrainingService {
-    TrainingDto save(TrainingRequestUpdate request) throws NotFoundException;
+    TrainingDto save(TrainingRequestCreate request) throws NotFoundException;
 
     TrainingDto update(String id, org.epam.models.request.update.TrainingRequestUpdate request) throws NotFoundException;
 
@@ -30,5 +30,5 @@ public interface TrainingService {
                                                                    LocalDate toDate, String traineeName,
                                                                    TrainingName trainingName);
 
-    List<TrainingDto> addTrainingsToTrainee(String traineeId, List<TrainingRequestUpdate> requests) throws NotFoundException;
+    List<TrainingDto> addTrainingsToTrainee(String traineeId, List<TrainingRequestCreate> requests) throws NotFoundException;
 }

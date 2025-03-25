@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.User;
-import org.epam.models.request.create.UserRequestUpdate;
+import org.epam.models.request.create.UserRequestCreate;
 import org.epam.service.UserService;
 import org.springframework.stereotype.Controller;
 
@@ -25,7 +25,7 @@ public class UserController {
             var firstName = scanner.next();
             System.out.print("Enter lastName: ");
             var lastName = scanner.next();
-            return userService.save(new UserRequestUpdate(firstName, lastName, Boolean.TRUE));
+            return userService.save(new UserRequestCreate(firstName, lastName, Boolean.TRUE));
         } catch (Exception e) {
             logger.error("Error creating user: {}", e.getMessage());
             return null;

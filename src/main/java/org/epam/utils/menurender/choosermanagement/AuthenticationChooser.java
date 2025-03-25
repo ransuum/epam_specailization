@@ -51,15 +51,12 @@ public class AuthenticationChooser implements Chooser {
                     System.out.println(transExec.executeWithTransaction(authenticationController::logout));
                     break;
                 case 3:
-                    UserDto userForTrainee = transExec.executeWithTransaction(()
-                            -> userController.createUser(scanner));
                     System.out.println(transExec.executeWithTransaction(()
-                            -> traineeController.addTrainee(userForTrainee.id(), scanner)));
+                            -> traineeController.addTrainee(scanner)));
                     break;
                 case 4:
-                    UserDto userForTrainer = transExec.executeWithTransaction(() -> userController.createUser(scanner));
                     System.out.println(transExec.executeWithTransaction(()
-                            -> trainerController.addTrainer(userForTrainer.id(), scanner)));
+                            -> trainerController.addTrainer(scanner)));
                     break;
                 case 0:
                     traineeMenuRunning = false;

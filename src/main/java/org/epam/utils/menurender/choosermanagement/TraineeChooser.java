@@ -38,8 +38,7 @@ public class TraineeChooser implements Chooser {
             scanner.nextLine();
             switch (choice) {
                 case 1:
-                    TraineeDto trainee = transExec.executeWithTransaction(()
-                            -> traineeController.findById(securityContextHolder.getUserId()));
+                    var trainee = traineeController.findById(securityContextHolder.getUserId());
                     System.out.println("Found trainee: " + trainee);
                     break;
                 case 2:

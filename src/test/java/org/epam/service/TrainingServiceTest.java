@@ -3,7 +3,7 @@ package org.epam.service;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.*;
 import org.epam.models.enums.TrainingName;
-import org.epam.models.request.create.TrainingRequestUpdate;
+import org.epam.models.request.create.TrainingRequestCreate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingRepository;
@@ -85,7 +85,7 @@ class TrainingServiceTest {
 
     @Test
     void save_shouldCreateNewTraining() throws NotFoundException {
-        var request = new TrainingRequestUpdate(
+        var request = new TrainingRequestCreate(
                 "trainee-id",
                 "trainer-id",
                 "Test Training",
@@ -111,7 +111,7 @@ class TrainingServiceTest {
 
     @Test
     void save_shouldReturnNullWhenTraineeNotFound() {
-        var request = new TrainingRequestUpdate(
+        var request = new TrainingRequestCreate(
                 "non-existent-trainee",
                 "trainer-id",
                 "Test Training",
@@ -133,7 +133,7 @@ class TrainingServiceTest {
 
     @Test
     void save_shouldReturnNullWhenTrainerNotFound() {
-        var request = new TrainingRequestUpdate(
+        var request = new TrainingRequestCreate(
                 "trainee-id",
                 "non-existent-trainer",
                 "Test Training",
@@ -154,7 +154,7 @@ class TrainingServiceTest {
 
     @Test
     void save_shouldReturnNullWhenTrainingViewNotFound() {
-        var request = new TrainingRequestUpdate(
+        var request = new TrainingRequestCreate(
                 "trainee-id",
                 "trainer-id",
                 "Test Training",
