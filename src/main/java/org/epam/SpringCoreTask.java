@@ -1,17 +1,22 @@
 package org.epam;
 
-import org.epam.config.AppConfig;
-import org.epam.utils.menurender.Menu;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.apache.catalina.startup.Tomcat;
+
+import java.io.File;
 
 public class SpringCoreTask {
 
-    public static void main(String[] args) {
-        try (var context = new AnnotationConfigApplicationContext(AppConfig.class)) {
-            var menu = context.getBean(Menu.class);
-            menu.show();
-        } catch (Exception e) {
-            System.err.println("Error starting application: " + e.getMessage());
-        }
+    public static void main(String[] args) throws Exception {
+        Tomcat tomcat = new Tomcat();
+        tomcat.setPort(8000);
+
+        tomcat.getConnector();
+
+        String webappDirLocation = "web";
+        tomcat.addWebapp("", new File(webappDirLocation).getAbsolutePath());
+
+        tomcat.start();
+        System.out.println("Tomcat started on port 8000");
+        tomcat.getServer().await();
     }
 }

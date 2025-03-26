@@ -1,74 +1,39 @@
 package org.epam.controller;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.epam.models.dto.TrainingTypeDto;
 import org.epam.models.enums.TrainingName;
 import org.epam.service.TrainingTypeService;
-import org.springframework.stereotype.Controller;
+import org.epam.utils.menurender.transactionconfiguration.TransactionExecution;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Scanner;
+import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/training-type")
 public class TrainingTypeController {
     private final TrainingTypeService trainingTypeService;
-    private static final Logger logger = LogManager.getLogger(TrainingTypeController.class);
+    private final TransactionExecution transactionExecution;
 
-    public TrainingTypeController(TrainingTypeService trainingTypeService) {
+    public TrainingTypeController(TrainingTypeService trainingTypeService, TransactionExecution transactionExecution) {
         this.trainingTypeService = trainingTypeService;
+        this.transactionExecution = transactionExecution;
     }
 
-    public TrainingTypeDto create(Scanner scanner) {
-        try {
-            System.out.print("Enter training type: ");
-            var trainingName = scanner.nextLine().trim();
-            return trainingTypeService.save(TrainingName.getTrainingNameFromString(trainingName));
-        } catch (Exception e) {
-            logger.error("Error creating training view: {}", e.getMessage());
-            return null;
-        }
+    @GetMapping("/{id}")
+    public ResponseEntity<TrainingTypeDto> findById(@PathVariable String id) {
+        return ResponseEntity.ok(trainingTypeService.findById(id));
     }
 
-    public TrainingTypeDto update(Scanner scanner) {
-        try {
-            System.out.print("Enter trainingView id: ");
-            var trainingViewId = scanner.next();
-            scanner.nextLine();
-            System.out.print("Enter training type: ");
-            var trainingName = scanner.nextLine().trim();
-            return trainingTypeService.update(trainingViewId, TrainingName.getTrainingNameFromString(trainingName));
-        } catch (Exception e) {
-            logger.error("Error updating training view: {}", e.getMessage());
-            return null;
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable String id) {
+        transactionExecution.executeVoidWithTransaction(() -> trainingTypeService.delete(id));
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    public TrainingTypeDto findById(Scanner scanner) {
-        try {
-            System.out.print("Enter trainingView id: ");
-            var trainingViewId = scanner.next().trim();
-            return trainingTypeService.findById(trainingViewId);
-        } catch (Exception e) {
-            logger.error("Error finding training view: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    public void delete(Scanner scanner) {
-        try {
-            System.out.print("Enter trainingView id: ");
-            var trainingViewId = scanner.next().trim();
-            trainingTypeService.delete(trainingViewId);
-        } catch (Exception e) {
-            logger.error("Error deleting training view: {}", e.getMessage());
-        }
-    }
-
-    public void findAll() {
-        try {
-            trainingTypeService.findAll().forEach(System.out::println);
-        } catch (Exception e) {
-            logger.error("Error find all training view: {}", e.getMessage());
-        }
+    @GetMapping
+    public ResponseEntity<List<TrainingTypeDto>> findAll() {
+        return ResponseEntity.ok(trainingTypeService.findAll());
     }
 }

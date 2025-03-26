@@ -4,12 +4,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.models.SecurityContextHolder;
 import org.epam.models.enums.UserType;
+import org.epam.models.request.AuthRequest;
 import org.epam.service.AuthenticationService;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Scanner;
-
-@Controller
+@RestController
+@RequestMapping("/auth")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final SecurityContextHolder securityContextHolder;
@@ -21,33 +26,26 @@ public class AuthenticationController {
         this.securityContextHolder = securityContextHolder;
     }
 
-    public SecurityContextHolder authenticate(Scanner scanner) {
-        try {
-            System.out.print("Please enter your username: ");
-            String username = scanner.next();
-            System.out.print("Please enter your password: ");
-            String password = scanner.next();
-
-            SecurityContextHolder temp = authenticationService.authenticate(username, password);
-
-            this.securityContextHolder.setUsername(temp.getUsername());
-            this.securityContextHolder.setUserId(temp.getUserId());
-            this.securityContextHolder.setGenerateAt(temp.getGenerateAt());
-            this.securityContextHolder.setExpiredAt(temp.getExpiredAt());
-            this.securityContextHolder.setUserType(temp.getUserType());
-            return this.securityContextHolder;
-        } catch (Exception e) {
-            logger.error("Authentication failed: {}", e.getMessage());
-            return this.securityContextHolder;
-        }
+    @PostMapping("/login")
+    public ResponseEntity<?> authenticate(@RequestBody AuthRequest authRequest) {
+        var temp = authenticationService.authenticate(authRequest.username(), authRequest.password());
+        this.securityContextHolder.setUsername(temp.getUsername());
+        this.securityContextHolder.setUserId(temp.getUserId());
+        this.securityContextHolder.setGenerateAt(temp.getGenerateAt());
+        this.securityContextHolder.setExpiredAt(temp.getExpiredAt());
+        this.securityContextHolder.setUserType(temp.getUserType());
+        logger.info("Authentication successful");
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    public SecurityContextHolder logout() {
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
         this.securityContextHolder.setUsername(null);
         this.securityContextHolder.setUserId(null);
         this.securityContextHolder.setGenerateAt(null);
         this.securityContextHolder.setExpiredAt(null);
         this.securityContextHolder.setUserType(UserType.NOT_AUTHORIZE);
-        return this.securityContextHolder;
+        logger.info("Logout successful");
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 }

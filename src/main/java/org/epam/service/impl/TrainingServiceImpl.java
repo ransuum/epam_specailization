@@ -7,6 +7,7 @@ import org.epam.models.dto.TrainingDtoForTrainer;
 import org.epam.models.entity.Training;
 import org.epam.models.enums.TrainingName;
 import org.epam.models.request.create.TrainingRequestCreate;
+import org.epam.models.request.update.TrainingRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.epam.utils.CheckerField.check;
@@ -27,6 +29,8 @@ public class TrainingServiceImpl implements TrainingService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
+    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
 
     public TrainingServiceImpl(TrainingRepository trainingRepository, TraineeRepository traineeRepository,
                                TrainingTypeRepository trainingTypeRepository, TrainerRepository trainerRepository) {
@@ -52,14 +56,14 @@ public class TrainingServiceImpl implements TrainingService {
                         .trainee(trainee)
                         .trainingType(trainingView)
                         .trainingName(request.trainingName())
-                        .startTime(request.startTime())
+                        .startTime(LocalDate.parse(request.startTime(), formatter))
                         .duration(request.duration())
                         .build())
         );
     }
 
     @Override
-    public TrainingDto update(String id, org.epam.models.request.update.TrainingRequestUpdate request) throws NotFoundException {
+    public TrainingDto update(String id, TrainingRequestUpdate request) throws NotFoundException {
         var training = trainingRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Training not found"));
 
@@ -101,20 +105,20 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public List<TrainingDtoForTrainee> findTrainingWithUsernameOfTrainee(String username, LocalDate fromDate,
-                                                                         LocalDate toDate, String trainerName,
+    public List<TrainingDtoForTrainee> findTrainingWithUsernameOfTrainee(String username, String fromDate,
+                                                                         String toDate, String trainerName,
                                                                          TrainingName trainingName) {
-        return trainingRepository.findTrainingWithUsernameOfTrainee(username, fromDate, toDate, trainerName, trainingName)
+        return trainingRepository.findTrainingWithUsernameOfTrainee(username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), trainerName, trainingName)
                 .stream()
                 .map(TrainingMapper.INSTANCE::toDtoForTrainee)
                 .toList();
     }
 
     @Override
-    public List<TrainingDtoForTrainer> findTrainingWithUsernameOfTrainer(String username, LocalDate fromDate,
-                                                                         LocalDate toDate, String traineeName,
+    public List<TrainingDtoForTrainer> findTrainingWithUsernameOfTrainer(String username, String fromDate,
+                                                                         String toDate, String traineeName,
                                                                          TrainingName trainingName) {
-        return trainingRepository.findTrainingWithUsernameOfTrainer(username, fromDate, toDate, traineeName, trainingName)
+        return trainingRepository.findTrainingWithUsernameOfTrainer(username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), traineeName, trainingName)
                 .stream()
                 .map(TrainingMapper.INSTANCE::toDtoForTrainer)
                 .toList();

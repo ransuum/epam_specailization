@@ -63,8 +63,7 @@ class TraineeServiceTest {
         );
 
         testTraineeUpdateRequest = new org.epam.models.request.update.TraineeRequestUpdate();
-        testTraineeUpdateRequest.setUserId(testId);
-        testTraineeUpdateRequest.setDateOfBirth(LocalDate.of(1991, 2, 2));
+        testTraineeUpdateRequest.setDateOfBirth("02-02-1991");
         testTraineeUpdateRequest.setAddress("Updated Address");
     }
 
@@ -76,7 +75,6 @@ class TraineeServiceTest {
         var result = traineeService.save(testTraineeRequest);
 
         assertNotNull(result);
-        assertEquals(testId, result.id());
         verify(userRepository).findById(testId);
         verify(traineeRepository).save(any(Trainee.class));
     }

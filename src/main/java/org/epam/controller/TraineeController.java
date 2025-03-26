@@ -1,134 +1,108 @@
 package org.epam.controller;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.epam.exception.CredentialException;
-import org.epam.exception.NotFoundException;
+import org.epam.exception.PermissionException;
+import org.epam.models.SecurityContextHolder;
+import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
-import org.epam.models.dto.UserDto;
-import org.epam.models.entity.User;
+import org.epam.models.enums.UserType;
+import org.epam.models.request.TraineeRegistrationRequest;
 import org.epam.models.request.create.TraineeRequestCreate;
 import org.epam.models.request.create.UserRequestCreate;
 import org.epam.models.request.update.TraineeRequestUpdate;
 import org.epam.service.TraineeService;
 import org.epam.service.UserService;
-import org.springframework.stereotype.Controller;
+import org.epam.utils.menurender.transactionconfiguration.TransactionExecution;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Scanner;
+import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/trainee")
 public class TraineeController {
     private final TraineeService traineeService;
-    private static final Logger logger = LogManager.getLogger(TraineeController.class);
-    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private final UserService userService;
+    private final SecurityContextHolder securityContextHolder;
+    private final TransactionExecution transactionExecution;
+    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-    public TraineeController(TraineeService traineeService, UserService userService) {
+    public TraineeController(TraineeService traineeService, SecurityContextHolder securityContextHolder,
+                             UserService userService, TransactionExecution transactionExecution) {
         this.traineeService = traineeService;
         this.userService = userService;
+        this.securityContextHolder = securityContextHolder;
+        this.transactionExecution = transactionExecution;
     }
 
-    public TraineeDto addTrainee(Scanner scanner) {
-        try {
-            System.out.print("Enter firstName: ");
-            var firstName = scanner.next();
-            System.out.print("Enter lastName: ");
-            var lastName = scanner.next();
-            System.out.print("Enter your date of birth (dd-MM-yyyy): ");
-            var dateOfBirth = scanner.next().trim();
-            scanner.nextLine();
-            System.out.print("Enter address: ");
-            var address = scanner.nextLine().trim();
-            var save = userService.save(new UserRequestCreate(firstName, lastName, Boolean.TRUE));
-            return traineeService.save(new TraineeRequestCreate(save.id(), LocalDate.parse(dateOfBirth, formatter), address));
-        } catch (Exception e) {
-            logger.info("Error adding trainee: {}", e.getMessage());
-            return null;
-        }
+    @PostMapping("/create")
+    public ResponseEntity<AuthResponseDto> addTrainee(@RequestBody TraineeRegistrationRequest request) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINER))
+            throw new PermissionException("You are not allowed to perform this operation");
+
+        var save = userService.save(new UserRequestCreate(request.firstname(), request.lastname(), Boolean.TRUE));
+        return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
+                -> traineeService.save(new TraineeRequestCreate(save.id(), LocalDate.parse(request.dateOfBirth(), formatter), request.address()))
+        ), HttpStatus.CREATED);
     }
 
-    public TraineeDto findById(String id) {
-        try {
-            return traineeService.findById(id);
-        } catch (NotFoundException e) {
-            logger.info("Trainee not found: {}", e.getMessage());
-            return null;
-        }
+    @GetMapping("/profile")
+    public ResponseEntity<TraineeDto> findById() {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINER))
+            throw new PermissionException("You are not allowed to perform this operation");
+        return new ResponseEntity<>(traineeService.findById(securityContextHolder.getUserId()), HttpStatus.FOUND);
     }
 
-    public void deleteById(Scanner scanner) {
-        try {
-            System.out.print("Enter id of trainee: ");
-            String id = scanner.next();
-            traineeService.delete(id);
-        } catch (Exception e) {
-            logger.info("Error deleting trainee: {}", e.getMessage());
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteById(@PathVariable String id) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINER))
+            throw new PermissionException("You are not allowed to perform this operation");
+        transactionExecution.executeVoidWithTransaction(() -> traineeService.delete(id));
+        return ResponseEntity.ok("Deleted successfully!");
     }
 
-    public TraineeDto updateTrainee(String id, Scanner scanner) {
-        try {
-            System.out.print("Enter firstName: ");
-            var firstName = scanner.nextLine().trim();
-            System.out.print("Enter lastName: ");
-            var lastName = scanner.nextLine().trim();
-            System.out.print("Active?(true/false): ");
-            var active = Boolean.valueOf(scanner.nextLine());
-            userService.update(id, new User(firstName, lastName, active));
-            System.out.print("Enter address: ");
-            var address = scanner.nextLine().trim();
-            System.out.print("Enter your date of birth (dd-MM-yyyy): ");
-            var dateOfBirth = scanner.nextLine().trim();
-            return traineeService.update(id, new TraineeRequestUpdate(id, LocalDate.parse(dateOfBirth, formatter), address));
-        } catch (Exception e) {
-            logger.info("Error updating trainee: {}", e.getMessage());
-            return null;
-        }
+    @PutMapping("/update")
+    public ResponseEntity<TraineeDto> updateTrainee(@RequestBody TraineeRequestUpdate traineeRequestUpdate) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINER))
+            throw new PermissionException("You are not allowed to perform this operation");
+        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
+                -> traineeService.update(securityContextHolder.getUserId(), traineeRequestUpdate))
+        );
     }
 
-    public void findAll() {
-        try {
-            traineeService.findAll().forEach(System.out::println);
-        } catch (Exception e) {
-            logger.info("Error retrieving trainees: {}", e.getMessage());
-        }
+    @GetMapping
+    public ResponseEntity<List<TraineeDto>> findAll() {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINER))
+            throw new PermissionException("You are not allowed to perform this operation");
+        return new ResponseEntity<>(traineeService.findAll(), HttpStatus.OK);
     }
 
-    public TraineeDto changePassword(String id, Scanner scanner) {
-        try {
-            System.out.print("Enter old password: ");
-            var oldPassword = scanner.next();
-            System.out.print("Enter new password: ");
-            var newPassword = scanner.next();
-            return traineeService.changePassword(id, oldPassword, newPassword);
-        } catch (CredentialException e) {
-            logger.info("Password change failed: {}", e.getMessage());
-            return null;
-        } catch (Exception e) {
-            logger.info("Error changing password: {}", e.getMessage());
-            return null;
-        }
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestParam String oldPassword,
+                                                     @RequestParam String newPassword) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINER))
+            throw new PermissionException("You are not allowed to perform this operation");
+        transactionExecution.executeWithTransaction(()
+                -> traineeService.changePassword(securityContextHolder.getUserId(), oldPassword, newPassword));
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    public String deleteTraineeByUsername(Scanner scanner) {
-        try {
-            System.out.print("Enter user's username: ");
-            var username = scanner.next();
-            return traineeService.deleteByUsername(username);
-        } catch (Exception e) {
-            logger.error("Error deleting trainee by username: {}", e.getMessage());
-            return "error";
-        }
+    @DeleteMapping("/username/{username}")
+    public ResponseEntity<String> deleteTraineeByUsername(@PathVariable String username) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINER))
+            throw new PermissionException("You are not allowed to perform this operation");
+        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
+                -> traineeService.deleteByUsername(username)));
     }
 
-    public TraineeDto changeStatus(String username) {
-        try {
-            return traineeService.changeStatus(username);
-        } catch (Exception e) {
-            logger.info("Error activate action: {}", e.getMessage());
-            return null;
-        }
+    @PatchMapping("/change-status/{username}")
+    public ResponseEntity<?> changeStatus(@PathVariable String username) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINER))
+            throw new PermissionException("You are not allowed to perform this operation");
+        transactionExecution.executeWithTransaction(()
+                -> traineeService.changeStatus(username));
+        return ResponseEntity.ok("Changed status successfully");
     }
 }

@@ -1,5 +1,6 @@
 package org.epam.utils.mappers;
 
+import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
 import org.epam.models.entity.Training;
@@ -18,7 +19,11 @@ public interface TraineeMapper {
     TraineeMapper INSTANCE = Mappers.getMapper(TraineeMapper.class);
 
     @Mapping(target = "trainingsIds", source = "trainings", qualifiedByName = "toTrainingIds")
-    TraineeDto toDto(Trainee trainee);
+    TraineeDto toDtoForTrainee(Trainee trainee);
+
+    @Mapping(target = "username", expression = "java(trainee.getUser().getUsername())")
+    @Mapping(target = "password", expression = "java(trainee.getUser().getPassword())")
+    AuthResponseDto toAuthResponseDto(Trainee trainee);
 
     @Named("toTrainingIds")
     default List<String> toTrainingIds(List<Training> trainings) {

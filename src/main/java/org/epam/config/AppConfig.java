@@ -18,13 +18,6 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 @ComponentScan(basePackages = {"org.epam", "org.epam.models.entity"})
 public class AppConfig {
     @Bean
-    public ObjectMapper beanMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        return objectMapper;
-    }
-
-    @Bean
     public SecurityContextHolder securityContextHolder() {
         return SecurityContextHolder.builder()
                 .userType(UserType.NOT_AUTHORIZE)

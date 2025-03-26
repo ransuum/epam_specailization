@@ -97,9 +97,8 @@ class TrainerServiceTest {
         var result = trainerService.save(request);
 
         assertNotNull(result);
-        assertEquals("trainerId", result.id());
-        assertEquals("userId", result.user().id());
-        assertEquals("specializationId", result.specialization().id());
+        assertEquals("testUser", result.username());
+        assertEquals("oldPassword", result.password());
 
         verify(userRepository).findById("userId");
         verify(trainingTypeRepository).findById("specializationId");

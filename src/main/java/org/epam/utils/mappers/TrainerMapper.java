@@ -1,5 +1,6 @@
 package org.epam.utils.mappers;
 
+import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
@@ -19,6 +20,10 @@ public interface TrainerMapper {
 
     @Mapping(target = "trainingsIds", source = "trainings", qualifiedByName = "toTrainingIds")
     TrainerDto toDto(Trainer trainer);
+
+    @Mapping(target = "username", expression = "java(trainer.getUser().getUsername())")
+    @Mapping(target = "password", expression = "java(trainer.getUser().getPassword())")
+    AuthResponseDto toAuthResponseDto(Trainer trainer);
 
     @Named("toTrainingIds")
     default List<String> toTrainingIds(List<Training> trainings) {

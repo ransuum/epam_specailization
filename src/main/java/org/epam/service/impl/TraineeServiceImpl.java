@@ -2,6 +2,7 @@ package org.epam.service.impl;
 
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
+import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
 import org.epam.models.request.create.TraineeRequestCreate;
@@ -13,6 +14,8 @@ import org.epam.utils.mappers.TraineeMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.epam.utils.CheckerField.check;
@@ -21,6 +24,7 @@ import static org.epam.utils.CheckerField.check;
 public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
     private final UserRepository userRepository;
+    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     public TraineeServiceImpl(UserRepository userRepository, TraineeRepository traineeRepository) {
         this.traineeRepository = traineeRepository;
@@ -28,8 +32,8 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public TraineeDto save(TraineeRequestCreate request) throws NotFoundException {
-        return TraineeMapper.INSTANCE.toDto(traineeRepository.save(Trainee.builder()
+    public AuthResponseDto save(TraineeRequestCreate request) throws NotFoundException {
+        return TraineeMapper.INSTANCE.toAuthResponseDto(traineeRepository.save(Trainee.builder()
                 .address(request.address())
                 .dateOfBirth(request.dateOfBirth())
                 .user(userRepository.findById(request.userId())
@@ -43,8 +47,9 @@ public class TraineeServiceImpl implements TraineeService {
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         if (check(requestUpdate.getAddress())) traineeById.setAddress(requestUpdate.getAddress());
-        if (check(requestUpdate.getDateOfBirth())) traineeById.setDateOfBirth(requestUpdate.getDateOfBirth());
-        return TraineeMapper.INSTANCE.toDto(traineeRepository.update(id, traineeById));
+        if (check(requestUpdate.getDateOfBirth()))
+            traineeById.setDateOfBirth(LocalDate.parse(requestUpdate.getDateOfBirth(), formatter));
+        return TraineeMapper.INSTANCE.toDtoForTrainee(traineeRepository.update(id, traineeById));
     }
 
     @Override
@@ -56,14 +61,14 @@ public class TraineeServiceImpl implements TraineeService {
     public List<TraineeDto> findAll() {
         return traineeRepository.findAll()
                 .stream()
-                .map(TraineeMapper.INSTANCE::toDto)
+                .map(TraineeMapper.INSTANCE::toDtoForTrainee)
                 .toList();
     }
 
     @Override
     @Transactional
     public TraineeDto findById(String id) throws NotFoundException {
-        return TraineeMapper.INSTANCE.toDto(traineeRepository.findById(id)
+        return TraineeMapper.INSTANCE.toDtoForTrainee(traineeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found with this credentials")));
 
     }
@@ -78,12 +83,12 @@ public class TraineeServiceImpl implements TraineeService {
         var user = trainee.getUser();
         user.setPassword(newPassword);
         userRepository.update(user.getId(), user);
-        return TraineeMapper.INSTANCE.toDto(trainee);
+        return TraineeMapper.INSTANCE.toDtoForTrainee(trainee);
     }
 
     @Override
     public TraineeDto findByUsername(String username) throws NotFoundException {
-        return TraineeMapper.INSTANCE.toDto(traineeRepository.findByUsername(username)
+        return TraineeMapper.INSTANCE.toDtoForTrainee(traineeRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found by username")));
     }
 
@@ -101,6 +106,6 @@ public class TraineeServiceImpl implements TraineeService {
         user.setIsActive(user.getIsActive().equals(Boolean.TRUE)
                 ? Boolean.FALSE : Boolean.TRUE);
         trainee.setUser(userRepository.update(user.getId(), user));
-        return TraineeMapper.INSTANCE.toDto(trainee);
+        return TraineeMapper.INSTANCE.toDtoForTrainee(trainee);
     }
 }

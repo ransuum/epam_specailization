@@ -1,121 +1,98 @@
 package org.epam.controller;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.epam.exception.PermissionException;
+import org.epam.models.SecurityContextHolder;
+import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TrainerDto;
-import org.epam.models.entity.User;
+import org.epam.models.enums.UserType;
+import org.epam.models.request.TrainerRegistrationRequest;
 import org.epam.models.request.create.TrainerRequestCreate;
 import org.epam.models.request.create.UserRequestCreate;
+import org.epam.models.request.update.TrainerRequestUpdate;
 import org.epam.service.TrainerService;
 import org.epam.service.UserService;
-import org.springframework.stereotype.Controller;
+import org.epam.utils.menurender.transactionconfiguration.TransactionExecution;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Scanner;
 
-@Controller
+@RestController
+@RequestMapping("/trainer")
 public class TrainerController {
     private final TrainerService trainerService;
-    private static final Logger logger = LogManager.getLogger(TrainerController.class);
     private final UserService userService;
+    private final TransactionExecution transactionExecution;
+    private final SecurityContextHolder securityContextHolder;
 
-    public TrainerController(TrainerService trainerService, UserService userService) {
+    public TrainerController(TrainerService trainerService, UserService userService,
+                             TransactionExecution transactionExecution, SecurityContextHolder securityContextHolder) {
         this.trainerService = trainerService;
         this.userService = userService;
+        this.transactionExecution = transactionExecution;
+        this.securityContextHolder = securityContextHolder;
     }
 
-    public TrainerDto addTrainer(Scanner scanner) {
-        try {
-            System.out.print("Enter firstName: ");
-            var firstName = scanner.next();
-            System.out.print("Enter lastName: ");
-            var lastName = scanner.next();
-            System.out.print("Enter specialization id: ");
-            var specialization = scanner.next();
-            var save = userService.save(new UserRequestCreate(firstName, lastName, Boolean.TRUE));
-            return trainerService.save(new TrainerRequestCreate(save.id(), specialization));
-        } catch (Exception e) {
-            logger.error("Error adding trainer: {}", e.getMessage());
-            return null;
-        }
+    @PostMapping("/create")
+    public ResponseEntity<AuthResponseDto> addTrainer(@RequestBody TrainerRegistrationRequest request) {
+        var save = userService.save(new UserRequestCreate(request.firstname(), request.lastname(), Boolean.TRUE));
+        return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
+                -> trainerService.save(new TrainerRequestCreate(
+                save.id(), request.specializationId()))), HttpStatus.CREATED);
     }
 
-    public TrainerDto findById(String id) {
-        try {
-            return trainerService.findById(id);
-        } catch (Exception e) {
-            logger.error("Error finding trainer by ID {}: {}", id, e.getMessage());
-            return null;
-        }
+    @GetMapping("/profile")
+    public ResponseEntity<TrainerDto> findById() {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINEE))
+            throw new PermissionException("You are not allowed to perform this operation");
+        return new ResponseEntity<>(trainerService.findById(securityContextHolder.getUserId()), HttpStatus.FOUND);
     }
 
-    public void deleteById(Scanner scanner) {
-        try {
-            System.out.print("Enter id of trainer: ");
-            var id = scanner.next();
-            trainerService.delete(id);
-        } catch (Exception e) {
-            logger.error("Error deleting trainer: {}", e.getMessage());
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteById(@PathVariable String id) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINEE))
+            throw new PermissionException("You are not allowed to perform this operation");
+        transactionExecution.executeVoidWithTransaction(() -> trainerService.delete(id));
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    public TrainerDto updateTrainer(String id, Scanner scanner) {
-        try {
-            System.out.print("Enter firstName: ");
-            var firstName = scanner.nextLine().trim();
-            System.out.print("Enter lastName: ");
-            var lastName = scanner.nextLine().trim();
-            System.out.print("Active?(true/false): ");
-            var active = Boolean.valueOf(scanner.nextLine());
-            userService.update(id, new User(firstName, lastName, active));
-            System.out.print("Enter specialization id: ");
-            var specialization = scanner.nextLine().trim();
-            return trainerService.update(id, new org.epam.models.request.update.TrainerRequestUpdate(id, specialization));
-        } catch (Exception e) {
-            logger.error("Error updating trainer: {}", e.getMessage());
-            return null;
-        }
+    @PutMapping
+    public ResponseEntity<TrainerDto> updateTrainer(@RequestBody TrainerRequestUpdate requestUpdate) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINEE))
+            throw new PermissionException("You are not allowed to perform this operation");
+        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
+                -> trainerService.update(securityContextHolder.getUserId(), requestUpdate)));
     }
 
-    public void findAll() {
-        try {
-            trainerService.findAll().forEach(System.out::println);
-        } catch (Exception e) {
-            logger.error("Error retrieving all trainers: {}", e.getMessage(), e);
-        }
+    @GetMapping
+    public ResponseEntity<List<TrainerDto>> findAll() {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINEE))
+            throw new PermissionException("You are not allowed to perform this operation");
+        return ResponseEntity.ok(trainerService.findAll());
     }
 
-    public TrainerDto changePassword(String id, Scanner scanner) {
-        try {
-            System.out.print("Enter old password: ");
-            var oldPassword = scanner.next();
-            System.out.print("Enter new password: ");
-            var newPassword = scanner.next();
-            return trainerService.changePassword(id, oldPassword, newPassword);
-        } catch (Exception e) {
-            logger.error("Error changing password: {}", e.getMessage(), e);
-            return null;
-        }
+    @PutMapping("/change-password")
+    public ResponseEntity<TrainerDto> changePassword(@RequestParam String oldPassword,
+                                                     @RequestParam String newPassword) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINEE))
+            throw new PermissionException("You are not allowed to perform this operation");
+        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
+                -> trainerService.changePassword(securityContextHolder.getUserId(), oldPassword, newPassword)));
     }
 
-    public TrainerDto changeStatus(String username) {
-        try {
-            return trainerService.changeStatus(username);
-        } catch (Exception e) {
-            logger.info("Error activate action: {}", e.getMessage());
-            return null;
-        }
+    @PatchMapping("/change-status/{username}")
+    public ResponseEntity<?> changeStatus(@PathVariable String username) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINEE))
+            throw new PermissionException("You are not allowed to perform this operation");
+        transactionExecution.executeWithTransaction(() -> trainerService.changeStatus(username));
+        return ResponseEntity.ok("Status changed");
     }
 
-    public List<TrainerDto> getUnassignedTrainersForTrainee(Scanner scanner) {
-        try {
-            System.out.print("Enter trainee's username: ");
-            var username = scanner.next();
-            return trainerService.getUnassignedTrainersForTrainee(username);
-        } catch (Exception e) {
-            logger.error("Error get unassigned Trainers by trainee's username: {}", e.getMessage(), e);
-            return null;
-        }
-
+    @GetMapping("/unassigned-trainers/{username}")
+    public List<TrainerDto> getUnassignedTrainersForTrainee(@PathVariable String username) {
+        if (securityContextHolder.getUserType().equals(UserType.TRAINEE))
+            throw new PermissionException("You are not allowed to perform this operation");
+        return trainerService.getUnassignedTrainersForTrainee(username);
     }
 }

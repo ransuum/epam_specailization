@@ -2,6 +2,7 @@ package org.epam.service.impl;
 
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
+import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
@@ -35,8 +36,8 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public TrainerDto save(TrainerRequestCreate request) throws NotFoundException {
-        return TrainerMapper.INSTANCE.toDto(trainerRepository.save(
+    public AuthResponseDto save(TrainerRequestCreate request) throws NotFoundException {
+        return TrainerMapper.INSTANCE.toAuthResponseDto(trainerRepository.save(
                 Trainer.builder()
                         .user(userRepository.findById(request.userId())
                                 .orElseThrow(() -> new NotFoundException("User not found")))

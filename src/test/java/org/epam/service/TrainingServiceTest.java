@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,8 @@ import static org.mockito.Mockito.*;
 class TrainingServiceTest {
     @Mock
     private TrainingRepository trainingRepository;
+
+    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     @Mock
     private TraineeRepository traineeRepository;
@@ -90,7 +93,7 @@ class TrainingServiceTest {
                 "trainer-id",
                 "Test Training",
                 "training-view-id",
-                LocalDate.now(),
+                "03-11-2025",
                 60L
         );
 
@@ -116,7 +119,7 @@ class TrainingServiceTest {
                 "trainer-id",
                 "Test Training",
                 "training-view-id",
-                LocalDate.now(),
+                "03-11-2025",
                 60L
         );
         when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
@@ -138,7 +141,7 @@ class TrainingServiceTest {
                 "non-existent-trainer",
                 "Test Training",
                 "training-view-id",
-                LocalDate.now(),
+                "03-11-2025",
                 60L
         );
 
@@ -159,7 +162,7 @@ class TrainingServiceTest {
                 "trainer-id",
                 "Test Training",
                 "non-existent-view",
-                LocalDate.now(),
+                "03-11-2025",
                 60L
         );
 
@@ -215,7 +218,7 @@ class TrainingServiceTest {
                 "trainer-id",
                 "Updated Training",
                 "training-view-id",
-                LocalDate.now().plusDays(7),
+                "26-03-2025",
                 90L
         );
 
@@ -318,14 +321,14 @@ class TrainingServiceTest {
     @Test
     void findTrainingWithUsernameOfTrainee_shouldReturnFilteredTrainings() {
         String username = "johndoe";
-        LocalDate fromDate = LocalDate.now().minusDays(30);
-        LocalDate toDate = LocalDate.now();
+        String fromDate = "26-03-2025";
+        String toDate = "26-03-2026";
         String trainerName = "Jane";
         TrainingName trainingName = TrainingName.SELF_PLACING;
 
         var trainings = List.of(testTraining);
         when(trainingRepository.findTrainingWithUsernameOfTrainee(
-                username, fromDate, toDate, trainerName, trainingName))
+                username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), trainerName, trainingName))
                 .thenReturn(trainings);
 
         var result = trainingService.findTrainingWithUsernameOfTrainee(
@@ -335,20 +338,20 @@ class TrainingServiceTest {
         assertEquals(1, result.size());
 
         verify(trainingRepository).findTrainingWithUsernameOfTrainee(
-                username, fromDate, toDate, trainerName, trainingName);
+                username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), trainerName, trainingName);
     }
 
     @Test
     void findTrainingWithUsernameOfTrainer_shouldReturnFilteredTrainings() {
         String username = "johndoe";
-        LocalDate fromDate = LocalDate.now().minusDays(30);
-        LocalDate toDate = LocalDate.now();
+        String fromDate = "26-03-2025";
+        String toDate = "26-03-2026";
         String traineeName = "Jane";
         var trainingName = TrainingName.SELF_PLACING;
 
         var trainings = List.of(testTraining);
         when(trainingRepository.findTrainingWithUsernameOfTrainer(
-                username, fromDate, toDate, traineeName, trainingName))
+                username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), traineeName, trainingName))
                 .thenReturn(trainings);
 
         var result = trainingService.findTrainingWithUsernameOfTrainer(
@@ -358,7 +361,7 @@ class TrainingServiceTest {
         assertEquals(1, result.size());
 
         verify(trainingRepository).findTrainingWithUsernameOfTrainer(
-                username, fromDate, toDate, traineeName, trainingName);
+                username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), traineeName, trainingName);
     }
 
     @Test

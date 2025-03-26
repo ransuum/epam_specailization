@@ -7,7 +7,7 @@ public record TrainingRequestUpdate(String traineeId,
                                     String trainerId,
                                     String trainingName,
                                     String trainingViewId,
-                                    LocalDate trainingStartDate,
+                                    String trainingStartDate,
                                     Long duration) {
 }
 

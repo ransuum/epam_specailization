@@ -12,7 +12,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TraineeRequestUpdate {
-    private String userId;
-    private LocalDate dateOfBirth;
+    private String dateOfBirth;
     private String address;
 }
