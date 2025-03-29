@@ -31,10 +31,19 @@ public class TrainerTypedQueryBuilder implements TypedQueryBuilder<Training> {
     public TypedQuery<Training> createQuery(StringBuilder jpqlBuilder) {
         TypedQuery<Training> query = em.createQuery(jpqlBuilder.toString(), Training.class)
                 .setParameter("username", username);
-        if (check(fromDate)) query.setParameter("fromDate", fromDate);
-        if (check(toDate)) query.setParameter("toDate", toDate);
-        if (check(traineeName)) query.setParameter("trainerName", "%" + traineeName + "%");
-        if (check(trainingName)) query.setParameter("trainingType", traineeName);
+        if (check(fromDate)) {
+            query.setParameter("fromDate", fromDate);
+        }
+        if (check(toDate)) {
+            query.setParameter("toDate", toDate);
+        }
+        if (check(traineeName)) {
+            query.setParameter("traineeName", "%" + traineeName + "%");
+        }
+        if (check(trainingName)) {
+            query.setParameter("trainingName", trainingName);
+        }
         return query;
+
     }
 }

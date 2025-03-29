@@ -74,16 +74,6 @@ class TrainingTypeServiceTest {
         assertEquals(testId, result.id());
         assertEquals(testTrainingName.getVal(), result.trainingName());
 
-        var expectedTrainingIds = testTrainings.stream()
-                .map(Training::getId)
-                .collect(Collectors.toList());
-        assertEquals(expectedTrainingIds, result.trainingsIds());
-
-        var expectedSpecializationIds = testTrainers.stream()
-                .map(Trainer::getId)
-                .collect(Collectors.toList());
-        assertEquals(expectedSpecializationIds, result.specializationIds());
-
         verify(trainingTypeRepository).save(argThat(view ->
                 view.getTrainingName() == testTrainingName));
     }
@@ -189,16 +179,6 @@ class TrainingTypeServiceTest {
         assertNotNull(result);
         assertEquals(testId, result.id());
         assertEquals(testTrainingName.getVal(), result.trainingName());
-
-        var expectedTrainingIds = testTrainings.stream()
-                .map(Training::getId)
-                .collect(Collectors.toList());
-        assertEquals(expectedTrainingIds, result.trainingsIds());
-
-        var expectedSpecializationIds = testTrainers.stream()
-                .map(Trainer::getId)
-                .collect(Collectors.toList());
-        assertEquals(expectedSpecializationIds, result.specializationIds());
 
         verify(trainingTypeRepository).findById(testId);
     }

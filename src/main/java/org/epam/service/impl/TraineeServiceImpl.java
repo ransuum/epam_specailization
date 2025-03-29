@@ -49,7 +49,11 @@ public class TraineeServiceImpl implements TraineeService {
         if (check(requestUpdate.getAddress())) traineeById.setAddress(requestUpdate.getAddress());
         if (check(requestUpdate.getDateOfBirth()))
             traineeById.setDateOfBirth(LocalDate.parse(requestUpdate.getDateOfBirth(), formatter));
-        return TraineeMapper.INSTANCE.toDtoForTrainee(traineeRepository.update(id, traineeById));
+        traineeById.getUser().setIsActive(requestUpdate.getIsActive());
+        traineeById.getUser().setUsername(requestUpdate.getUsername());
+        traineeById.getUser().setFirstName(requestUpdate.getFirstname());
+        traineeById.getUser().setLastName(requestUpdate.getLastname());
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.update(id, traineeById));
     }
 
     @Override
@@ -61,14 +65,14 @@ public class TraineeServiceImpl implements TraineeService {
     public List<TraineeDto> findAll() {
         return traineeRepository.findAll()
                 .stream()
-                .map(TraineeMapper.INSTANCE::toDtoForTrainee)
+                .map(TraineeMapper.INSTANCE::toDto)
                 .toList();
     }
 
     @Override
     @Transactional
     public TraineeDto findById(String id) throws NotFoundException {
-        return TraineeMapper.INSTANCE.toDtoForTrainee(traineeRepository.findById(id)
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found with this credentials")));
 
     }
@@ -83,12 +87,12 @@ public class TraineeServiceImpl implements TraineeService {
         var user = trainee.getUser();
         user.setPassword(newPassword);
         userRepository.update(user.getId(), user);
-        return TraineeMapper.INSTANCE.toDtoForTrainee(trainee);
+        return TraineeMapper.INSTANCE.toDto(trainee);
     }
 
     @Override
     public TraineeDto findByUsername(String username) throws NotFoundException {
-        return TraineeMapper.INSTANCE.toDtoForTrainee(traineeRepository.findByUsername(username)
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found by username")));
     }
 
@@ -106,6 +110,6 @@ public class TraineeServiceImpl implements TraineeService {
         user.setIsActive(user.getIsActive().equals(Boolean.TRUE)
                 ? Boolean.FALSE : Boolean.TRUE);
         trainee.setUser(userRepository.update(user.getId(), user));
-        return TraineeMapper.INSTANCE.toDtoForTrainee(trainee);
+        return TraineeMapper.INSTANCE.toDto(trainee);
     }
 }

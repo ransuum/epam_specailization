@@ -289,7 +289,6 @@ class TrainingServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(testId, result.getFirst().id());
 
         verify(trainingRepository).findAll();
     }

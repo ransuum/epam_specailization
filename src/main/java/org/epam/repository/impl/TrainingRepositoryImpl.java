@@ -1,6 +1,7 @@
 package org.epam.repository.impl;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -78,48 +79,76 @@ public class TrainingRepositoryImpl implements TrainingRepository {
                                                             TrainingName trainingName) {
         try {
             StringBuilder jpqlBuilder = new StringBuilder(
-                    "SELECT t FROM Training t JOIN t.trainee tr JOIN tr.user u JOIN t.trainer tn JOIN tn.user tu");
+                    "SELECT t FROM Training t JOIN t.trainee tr JOIN tr.user u " +
+                            "JOIN t.trainer tn JOIN tn.user tu");
 
-            if (check(trainingName)) jpqlBuilder.append(" JOIN t.trainingView tv");
+            if (check(trainingName)) {
+                jpqlBuilder.append(" JOIN t.trainingType tv");
+            }
 
             jpqlBuilder.append(" WHERE u.username = :username");
 
-            if (check(fromDate)) jpqlBuilder.append(" AND t.startTime >= :fromDate");
+            if (check(fromDate)) {
+                jpqlBuilder.append(" AND t.startTime >= :fromDate");
+            }
 
-            if (check(toDate)) jpqlBuilder.append(" AND t.startTime <= :toDate");
+            if (check(toDate)) {
+                jpqlBuilder.append(" AND t.startTime <= :toDate");
+            }
 
-            if (check(trainerName)) jpqlBuilder.append(" AND tu.firstName LIKE :trainerName");
+            if (check(trainerName)) {
+                jpqlBuilder.append(" AND tu.firstName LIKE :trainerName");
+            }
 
-            if (check(trainingName)) jpqlBuilder.append(" AND tv.trainingType = :trainingType");
+            if (check(trainingName)) {
+                jpqlBuilder.append(" AND tv.trainingName = :trainingName");
+            }
 
-            trainingTypedQueryBuilder = new TraineeTypedQueryBuilder(username, fromDate, toDate, trainerName, trainingName, entityManager);
-            return trainingTypedQueryBuilder.createQuery(jpqlBuilder).getResultList();
+            TypedQueryBuilder<Training> queryBuilder =
+                    new TraineeTypedQueryBuilder(username, fromDate, toDate, trainerName, trainingName, entityManager);
+            return queryBuilder.createQuery(jpqlBuilder).getResultList();
         } catch (Exception e) {
             logger.error("Error in finding trainings by trainee username: {}", e.getMessage());
             return Collections.emptyList();
         }
+
     }
 
     @Override
-    public List<Training> findTrainingWithUsernameOfTrainer(String username, LocalDate fromDate, LocalDate toDate, String traineeName, TrainingName trainingName) {
+    @Transactional
+    public List<Training> findTrainingWithUsernameOfTrainer(String username, LocalDate fromDate,
+                                                            LocalDate toDate, String traineeName,
+                                                            TrainingName trainingName) {
         try {
             StringBuilder jpqlBuilder = new StringBuilder(
-                    "SELECT t FROM Training t JOIN t.trainer tr JOIN tr.user u JOIN t.trainee tn JOIN tn.user tu");
+                    "SELECT t FROM Training t JOIN t.trainer tr JOIN tr.user u " +
+                            "JOIN t.trainee tn JOIN tn.user tu");
 
-            if (check(trainingName)) jpqlBuilder.append(" JOIN t.trainingView tv");
+            if (check(trainingName)) {
+                jpqlBuilder.append(" JOIN t.trainingType tv");
+            }
 
             jpqlBuilder.append(" WHERE u.username = :username");
 
-            if (check(fromDate)) jpqlBuilder.append(" AND t.startTime >= :fromDate");
+            if (check(fromDate)) {
+                jpqlBuilder.append(" AND t.startTime >= :fromDate");
+            }
 
-            if (check(toDate)) jpqlBuilder.append(" AND t.startTime <= :toDate");
+            if (check(toDate)) {
+                jpqlBuilder.append(" AND t.startTime <= :toDate");
+            }
 
-            if (check(traineeName)) jpqlBuilder.append(" AND tu.firstName LIKE :trainerName");
+            if (check(traineeName)) {
+                jpqlBuilder.append(" AND tu.firstName LIKE :traineeName");
+            }
 
-            if (check(trainingName)) jpqlBuilder.append(" AND tv.trainingType = :trainingType");
+            if (check(trainingName)) {
+                jpqlBuilder.append(" AND tv.trainingName = :trainingName");
+            }
 
-            trainingTypedQueryBuilder = new TrainerTypedQueryBuilder(username, fromDate, toDate, traineeName, trainingName, entityManager);
-            return trainingTypedQueryBuilder.createQuery(jpqlBuilder).getResultList();
+            TypedQueryBuilder<Training> queryBuilder =
+                    new TrainerTypedQueryBuilder(username, fromDate, toDate, traineeName, trainingName, entityManager);
+            return queryBuilder.createQuery(jpqlBuilder).getResultList();
         } catch (Exception e) {
             logger.error("Error in finding trainings by trainer username: {}", e.getMessage());
             return Collections.emptyList();

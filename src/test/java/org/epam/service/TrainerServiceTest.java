@@ -8,6 +8,7 @@ import org.epam.models.dto.UserDto;
 import org.epam.models.entity.*;
 import org.epam.models.enums.TrainingName;
 import org.epam.models.request.create.TrainerRequestCreate;
+import org.epam.models.request.update.TrainerRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
@@ -82,8 +83,8 @@ class TrainerServiceTest {
                 true,
                 "oldPassword"
         );
-        testTrainingTypeDto = new TrainingTypeDto("specializationId", TrainingName.SELF_PLACING.getVal(), Collections.emptyList(), Collections.emptyList());
-        testTrainerDto = new TrainerDto("trainerId", testUserDto, Collections.emptyList(), testTrainingTypeDto);
+        testTrainingTypeDto = new TrainingTypeDto("specializationId", TrainingName.SELF_PLACING.getVal());
+        testTrainerDto = new TrainerDto("trainerId", testUserDto, testTrainingTypeDto.trainingName(), Collections.emptyList());
     }
 
     @Test
@@ -118,7 +119,8 @@ class TrainerServiceTest {
 
     @Test
     void update_shouldUpdateSpecialization() throws NotFoundException {
-        var request = new org.epam.models.request.update.TrainerRequestUpdate("newSpecializationId", null);
+        var request = new TrainerRequestUpdate("newSpecializationId", testUser.getFirstName(),
+                testUser.getLastName(), testUser.getUsername(), testUser.getIsActive());
         var newSpecialization = TrainingType.builder()
                 .id("newSpecializationId")
                 .trainingName(TrainingName.LABORATORY)
@@ -139,43 +141,43 @@ class TrainerServiceTest {
 
         assertNotNull(result);
         assertEquals("trainerId", result.id());
-        assertEquals("newSpecializationId", result.specialization().id());
+        assertEquals(newSpecialization.getTrainingName().getVal(), result.specialization());
 
         verify(trainerRepository).findById("trainerId");
         verify(trainingTypeRepository).findById("newSpecializationId");
         verify(trainerRepository).update(eq("trainerId"), any(Trainer.class));
     }
 
-    @Test
-    void update_shouldUpdateUserWhenUserIdProvided() throws NotFoundException {
-        var request = new org.epam.models.request.update.TrainerRequestUpdate(null, "newUserId");
-        var newUser = User.builder()
-                .id("newUserId")
-                .username("newUser")
-                .isActive(true)
-                .build();
-
-        var updatedTrainer = Trainer.builder()
-                .id("trainerId")
-                .user(newUser)
-                .specialization(testTrainingType)
-                .trainings(new ArrayList<>())
-                .build();
-
-        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
-        when(userRepository.findById("newUserId")).thenReturn(Optional.of(newUser));
-        when(trainerRepository.update(eq("trainerId"), any(Trainer.class))).thenReturn(updatedTrainer);
-
-        var result = trainerService.update("trainerId", request);
-
-        assertNotNull(result);
-        assertEquals("trainerId", result.id());
-        assertEquals("newUserId", result.user().id());
-
-        verify(trainerRepository).findById("trainerId");
-        verify(userRepository).findById("newUserId");
-        verify(trainerRepository).update(eq("trainerId"), any(Trainer.class));
-    }
+//    @Test
+//    void update_shouldUpdateUserWhenUserIdProvided() throws NotFoundException {
+//        var request = new TrainerRequestUpdate(null, "newUserId");
+//        var newUser = User.builder()
+//                .id("newUserId")
+//                .username("newUser")
+//                .isActive(true)
+//                .build();
+//
+//        var updatedTrainer = Trainer.builder()
+//                .id("trainerId")
+//                .user(newUser)
+//                .specialization(testTrainingType)
+//                .trainings(new ArrayList<>())
+//                .build();
+//
+//        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
+//        when(userRepository.findById("newUserId")).thenReturn(Optional.of(newUser));
+//        when(trainerRepository.update(eq("trainerId"), any(Trainer.class))).thenReturn(updatedTrainer);
+//
+//        var result = trainerService.update("trainerId", request);
+//
+//        assertNotNull(result);
+//        assertEquals("trainerId", result.id());
+//        assertEquals("newUserId", result.user().id());
+//
+//        verify(trainerRepository).findById("trainerId");
+//        verify(userRepository).findById("newUserId");
+//        verify(trainerRepository).update(eq("trainerId"), any(Trainer.class));
+//    }
 
     @Test
     void changePassword_shouldUpdatePasswordSuccessfully() throws NotFoundException, CredentialException {

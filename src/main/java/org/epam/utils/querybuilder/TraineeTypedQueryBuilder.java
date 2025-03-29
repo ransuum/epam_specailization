@@ -9,7 +9,6 @@ import java.time.LocalDate;
 
 import static org.epam.utils.CheckerField.check;
 
-
 public class TraineeTypedQueryBuilder implements TypedQueryBuilder<Training> {
     private final String username;
     private final LocalDate fromDate;
@@ -32,10 +31,19 @@ public class TraineeTypedQueryBuilder implements TypedQueryBuilder<Training> {
     public TypedQuery<Training> createQuery(StringBuilder jpqlBuilder) {
         TypedQuery<Training> query = em.createQuery(jpqlBuilder.toString(), Training.class)
                 .setParameter("username", username);
-        if (check(fromDate)) query.setParameter("fromDate", fromDate);
-        if (check(toDate)) query.setParameter("toDate", toDate);
-        if (check(trainerName)) query.setParameter("trainerName", "%" + trainerName + "%");
-        if (check(trainingName)) query.setParameter("trainingType", trainerName);
+        if (check(fromDate)) {
+            query.setParameter("fromDate", fromDate);
+        }
+        if (check(toDate)) {
+            query.setParameter("toDate", toDate);
+        }
+        if (check(trainerName)) {
+            query.setParameter("trainerName", "%" + trainerName + "%");
+        }
+        if (check(trainingName)) {
+            query.setParameter("trainingName", trainingName);
+        }
         return query;
+
     }
 }

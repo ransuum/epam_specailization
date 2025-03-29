@@ -11,9 +11,10 @@ public class SpringCoreTask {
         tomcat.setPort(8000);
 
         tomcat.getConnector();
+        tomcat.enableNaming();
 
         String webappDirLocation = "web";
-        tomcat.addWebapp("", new File(webappDirLocation).getAbsolutePath());
+        tomcat.addWebapp("/", new File(webappDirLocation).getAbsolutePath());
 
         tomcat.start();
         System.out.println("Tomcat started on port 8000");

@@ -1,7 +1,5 @@
 package org.epam.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.EntityManager;
 import org.epam.models.SecurityContextHolder;
 import org.epam.models.entity.*;
@@ -10,12 +8,16 @@ import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 
 
 @Configuration
-@ComponentScan(basePackages = {"org.epam", "org.epam.models.entity"})
+@ComponentScan(basePackages = {
+        "org.epam",
+        "org.epam.models.entity"})
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class AppConfig {
     @Bean
     public SecurityContextHolder securityContextHolder() {

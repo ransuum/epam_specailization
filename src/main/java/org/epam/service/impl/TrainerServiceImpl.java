@@ -52,13 +52,14 @@ public class TrainerServiceImpl implements TrainerService {
         var trainer = trainerRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
-        if (check(request.userId()) && !request.userId().equals(id)) trainer.setUser(userRepository.findById(request.userId())
-                .orElseThrow(() -> new NotFoundException("User not found")));
-
         if (check(request.specializationId()))
             trainer.setSpecialization(trainingTypeRepository.findById(request.specializationId())
                     .orElseThrow(() -> new NotFoundException("Specialization Not Found")));
 
+        trainer.getUser().setIsActive(request.isActive());
+        trainer.getUser().setUsername(request.username());
+        trainer.getUser().setFirstName(request.firstname());
+        trainer.getUser().setLastName(request.lastname());
         return TrainerMapper.INSTANCE.toDto(trainerRepository.update(id, trainer));
     }
 

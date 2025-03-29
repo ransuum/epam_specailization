@@ -7,5 +7,5 @@ public record TraineeDto(String id,
                          UserDto user,
                          LocalDate dateOfBirth,
                          String address,
-                         List<String> trainingsIds) {
+                         List<TrainerDto> trainers) {
 }

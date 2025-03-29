@@ -2,8 +2,7 @@ package org.epam.service.impl;
 
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainingDto;
-import org.epam.models.dto.TrainingDtoForTrainee;
-import org.epam.models.dto.TrainingDtoForTrainer;
+import org.epam.models.dto.TrainingListDto;
 import org.epam.models.entity.Training;
 import org.epam.models.enums.TrainingName;
 import org.epam.models.request.create.TrainingRequestCreate;
@@ -19,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.epam.utils.CheckerField.check;
@@ -91,10 +91,10 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public List<TrainingDto> findAll() {
+    public List<TrainingListDto> findAll() {
         return trainingRepository.findAll()
                 .stream()
-                .map(TrainingMapper.INSTANCE::toDto)
+                .map(TrainingMapper.INSTANCE::toListDto)
                 .toList();
     }
 
@@ -105,22 +105,30 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public List<TrainingDtoForTrainee> findTrainingWithUsernameOfTrainee(String username, String fromDate,
-                                                                         String toDate, String trainerName,
-                                                                         TrainingName trainingName) {
-        return trainingRepository.findTrainingWithUsernameOfTrainee(username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), trainerName, trainingName)
+    public List<TrainingListDto.TrainingListDtoForUser> findTrainingWithUsernameOfTrainee(String username, String fromDate,
+                                                                                          String toDate, String trainerName,
+                                                                                          TrainingName trainingName) {
+        return trainingRepository.findTrainingWithUsernameOfTrainee(username,
+                        check(fromDate) ? LocalDate.parse(fromDate, formatter) : null,
+                        check(toDate) ? LocalDate.parse(toDate, formatter) : null,
+                        trainerName,
+                        trainingName)
                 .stream()
-                .map(TrainingMapper.INSTANCE::toDtoForTrainee)
+                .map(TrainingMapper.INSTANCE::toListDtoForTrainee)
                 .toList();
     }
 
     @Override
-    public List<TrainingDtoForTrainer> findTrainingWithUsernameOfTrainer(String username, String fromDate,
-                                                                         String toDate, String traineeName,
-                                                                         TrainingName trainingName) {
-        return trainingRepository.findTrainingWithUsernameOfTrainer(username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), traineeName, trainingName)
+    public List<TrainingListDto.TrainingListDtoForUser> findTrainingWithUsernameOfTrainer(String username, String fromDate,
+                                                                                          String toDate, String traineeName,
+                                                                                          TrainingName trainingName) {
+        return trainingRepository.findTrainingWithUsernameOfTrainer(username,
+                        check(fromDate) ? LocalDate.parse(fromDate, formatter) : null,
+                        check(toDate) ? LocalDate.parse(toDate, formatter) : null,
+                        traineeName,
+                        trainingName)
                 .stream()
-                .map(TrainingMapper.INSTANCE::toDtoForTrainer)
+                .map(TrainingMapper.INSTANCE::toListDtoForTrainer)
                 .toList();
     }
 
