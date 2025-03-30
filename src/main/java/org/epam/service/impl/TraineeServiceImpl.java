@@ -114,12 +114,4 @@ public class TraineeServiceImpl implements TraineeService {
         trainee.setUser(userRepository.update(user.getId(), user));
         return TraineeMapper.INSTANCE.toDto(trainee);
     }
-
-    @Override
-    public List<TrainerDto> updateTrainersList(String traineeUsername, List<String> trainersUsername) throws NotFoundException {
-        var trainee = traineeRepository.findByUsername(traineeUsername)
-                .orElseThrow(() -> new NotFoundException("Trainee not found"));
-
-        return Collections.emptyList();
-    }
 }

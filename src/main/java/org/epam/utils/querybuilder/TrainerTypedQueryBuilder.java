@@ -3,7 +3,7 @@ package org.epam.utils.querybuilder;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.epam.models.entity.Training;
-import org.epam.models.enums.TrainingName;
+import org.epam.models.enums.TrainingTypeName;
 
 import java.time.LocalDate;
 
@@ -14,16 +14,16 @@ public class TrainerTypedQueryBuilder implements TypedQueryBuilder<Training> {
     private final LocalDate fromDate;
     private final LocalDate toDate;
     private final String traineeName;
-    private final TrainingName trainingName;
+    private final TrainingTypeName trainingTypeName;
     private final EntityManager em;
 
     public TrainerTypedQueryBuilder(String username, LocalDate fromDate, LocalDate toDate,
-                                    String trainerName, TrainingName trainingName, EntityManager em) {
+                                    String trainerName, TrainingTypeName trainingTypeName, EntityManager em) {
         this.username = username;
         this.fromDate = fromDate;
         this.toDate = toDate;
         this.traineeName = trainerName;
-        this.trainingName = trainingName;
+        this.trainingTypeName = trainingTypeName;
         this.em = em;
     }
 
@@ -40,8 +40,8 @@ public class TrainerTypedQueryBuilder implements TypedQueryBuilder<Training> {
         if (check(traineeName)) {
             query.setParameter("traineeName", "%" + traineeName + "%");
         }
-        if (check(trainingName)) {
-            query.setParameter("trainingName", trainingName);
+        if (check(trainingTypeName)) {
+            query.setParameter("trainingName", trainingTypeName);
         }
         return query;
 

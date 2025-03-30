@@ -11,11 +11,11 @@ import org.mapstruct.factory.Mappers;
 public interface TrainingTypeMapper {
     TrainingTypeMapper INSTANCE = Mappers.getMapper(TrainingTypeMapper.class);
 
-    @Mapping(target = "trainingName", expression = "java(trainingType.getTrainingName().getVal())")
+    @Mapping(target = "trainingName", expression = "java(trainingType.getTrainingTypeName().getVal())")
     TrainingTypeDto toDto(TrainingType trainingType);
 
     @Named("mapTrainingType")
     default String mapTrainingType(TrainingType trainingType) {
-        return trainingType.getTrainingName().getVal();
+        return trainingType.getTrainingTypeName().getVal();
     }
 }

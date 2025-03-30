@@ -23,7 +23,7 @@ public class AuthenticationController {
         this.securityContextHolder = securityContextHolder;
     }
 
-    @PostMapping("/login")
+    @PostMapping("/sign-in")
     public ResponseEntity<?> authenticate(@RequestBody AuthRequest authRequest) {
         var temp = authenticationService.authenticate(authRequest.username(), authRequest.password());
         this.securityContextHolder.setUsername(temp.getUsername());
@@ -32,10 +32,10 @@ public class AuthenticationController {
         this.securityContextHolder.setExpiredAt(temp.getExpiredAt());
         this.securityContextHolder.setUserType(temp.getUserType());
         logger.info("Authentication successful");
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok("Authentication successful");
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/sign-out")
     public ResponseEntity<?> logout() {
         this.securityContextHolder.setUsername(null);
         this.securityContextHolder.setUserId(null);
@@ -43,6 +43,6 @@ public class AuthenticationController {
         this.securityContextHolder.setExpiredAt(null);
         this.securityContextHolder.setUserType(UserType.NOT_AUTHORIZE);
         logger.info("Logout successful");
-        return ResponseEntity.ok(HttpStatus.OK);
+        return ResponseEntity.ok("Logout successful");
     }
 }

@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.epam.models.enums.TrainingName;
+import org.epam.models.enums.TrainingTypeName;
 
 import java.util.List;
 
@@ -22,8 +22,8 @@ public class TrainingType {
     private String id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, name = "training_name")
-    private TrainingName trainingName;
+    @Column(nullable = false, name = "training_type_name", unique = true)
+    private TrainingTypeName trainingTypeName;
 
     @OneToMany(mappedBy = "trainingType", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Training> trainings;

@@ -39,7 +39,7 @@ public interface TraineeMapper {
                     return new TrainerDto(
                             trainer.getId(),
                             createUserDto(trainer.getUser()),
-                            trainer.getSpecialization().getTrainingName().getVal(),
+                            trainer.getSpecialization().getTrainingTypeName().getVal(),
                             null
                     );
                 })

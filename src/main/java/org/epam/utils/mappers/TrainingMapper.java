@@ -16,7 +16,7 @@ public interface TrainingMapper {
     @Mapping(target = "trainer.user.password", ignore = true)
     @Mapping(target = "trainer.trainees", ignore = true)
     @Mapping(target = "trainee.trainers", ignore = true)
-    @Mapping(target = "trainer.specialization", expression = "java(trainer.getSpecialization().getTrainingName().getVal())")
+    @Mapping(target = "trainer.specialization", expression = "java(trainer.getSpecialization().getTrainingTypeName().getVal())")
     TrainingDto toDto(Training training);
 
     @Mapping(target = "trainingType", source = "trainingType", qualifiedByName = "mapTrainingType")

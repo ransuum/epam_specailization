@@ -34,7 +34,7 @@ public class TrainingTypeController {
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
     public ResponseEntity<?> delete(@PathVariable String id) {
         transactionExecution.executeVoidWithTransaction(() -> trainingTypeService.delete(id));
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok("DELETED");
     }
 
     @GetMapping("/all")

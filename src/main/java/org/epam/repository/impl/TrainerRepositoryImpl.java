@@ -6,11 +6,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainer;
+import org.epam.models.entity.Training;
 import org.epam.repository.TrainerRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.epam.utils.CheckerField.check;
 
 @Repository
 public class TrainerRepositoryImpl implements TrainerRepository {
@@ -44,11 +48,16 @@ public class TrainerRepositoryImpl implements TrainerRepository {
     public void delete(String id) {
         Trainer trainer = findById(id).orElseThrow(()
                 -> new NotFoundException("Not found trainer by id: " + id));
-        if (entityManager.contains(trainer)) {
-            entityManager.remove(trainer);
-            entityManager.remove(trainer.getUser());
+
+        if (check(trainer.getTrainings())) {
+            for (Training training : new ArrayList<>(trainer.getTrainings()))
+                entityManager.remove(training);
+            trainer.setTrainings(new ArrayList<>());
         }
-        else entityManager.merge(trainer);
+
+        entityManager.remove(trainer);
+
+        entityManager.remove(trainer.getUser());
     }
 
     @Override

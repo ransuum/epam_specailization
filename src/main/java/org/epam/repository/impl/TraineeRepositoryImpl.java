@@ -6,11 +6,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainee;
+import org.epam.models.entity.Training;
 import org.epam.repository.TraineeRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.epam.utils.CheckerField.check;
 
 @Repository
 public class TraineeRepositoryImpl implements TraineeRepository {
@@ -60,7 +64,14 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     public String deleteByUsername(String username) throws NotFoundException {
         var trainee = findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
+        if (check(trainee.getTrainings())) {
+            for (Training training : new ArrayList<>(trainee.getTrainings()))
+                entityManager.remove(training);
+            trainee.setTrainings(new ArrayList<>());
+        }
+
         entityManager.remove(trainee);
+
         entityManager.remove(trainee.getUser());
         return username;
     }
@@ -75,11 +86,15 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     public void delete(String id) throws NotFoundException {
         var trainee = findById(id).orElseThrow(()
                 -> new NotFoundException("Not found trainee by id: " + id));
-        if (entityManager.contains(trainee)) {
-            entityManager.remove(trainee);
-            entityManager.remove(trainee.getUser());
+        if (check(trainee.getTrainings())) {
+            for (Training training : new ArrayList<>(trainee.getTrainings()))
+                entityManager.remove(training);
+            trainee.setTrainings(new ArrayList<>());
         }
-        else entityManager.merge(trainee);
+
+        entityManager.remove(trainee);
+
+        entityManager.remove(trainee.getUser());
     }
 
     @Override

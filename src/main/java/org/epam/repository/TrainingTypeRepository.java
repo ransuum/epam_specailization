@@ -1,8 +1,8 @@
 package org.epam.repository;
 
-
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.TrainingType;
+import org.epam.models.enums.TrainingTypeName;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +17,6 @@ public interface TrainingTypeRepository extends CrudRepository<String, TrainingT
     List<TrainingType> findAll();
 
     TrainingType update(String id, TrainingType trainingType);
+
+    Optional<TrainingType> findByTrainingTypeName(TrainingTypeName trainingTypeName);
 }

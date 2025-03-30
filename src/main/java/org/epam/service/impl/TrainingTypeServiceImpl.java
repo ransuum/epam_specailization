@@ -3,7 +3,7 @@ package org.epam.service.impl;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainingTypeDto;
 import org.epam.models.entity.TrainingType;
-import org.epam.models.enums.TrainingName;
+import org.epam.models.enums.TrainingTypeName;
 import org.epam.repository.TrainingTypeRepository;
 import org.epam.service.TrainingTypeService;
 import org.epam.utils.mappers.TrainingTypeMapper;
@@ -22,20 +22,20 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     }
 
     @Override
-    public TrainingTypeDto save(TrainingName trainingName) {
+    public TrainingTypeDto save(TrainingTypeName trainingTypeName) {
         return TrainingTypeMapper.INSTANCE.toDto(trainingTypeRepository.save(
                 TrainingType.builder()
-                        .trainingName(trainingName)
+                        .trainingTypeName(trainingTypeName)
                         .build())
         );
     }
 
     @Override
-    public TrainingTypeDto update(String id, TrainingName trainingName) throws NotFoundException {
+    public TrainingTypeDto update(String id, TrainingTypeName trainingTypeName) throws NotFoundException {
         var trainingView = trainingTypeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Training type not found"));
 
-        if (check(trainingName)) trainingView.setTrainingName(trainingName);
+        if (check(trainingTypeName)) trainingView.setTrainingTypeName(trainingTypeName);
         return TrainingTypeMapper.INSTANCE.toDto(trainingTypeRepository.update(id, trainingView));
     }
 

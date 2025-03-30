@@ -55,7 +55,7 @@ public class TrainerController {
     @RequiredRole(UserType.TRAINER)
     public ResponseEntity<?> deleteById(@PathVariable String id) {
         transactionExecution.executeVoidWithTransaction(() -> trainerService.delete(id));
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok("DELETED");
     }
 
     @PutMapping("/update")

@@ -1,11 +1,9 @@
 package org.epam.service;
 
-
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
-import org.epam.models.dto.TrainerDto;
 import org.epam.models.request.create.TraineeRequestCreate;
 import org.epam.models.request.update.TraineeRequestUpdate;
 
@@ -29,6 +27,4 @@ public interface TraineeService {
     String deleteByUsername(String username) throws NotFoundException;
 
     TraineeDto changeStatus(String username) throws NotFoundException;
-
-    List<TrainerDto> updateTrainersList(String traineeUsername, List<String> trainersUsername) throws NotFoundException;
 }

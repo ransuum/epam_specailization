@@ -84,7 +84,7 @@ public class TraineeController {
                                             @RequestParam String newPassword) {
         transactionExecution.executeWithTransaction(()
                 -> traineeService.changePassword(securityContextHolder.getUserId(), oldPassword, newPassword));
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok("Password changed");
     }
 
     @GetMapping("/username/{username}")

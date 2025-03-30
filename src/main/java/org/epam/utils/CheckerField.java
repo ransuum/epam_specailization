@@ -1,9 +1,10 @@
 package org.epam.utils;
 
 
-import org.epam.models.enums.TrainingName;
+import org.epam.models.enums.TrainingTypeName;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class CheckerField {
     public static boolean check(String val) {
@@ -22,11 +23,15 @@ public class CheckerField {
         return isActive != null;
     }
 
-    public static boolean check(TrainingName trainingName) {
-        return trainingName != null;
+    public static boolean check(TrainingTypeName trainingTypeName) {
+        return trainingTypeName != null;
     }
 
     public static boolean check(Long duration) {
         return duration != null;
+    }
+
+    public static boolean check(List<?> list) {
+        return list != null && !list.isEmpty();
     }
 }

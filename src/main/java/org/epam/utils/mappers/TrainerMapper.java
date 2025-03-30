@@ -22,7 +22,7 @@ public interface TrainerMapper {
     TrainerMapper INSTANCE = Mappers.getMapper(TrainerMapper.class);
 
     @Mapping(target = "user.password", ignore = true)
-    @Mapping(target = "specialization", expression = "java(trainer.getSpecialization().getTrainingName().getVal())")
+    @Mapping(target = "specialization", expression = "java(trainer.getSpecialization().getTrainingTypeName().getVal())")
     @Mapping(target = "trainees", source = "trainings", qualifiedByName = "mapTraineesForTrainer")
     TrainerDto toDto(Trainer trainer);
 

@@ -1,13 +1,12 @@
 package org.epam.repository.impl;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Training;
-import org.epam.models.enums.TrainingName;
+import org.epam.models.enums.TrainingTypeName;
 import org.epam.repository.TrainingRepository;
 import org.epam.utils.querybuilder.TraineeTypedQueryBuilder;
 import org.epam.utils.querybuilder.TrainerTypedQueryBuilder;
@@ -55,10 +54,17 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     @Override
     @Transactional
     public void delete(String id) throws NotFoundException {
-        Training training = findById(id).orElseThrow(()
+        var training = findById(id).orElseThrow(()
                 -> new NotFoundException("Not found trainee by id: " + id));
-        if (entityManager.contains(training)) entityManager.remove(training);
-        else entityManager.merge(training);
+        var trainer = training.getTrainer();
+        if (trainer != null && check(trainer.getTrainings()))
+            trainer.getTrainings().remove(training);
+
+        var trainee = training.getTrainee();
+        if (trainee != null && check(trainee.getTrainings()))
+            trainee.getTrainings().remove(training);
+
+        entityManager.remove(training);
     }
 
     @Override
@@ -76,36 +82,31 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     @Override
     public List<Training> getTraineeTrainings(String username, LocalDate fromDate,
                                               LocalDate toDate, String trainerName,
-                                              TrainingName trainingName) {
+                                              TrainingTypeName trainingTypeName) {
         try {
             StringBuilder jpqlBuilder = new StringBuilder(
                     "SELECT t FROM Training t JOIN t.trainee tr JOIN tr.user u " +
                             "JOIN t.trainer tn JOIN tn.user tu");
 
-            if (check(trainingName)) {
+            if (check(trainingTypeName))
                 jpqlBuilder.append(" JOIN t.trainingType tv");
-            }
 
             jpqlBuilder.append(" WHERE u.username = :username");
 
-            if (check(fromDate)) {
+            if (check(fromDate))
                 jpqlBuilder.append(" AND t.startTime >= :fromDate");
-            }
 
-            if (check(toDate)) {
+            if (check(toDate))
                 jpqlBuilder.append(" AND t.startTime <= :toDate");
-            }
 
-            if (check(trainerName)) {
+            if (check(trainerName))
                 jpqlBuilder.append(" AND tu.firstName LIKE :trainerName");
-            }
 
-            if (check(trainingName)) {
-                jpqlBuilder.append(" AND tv.trainingName = :trainingName");
-            }
+            if (check(trainingTypeName))
+                jpqlBuilder.append(" AND tv.trainingTypeName = :trainingTypeName");
 
             TypedQueryBuilder<Training> queryBuilder =
-                    new TraineeTypedQueryBuilder(username, fromDate, toDate, trainerName, trainingName, entityManager);
+                    new TraineeTypedQueryBuilder(username, fromDate, toDate, trainerName, trainingTypeName, entityManager);
             return queryBuilder.createQuery(jpqlBuilder).getResultList();
         } catch (Exception e) {
             logger.error("Error in finding trainings by trainee username: {}", e.getMessage());
@@ -118,36 +119,31 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     @Transactional
     public List<Training> getTrainerTrainings(String username, LocalDate fromDate,
                                               LocalDate toDate, String traineeName,
-                                              TrainingName trainingName) {
+                                              TrainingTypeName trainingTypeName) {
         try {
             StringBuilder jpqlBuilder = new StringBuilder(
                     "SELECT t FROM Training t JOIN t.trainer tr JOIN tr.user u " +
                             "JOIN t.trainee tn JOIN tn.user tu");
 
-            if (check(trainingName)) {
+            if (check(trainingTypeName))
                 jpqlBuilder.append(" JOIN t.trainingType tv");
-            }
 
             jpqlBuilder.append(" WHERE u.username = :username");
 
-            if (check(fromDate)) {
+            if (check(fromDate))
                 jpqlBuilder.append(" AND t.startTime >= :fromDate");
-            }
 
-            if (check(toDate)) {
+            if (check(toDate))
                 jpqlBuilder.append(" AND t.startTime <= :toDate");
-            }
 
-            if (check(traineeName)) {
+            if (check(traineeName))
                 jpqlBuilder.append(" AND tu.firstName LIKE :traineeName");
-            }
 
-            if (check(trainingName)) {
-                jpqlBuilder.append(" AND tv.trainingName = :trainingName");
-            }
+            if (check(trainingTypeName))
+                jpqlBuilder.append(" AND tv.trainingTypeName = :trainingTypeName");
 
             TypedQueryBuilder<Training> queryBuilder =
-                    new TrainerTypedQueryBuilder(username, fromDate, toDate, traineeName, trainingName, entityManager);
+                    new TrainerTypedQueryBuilder(username, fromDate, toDate, traineeName, trainingTypeName, entityManager);
             return queryBuilder.createQuery(jpqlBuilder).getResultList();
         } catch (Exception e) {
             logger.error("Error in finding trainings by trainer username: {}", e.getMessage());
