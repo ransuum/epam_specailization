@@ -26,5 +26,5 @@ public interface TrainerService {
 
     TrainerDto changeStatus(String username) throws NotFoundException;
 
-    List<TrainerDto> getUnassignedTrainersForTrainee(String username) throws NotFoundException;
+    List<TrainerDto> getUnassignedTrainers(String username) throws NotFoundException;
 }

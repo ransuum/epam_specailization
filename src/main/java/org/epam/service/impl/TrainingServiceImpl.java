@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.List;
 
 import static org.epam.utils.CheckerField.check;
@@ -75,8 +74,8 @@ public class TrainingServiceImpl implements TrainingService {
             training.setTrainer(trainerRepository.findById(request.trainerId())
                     .orElseThrow(() -> new NotFoundException("Trainer not found")));
 
-        if (check(request.trainingViewId()))
-            training.setTrainingType(trainingTypeRepository.findById(request.trainingViewId())
+        if (check(request.trainingTypeId()))
+            training.setTrainingType(trainingTypeRepository.findById(request.trainingTypeId())
                     .orElseThrow(() -> new NotFoundException("Training type not found")));
 
         if (check(request.trainingName())) training.setTrainingName(request.trainingName());
@@ -105,10 +104,10 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public List<TrainingListDto.TrainingListDtoForUser> findTrainingWithUsernameOfTrainee(String username, String fromDate,
-                                                                                          String toDate, String trainerName,
-                                                                                          TrainingName trainingName) {
-        return trainingRepository.findTrainingWithUsernameOfTrainee(username,
+    public List<TrainingListDto.TrainingListDtoForUser> getTraineeTrainings(String username, String fromDate,
+                                                                            String toDate, String trainerName,
+                                                                            TrainingName trainingName) {
+        return trainingRepository.getTraineeTrainings(username,
                         check(fromDate) ? LocalDate.parse(fromDate, formatter) : null,
                         check(toDate) ? LocalDate.parse(toDate, formatter) : null,
                         trainerName,
@@ -119,10 +118,10 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public List<TrainingListDto.TrainingListDtoForUser> findTrainingWithUsernameOfTrainer(String username, String fromDate,
-                                                                                          String toDate, String traineeName,
-                                                                                          TrainingName trainingName) {
-        return trainingRepository.findTrainingWithUsernameOfTrainer(username,
+    public List<TrainingListDto.TrainingListDtoForUser> getTrainerTrainings(String username, String fromDate,
+                                                                            String toDate, String traineeName,
+                                                                            TrainingName trainingName) {
+        return trainingRepository.getTrainerTrainings(username,
                         check(fromDate) ? LocalDate.parse(fromDate, formatter) : null,
                         check(toDate) ? LocalDate.parse(toDate, formatter) : null,
                         traineeName,

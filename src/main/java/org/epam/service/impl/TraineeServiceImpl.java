@@ -4,6 +4,7 @@ import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
+import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainee;
 import org.epam.models.request.create.TraineeRequestCreate;
 import org.epam.models.request.update.TraineeRequestUpdate;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 
 import static org.epam.utils.CheckerField.check;
@@ -111,5 +113,13 @@ public class TraineeServiceImpl implements TraineeService {
                 ? Boolean.FALSE : Boolean.TRUE);
         trainee.setUser(userRepository.update(user.getId(), user));
         return TraineeMapper.INSTANCE.toDto(trainee);
+    }
+
+    @Override
+    public List<TrainerDto> updateTrainersList(String traineeUsername, List<String> trainersUsername) throws NotFoundException {
+        var trainee = traineeRepository.findByUsername(traineeUsername)
+                .orElseThrow(() -> new NotFoundException("Trainee not found"));
+
+        return Collections.emptyList();
     }
 }

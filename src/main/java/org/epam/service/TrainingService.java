@@ -21,13 +21,13 @@ public interface TrainingService {
 
     TrainingDto findById(String id) throws NotFoundException;
 
-    List<TrainingListDto.TrainingListDtoForUser> findTrainingWithUsernameOfTrainee(String username, String fromDate,
-                                                                  String toDate, String trainerName,
-                                                                  TrainingName trainingName);
+    List<TrainingListDto.TrainingListDtoForUser> getTraineeTrainings(String username, String fromDate,
+                                                                     String toDate, String trainerName,
+                                                                     TrainingName trainingName);
 
-    List<TrainingListDto.TrainingListDtoForUser> findTrainingWithUsernameOfTrainer(String username, String fromDate,
-                                                             String toDate, String traineeName,
-                                                             TrainingName trainingName);
+    List<TrainingListDto.TrainingListDtoForUser> getTrainerTrainings(String username, String fromDate,
+                                                                     String toDate, String traineeName,
+                                                                     TrainingName trainingName);
 
     List<TrainingDto> addTrainingsToTrainee(String traineeId, List<TrainingRequestCreate> requests) throws NotFoundException;
 }

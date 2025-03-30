@@ -359,7 +359,7 @@ class TrainerServiceTest {
         when(traineeRepository.findByUsername("testTrainee")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findAll()).thenReturn(List.of(assignedTrainer, unassignedTrainer));
 
-        var result = trainerService.getUnassignedTrainersForTrainee("testTrainee");
+        var result = trainerService.getUnassignedTrainers("testTrainee");
 
         assertNotNull(result);
         assertEquals(1, result.size());

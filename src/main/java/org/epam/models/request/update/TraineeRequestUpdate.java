@@ -18,10 +18,10 @@ public class TraineeRequestUpdate {
 
     @NotBlank(message = "firstname is blank")
     private String firstname;
-    @NotBlank(message = "firstname is blank")
+    @NotBlank(message = "lastname is blank")
     private String lastname;
-    @NotBlank(message = "firstname is blank")
+    @NotBlank(message = "username is blank")
     private String username;
-    @NotBlank(message = "firstname is blank")
+    @NotBlank(message = "isActive is blank")
     private Boolean isActive;
 }

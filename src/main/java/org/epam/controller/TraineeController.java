@@ -40,9 +40,9 @@ public class TraineeController {
         this.transactionExecution = transactionExecution;
     }
 
-    @PostMapping("/create")
-    @RequiredRole(UserType.TRAINEE)
-    public ResponseEntity<AuthResponseDto> addTrainee(@RequestBody TraineeRegistrationRequest request) {
+    @PostMapping("/register")
+    @RequiredRole(UserType.NOT_AUTHORIZE)
+    public ResponseEntity<AuthResponseDto> register(@RequestBody TraineeRegistrationRequest request) {
         var save = userService.save(new UserRequestCreate(request.firstname(), request.lastname(), Boolean.TRUE));
         return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
                 -> traineeService.save(new TraineeRequestCreate(save.id(), LocalDate.parse(request.dateOfBirth(), formatter), request.address()))

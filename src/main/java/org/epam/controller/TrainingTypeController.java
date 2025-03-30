@@ -37,7 +37,7 @@ public class TrainingTypeController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/all")
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
     public ResponseEntity<List<TrainingTypeDto>> findAll() {
         return ResponseEntity.ok(trainingTypeService.findAll());

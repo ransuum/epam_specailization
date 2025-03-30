@@ -74,9 +74,9 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     }
 
     @Override
-    public List<Training> findTrainingWithUsernameOfTrainee(String username, LocalDate fromDate,
-                                                            LocalDate toDate, String trainerName,
-                                                            TrainingName trainingName) {
+    public List<Training> getTraineeTrainings(String username, LocalDate fromDate,
+                                              LocalDate toDate, String trainerName,
+                                              TrainingName trainingName) {
         try {
             StringBuilder jpqlBuilder = new StringBuilder(
                     "SELECT t FROM Training t JOIN t.trainee tr JOIN tr.user u " +
@@ -116,9 +116,9 @@ public class TrainingRepositoryImpl implements TrainingRepository {
 
     @Override
     @Transactional
-    public List<Training> findTrainingWithUsernameOfTrainer(String username, LocalDate fromDate,
-                                                            LocalDate toDate, String traineeName,
-                                                            TrainingName trainingName) {
+    public List<Training> getTrainerTrainings(String username, LocalDate fromDate,
+                                              LocalDate toDate, String traineeName,
+                                              TrainingName trainingName) {
         try {
             StringBuilder jpqlBuilder = new StringBuilder(
                     "SELECT t FROM Training t JOIN t.trainer tr JOIN tr.user u " +

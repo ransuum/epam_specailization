@@ -71,27 +71,27 @@ public class TrainingController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/with-username-trainee/{username}")
+    @GetMapping("/by-trainee/{username}")
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
-    public ResponseEntity<List<TrainingListDto.TrainingListDtoForUser>> findTrainingWithUsernameOfTrainee(@PathVariable String username,
+    public ResponseEntity<List<TrainingListDto.TrainingListDtoForUser>> getTraineeTrainings(@PathVariable String username,
                                                                                                           @RequestParam(required = false) String fromDate,
                                                                                                           @RequestParam(required = false) String toDate,
                                                                                                           @RequestParam(required = false) String trainerName,
                                                                                                           @RequestParam(required = false) TrainingName trainingName) {
-        return ResponseEntity.ok(trainingService.findTrainingWithUsernameOfTrainee(username, fromDate, toDate, trainerName, trainingName));
+        return ResponseEntity.ok(trainingService.getTraineeTrainings(username, fromDate, toDate, trainerName, trainingName));
     }
 
-    @GetMapping("/with-username-trainer/{username}")
+    @GetMapping("/by-trainer/{username}")
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
-    public ResponseEntity<List<TrainingListDto.TrainingListDtoForUser>> findTrainingWithUsernameOfTrainer(@PathVariable String username,
+    public ResponseEntity<List<TrainingListDto.TrainingListDtoForUser>> getTrainerTrainings(@PathVariable String username,
                                                                                                           @RequestParam(required = false) String fromDate,
                                                                                                           @RequestParam(required = false) String toDate,
                                                                                                           @RequestParam(required = false) String traineeName,
                                                                                                           @RequestParam(required = false) TrainingName trainingName) {
-        return ResponseEntity.ok(trainingService.findTrainingWithUsernameOfTrainer(username, fromDate, toDate, traineeName, trainingName));
+        return ResponseEntity.ok(trainingService.getTrainerTrainings(username, fromDate, toDate, traineeName, trainingName));
     }
 
-    @PostMapping("/add-list-to-trainee")
+    @PostMapping("/add-to-trainee")
     @RequiredRole(UserType.TRAINEE)
     public List<TrainingDto> addListToTrainee() {
         return transactionExecution.executeWithTransaction(()

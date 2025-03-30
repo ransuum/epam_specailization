@@ -318,7 +318,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    void findTrainingWithUsernameOfTrainee_shouldReturnFilteredTrainings() {
+    void getTrainee_Trainings_shouldReturnFilteredTrainings() {
         String username = "johndoe";
         String fromDate = "26-03-2025";
         String toDate = "26-03-2026";
@@ -326,22 +326,22 @@ class TrainingServiceTest {
         TrainingName trainingName = TrainingName.SELF_PLACING;
 
         var trainings = List.of(testTraining);
-        when(trainingRepository.findTrainingWithUsernameOfTrainee(
+        when(trainingRepository.getTraineeTrainings(
                 username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), trainerName, trainingName))
                 .thenReturn(trainings);
 
-        var result = trainingService.findTrainingWithUsernameOfTrainee(
+        var result = trainingService.getTraineeTrainings(
                 username, fromDate, toDate, trainerName, trainingName);
 
         assertNotNull(result);
         assertEquals(1, result.size());
 
-        verify(trainingRepository).findTrainingWithUsernameOfTrainee(
+        verify(trainingRepository).getTraineeTrainings(
                 username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), trainerName, trainingName);
     }
 
     @Test
-    void findTrainingWithUsernameOfTrainer_shouldReturnFilteredTrainings() {
+    void getTrainer_Trainings_shouldReturnFilteredTrainings() {
         String username = "johndoe";
         String fromDate = "26-03-2025";
         String toDate = "26-03-2026";
@@ -349,17 +349,17 @@ class TrainingServiceTest {
         var trainingName = TrainingName.SELF_PLACING;
 
         var trainings = List.of(testTraining);
-        when(trainingRepository.findTrainingWithUsernameOfTrainer(
+        when(trainingRepository.getTrainerTrainings(
                 username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), traineeName, trainingName))
                 .thenReturn(trainings);
 
-        var result = trainingService.findTrainingWithUsernameOfTrainer(
+        var result = trainingService.getTrainerTrainings(
                 username, fromDate, toDate, traineeName, trainingName);
 
         assertNotNull(result);
         assertEquals(1, result.size());
 
-        verify(trainingRepository).findTrainingWithUsernameOfTrainer(
+        verify(trainingRepository).getTrainerTrainings(
                 username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), traineeName, trainingName);
     }
 

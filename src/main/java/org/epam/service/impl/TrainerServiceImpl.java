@@ -116,7 +116,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public List<TrainerDto> getUnassignedTrainersForTrainee(String username) throws NotFoundException {
+    public List<TrainerDto> getUnassignedTrainers(String username) throws NotFoundException {
         var trainee = traineeRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found with username: " + username));
 
@@ -127,7 +127,8 @@ public class TrainerServiceImpl implements TrainerService {
 
         return trainerRepository.findAll()
                 .stream()
-                .filter(trainer -> !assignedTrainers.contains(trainer))
+                .filter(trainer -> !assignedTrainers.contains(trainer)
+                        && trainer.getUser().getIsActive() == Boolean.TRUE)
                 .map(TrainerMapper.INSTANCE::toDto)
                 .toList();
     }

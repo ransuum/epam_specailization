@@ -3,7 +3,7 @@ package org.epam.models.request.update;
 public record TrainingRequestUpdate(String traineeId,
                                     String trainerId,
                                     String trainingName,
-                                    String trainingViewId,
+                                    String trainingTypeId,
                                     String trainingStartDate,
                                     Long duration) {
 }

@@ -36,9 +36,9 @@ public class TrainerController {
         this.securityContextHolder = securityContextHolder;
     }
 
-    @PostMapping("/create")
-    @RequiredRole(UserType.TRAINER)
-    public ResponseEntity<AuthResponseDto> addTrainer(@RequestBody TrainerRegistrationRequest request) {
+    @PostMapping("/register")
+    @RequiredRole(UserType.NOT_AUTHORIZE)
+    public ResponseEntity<AuthResponseDto> register(@RequestBody TrainerRegistrationRequest request) {
         var save = userService.save(new UserRequestCreate(request.firstname(), request.lastname(), Boolean.TRUE));
         return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
                 -> trainerService.save(new TrainerRequestCreate(
@@ -47,7 +47,7 @@ public class TrainerController {
 
     @GetMapping("/profile")
     @RequiredRole(UserType.TRAINER)
-    public ResponseEntity<TrainerDto> findById() {
+    public ResponseEntity<TrainerDto> profile() {
         return new ResponseEntity<>(trainerService.findById(securityContextHolder.getUserId()), HttpStatus.FOUND);
     }
 
@@ -58,14 +58,14 @@ public class TrainerController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PutMapping
+    @PutMapping("/update")
     @RequiredRole(UserType.TRAINER)
     public ResponseEntity<TrainerDto> updateTrainer(@RequestBody TrainerRequestUpdate requestUpdate) {
         return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
                 -> trainerService.update(securityContextHolder.getUserId(), requestUpdate)));
     }
 
-    @GetMapping
+    @GetMapping("/all")
     @RequiredRole(UserType.TRAINER)
     public ResponseEntity<List<TrainerDto>> findAll() {
         return ResponseEntity.ok(trainerService.findAll());
@@ -79,22 +79,22 @@ public class TrainerController {
                 -> trainerService.changePassword(securityContextHolder.getUserId(), oldPassword, newPassword)));
     }
 
-    @GetMapping("/user/{username}")
+    @GetMapping("/username/{username}")
     @RequiredRole(UserType.TRAINER)
     public ResponseEntity<TrainerDto> findByUsername(@PathVariable String username) {
         return ResponseEntity.ok(trainerService.findByUsername(username));
     }
 
-    @PatchMapping("/change-status/{username}")
+    @PatchMapping("/change-status/{trainerUsername}")
     @RequiredRole(UserType.TRAINER)
-    public ResponseEntity<?> changeStatus(@PathVariable String username) {
-        transactionExecution.executeWithTransaction(() -> trainerService.changeStatus(username));
+    public ResponseEntity<?> changeStatus(@PathVariable String trainerUsername) {
+        transactionExecution.executeWithTransaction(() -> trainerService.changeStatus(trainerUsername));
         return ResponseEntity.ok("Status changed");
     }
 
-    @GetMapping("/unassigned-trainers/{username}")
+    @GetMapping("/unassigned/{traineeUsername}")
     @RequiredRole(UserType.TRAINER)
-    public List<TrainerDto> getUnassignedTrainersForTrainee(@PathVariable String username) {
-        return trainerService.getUnassignedTrainersForTrainee(username);
+    public List<TrainerDto> getUnassignedTrainers(@PathVariable String traineeUsername) {
+        return trainerService.getUnassignedTrainers(traineeUsername);
     }
 }
