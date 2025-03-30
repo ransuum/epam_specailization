@@ -2,8 +2,11 @@ package org.epam.service;
 
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.*;
-import org.epam.models.enums.TrainingName;
+import org.epam.models.enums.TrainingTypeName;
 import org.epam.models.request.create.TrainingRequestCreate;
+import org.epam.models.request.update.TraineeTrainingRequestUpdate;
+import org.epam.models.request.update.TrainerTrainingRequestUpdate;
+import org.epam.models.request.update.TrainingRequestUpdate;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingRepository;
@@ -49,6 +52,7 @@ class TrainingServiceTest {
     private TrainingType testTrainingType;
     private Training testTraining;
     private User testUser;
+    private User testTrainerUser;
     private String testId;
 
     @BeforeEach
@@ -60,6 +64,12 @@ class TrainingServiceTest {
         testUser.setLastName("Doe");
         testUser.setUsername("johndoe");
 
+        testTrainerUser = new User();
+        testTrainerUser.setId("trainer-user-id");
+        testTrainerUser.setFirstName("Jane");
+        testTrainerUser.setLastName("Smith");
+        testTrainerUser.setUsername("janesmith");
+
         testTrainee = new Trainee();
         testTrainee.setId("trainee-id");
         testTrainee.setUser(testUser);
@@ -67,12 +77,12 @@ class TrainingServiceTest {
         testTrainee.setAddress("123 Main St");
 
         testTrainingType = new TrainingType();
-        testTrainingType.setId("training-view-id");
-        testTrainingType.setTrainingName(TrainingName.SELF_PLACING);
+        testTrainingType.setId("training-type-id");
+        testTrainingType.setTrainingTypeName(TrainingTypeName.SELF_PLACING);
 
         testTrainer = new Trainer();
         testTrainer.setId("trainer-id");
-        testTrainer.setUser(testUser);
+        testTrainer.setUser(testTrainerUser);
         testTrainer.setSpecialization(testTrainingType);
 
         testTraining = Training.builder()
@@ -89,17 +99,16 @@ class TrainingServiceTest {
     @Test
     void save_shouldCreateNewTraining() throws NotFoundException {
         var request = new TrainingRequestCreate(
-                "trainee-id",
-                "trainer-id",
+                "johndoe",
+                "janesmith",
                 "Test Training",
-                "training-view-id",
+                "SELF_PLACING",
                 "03-11-2025",
                 60L
         );
 
-        when(traineeRepository.findById("trainee-id")).thenReturn(Optional.of(testTrainee));
-        when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
-        when(trainingTypeRepository.findById("training-view-id")).thenReturn(Optional.of(testTrainingType));
+        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(testTrainee));
+        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.of(testTrainer));
         when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
 
         var result = trainingService.save(request);
@@ -113,18 +122,17 @@ class TrainingServiceTest {
     }
 
     @Test
-    void save_shouldReturnNullWhenTraineeNotFound() {
+    void save_shouldThrowExceptionWhenTraineeNotFound() {
         var request = new TrainingRequestCreate(
-                "non-existent-trainee",
-                "trainer-id",
+                "johndoe",
+                "janesmith",
                 "Test Training",
-                "training-view-id",
+                "SELF_PLACING",
                 "03-11-2025",
                 60L
         );
-        when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
 
-        when(traineeRepository.findById("non-existent-trainee")).thenReturn(Optional.empty());
+        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.of(testTrainer));
 
         var exception = assertThrows(NotFoundException.class, () -> {
             trainingService.save(request);
@@ -135,52 +143,30 @@ class TrainingServiceTest {
     }
 
     @Test
-    void save_shouldReturnNullWhenTrainerNotFound() {
+    void save_shouldThrowExceptionWhenTrainerNotFound() {
         var request = new TrainingRequestCreate(
-                "trainee-id",
-                "non-existent-trainer",
+                "johndoe",
+                "janesmith",
                 "Test Training",
-                "training-view-id",
+                "SELF_PLACING",
                 "03-11-2025",
                 60L
         );
 
-        when(trainerRepository.findById("non-existent-trainer")).thenReturn(Optional.empty());
-
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.save(request);
-        });
-
-        assertEquals("Trainer not found", exception.getMessage());
-        verify(trainingRepository, never()).save(any(Training.class));
-    }
-
-    @Test
-    void save_shouldReturnNullWhenTrainingViewNotFound() {
-        var request = new TrainingRequestCreate(
-                "trainee-id",
-                "trainer-id",
-                "Test Training",
-                "non-existent-view",
-                "03-11-2025",
-                60L
-        );
-
-        when(traineeRepository.findById("trainee-id")).thenReturn(Optional.of(testTrainee));
-        when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
-        when(trainingTypeRepository.findById("non-existent-view")).thenReturn(Optional.empty());
+        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.empty());
 
         var exception = assertThrows(NotFoundException.class, () -> {
             trainingService.save(request);
         });
 
-        assertEquals("Training type not found", exception.getMessage());
+        assertEquals("Trainer not found", exception.getMessage());
         verify(trainingRepository, never()).save(any(Training.class));
+        verify(traineeRepository, never()).findByUsername(anyString());
     }
 
     @Test
     void update_shouldUpdateTrainingFields() throws NotFoundException {
-        var request = new org.epam.models.request.update.TrainingRequestUpdate(
+        var request = new TrainingRequestUpdate(
                 null,
                 null,
                 "Updated Training",
@@ -213,19 +199,19 @@ class TrainingServiceTest {
 
     @Test
     void update_shouldUpdateAllProvidedFields() throws NotFoundException {
-        var request = new org.epam.models.request.update.TrainingRequestUpdate(
-                "trainee-id",
-                "trainer-id",
+        var request = new TrainingRequestUpdate(
+                "johndoe",
+                "janesmith",
                 "Updated Training",
-                "training-view-id",
+                "training-type-id",
                 "26-03-2025",
                 90L
         );
 
         when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
-        when(traineeRepository.findById("trainee-id")).thenReturn(Optional.of(testTrainee));
-        when(trainerRepository.findById("trainer-id")).thenReturn(Optional.of(testTrainer));
-        when(trainingTypeRepository.findById("training-view-id")).thenReturn(Optional.of(testTrainingType));
+        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(testTrainee));
+        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.of(testTrainer));
+        when(trainingTypeRepository.findById("training-type-id")).thenReturn(Optional.of(testTrainingType));
         when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
 
         var result = trainingService.update(testId, request);
@@ -233,14 +219,14 @@ class TrainingServiceTest {
         assertNotNull(result);
 
         verify(trainingRepository).save(testTraining);
-        verify(traineeRepository).findById("trainee-id");
-        verify(trainerRepository).findById("trainer-id");
-        verify(trainingTypeRepository).findById("training-view-id");
+        verify(traineeRepository).findByUsername("johndoe");
+        verify(trainerRepository).findByUsername("janesmith");
+        verify(trainingTypeRepository).findById("training-type-id");
     }
 
     @Test
-    void update_shouldReturnNullWhenTrainingNotFound() {
-        var request = new org.epam.models.request.update.TrainingRequestUpdate(
+    void update_shouldThrowExceptionWhenTrainingNotFound() {
+        var request = new TrainingRequestUpdate(
                 null,
                 null,
                 "Updated Training",
@@ -306,7 +292,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    void findById_shouldReturnNullWhenNotFound() {
+    void findById_shouldThrowExceptionWhenNotFound() {
         String nonExistentId = "non-existent-id";
         when(trainingRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
@@ -323,30 +309,30 @@ class TrainingServiceTest {
         String fromDate = "26-03-2025";
         String toDate = "26-03-2026";
         String trainerName = "Jane";
-        TrainingName trainingName = TrainingName.SELF_PLACING;
+        TrainingTypeName trainingTypeName = TrainingTypeName.SELF_PLACING;
 
         var trainings = List.of(testTraining);
         when(trainingRepository.getTraineeTrainings(
-                username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), trainerName, trainingName))
+                username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), trainerName, trainingTypeName))
                 .thenReturn(trainings);
 
         var result = trainingService.getTraineeTrainings(
-                username, fromDate, toDate, trainerName, trainingName);
+                username, fromDate, toDate, trainerName, trainingTypeName);
 
         assertNotNull(result);
         assertEquals(1, result.size());
 
         verify(trainingRepository).getTraineeTrainings(
-                username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), trainerName, trainingName);
+                username, LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter), trainerName, trainingTypeName);
     }
 
     @Test
     void getTrainer_Trainings_shouldReturnFilteredTrainings() {
-        String username = "johndoe";
+        String username = "janesmith";
         String fromDate = "26-03-2025";
         String toDate = "26-03-2026";
-        String traineeName = "Jane";
-        var trainingName = TrainingName.SELF_PLACING;
+        String traineeName = "John";
+        var trainingName = TrainingTypeName.SELF_PLACING;
 
         var trainings = List.of(testTraining);
         when(trainingRepository.getTrainerTrainings(
@@ -364,23 +350,67 @@ class TrainingServiceTest {
     }
 
     @Test
-    void check_shouldHandleNullValuesCorrectly() {
-        var requestWithNulls = new org.epam.models.request.update.TrainingRequestUpdate(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+    void updateTrainingsOfTrainee_shouldCreateTrainingsForTrainee() throws NotFoundException {
+        var request = List.of(
+                new TraineeTrainingRequestUpdate(
+                        "janesmith",
+                        "Updated Training",
+                        "Self Placing",
+                        "26-03-2025",
+                        90L
+                )
         );
 
-        when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
+        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(testTrainee));
+        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.of(testTrainer));
+        when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName.SELF_PLACING))
+                .thenReturn(Optional.of(testTrainingType));
         when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
 
-        assertDoesNotThrow(() -> trainingService.update(testId, requestWithNulls));
+        var result = trainingService.updateTrainingsOfTrainee("johndoe", request);
 
-        verify(traineeRepository, never()).findById(any());
-        verify(trainerRepository, never()).findById(any());
-        verify(trainingTypeRepository, never()).findById(any());
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(testId, result.getFirst().id());
+
+        verify(traineeRepository).findByUsername("johndoe");
+        verify(trainerRepository).findByUsername("janesmith");
+        verify(trainingTypeRepository).findByTrainingTypeName(TrainingTypeName.SELF_PLACING);
+        verify(trainingRepository).save(any(Training.class));
+    }
+
+    @Test
+    void updateTrainingsOfTrainer_shouldCreateTrainingsForTrainer() throws NotFoundException {
+
+    }
+
+    @Test
+    void check_shouldHandleNullValuesCorrectly() {
+        var request = List.of(
+                new TrainerTrainingRequestUpdate(
+                        "johndoe",
+                        "Updated Training",
+                        "Self Placing",
+                        "26-03-2025",
+                        90L
+                )
+        );
+
+        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.of(testTrainer));
+        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(testTrainee));
+        when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName.SELF_PLACING))
+                .thenReturn(Optional.of(testTrainingType));
+        when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
+
+        var result = trainingService.updateTrainingsOfTrainer("janesmith", request);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(testId, result.getFirst().id());
+
+        verify(trainerRepository).findByUsername("janesmith");
+        verify(traineeRepository).findByUsername("johndoe");
+        verify(trainingTypeRepository).findByTrainingTypeName(TrainingTypeName.SELF_PLACING);
+        verify(trainingRepository).save(any(Training.class));
     }
 }
