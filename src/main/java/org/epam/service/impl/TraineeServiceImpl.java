@@ -34,27 +34,27 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public AuthResponseDto save(TraineeRequestCreate request) throws NotFoundException {
+    public AuthResponseDto save(TraineeRequestCreate traineeCreationData) throws NotFoundException {
         return TraineeMapper.INSTANCE.toAuthResponseDto(traineeRepository.save(Trainee.builder()
-                .address(request.address())
-                .dateOfBirth(request.dateOfBirth())
-                .user(userRepository.findById(request.userId())
+                .address(traineeCreationData.address())
+                .dateOfBirth(traineeCreationData.dateOfBirth())
+                .user(userRepository.findById(traineeCreationData.userId())
                         .orElseThrow(() -> new NotFoundException("User not found")))
                 .build()));
     }
 
     @Override
-    public TraineeDto update(String id, TraineeRequestUpdate requestUpdate) throws NotFoundException {
+    public TraineeDto update(String id, TraineeRequestUpdate traineeUpdateData) throws NotFoundException {
         var traineeById = traineeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
-        if (check(requestUpdate.getAddress())) traineeById.setAddress(requestUpdate.getAddress());
-        if (check(requestUpdate.getDateOfBirth()))
-            traineeById.setDateOfBirth(LocalDate.parse(requestUpdate.getDateOfBirth(), formatter));
-        traineeById.getUser().setIsActive(requestUpdate.getIsActive());
-        traineeById.getUser().setUsername(requestUpdate.getUsername());
-        traineeById.getUser().setFirstName(requestUpdate.getFirstname());
-        traineeById.getUser().setLastName(requestUpdate.getLastname());
+        if (check(traineeUpdateData.getAddress())) traineeById.setAddress(traineeUpdateData.getAddress());
+        if (check(traineeUpdateData.getDateOfBirth()))
+            traineeById.setDateOfBirth(LocalDate.parse(traineeUpdateData.getDateOfBirth(), formatter));
+        traineeById.getUser().setIsActive(traineeUpdateData.getIsActive());
+        traineeById.getUser().setUsername(traineeUpdateData.getUsername());
+        traineeById.getUser().setFirstName(traineeUpdateData.getFirstname());
+        traineeById.getUser().setLastName(traineeUpdateData.getLastname());
         return TraineeMapper.INSTANCE.toDto(traineeRepository.update(id, traineeById));
     }
 

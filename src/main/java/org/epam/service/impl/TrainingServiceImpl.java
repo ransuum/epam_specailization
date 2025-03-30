@@ -43,19 +43,19 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional
-    public TrainingDto save(TrainingRequestCreate request) throws NotFoundException {
-        var trainer = trainerRepository.findByUsername(request.trainerUsername())
+    public TrainingDto save(TrainingRequestCreate trainingCreationData) throws NotFoundException {
+        var trainer = trainerRepository.findByUsername(trainingCreationData.trainerUsername())
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
-        var trainee = traineeRepository.findByUsername(request.traineeUsername())
+        var trainee = traineeRepository.findByUsername(trainingCreationData.traineeUsername())
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         return TrainingMapper.INSTANCE.toDto(trainingRepository.save(
                 Training.builder()
                         .trainer(trainer)
                         .trainee(trainee)
-                        .trainingName(request.trainingName())
-                        .startTime(LocalDate.parse(request.startTime(), formatter))
-                        .duration(request.duration())
+                        .trainingName(trainingCreationData.trainingName())
+                        .startTime(LocalDate.parse(trainingCreationData.startTime(), formatter))
+                        .duration(trainingCreationData.duration())
                         .build())
         );
     }

@@ -36,30 +36,30 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public AuthResponseDto save(TrainerRequestCreate request) throws NotFoundException {
+    public AuthResponseDto save(TrainerRequestCreate trainerCreateData) throws NotFoundException {
         return TrainerMapper.INSTANCE.toAuthResponseDto(trainerRepository.save(
                 Trainer.builder()
-                        .user(userRepository.findById(request.userId())
+                        .user(userRepository.findById(trainerCreateData.userId())
                                 .orElseThrow(() -> new NotFoundException("User not found")))
-                        .specialization(trainingTypeRepository.findById(request.specializationId())
+                        .specialization(trainingTypeRepository.findById(trainerCreateData.specializationId())
                                 .orElseThrow(() -> new NotFoundException("Specialization Not Found")))
                         .build())
         );
     }
 
     @Override
-    public TrainerDto update(String id, TrainerRequestUpdate request) throws NotFoundException {
+    public TrainerDto update(String id, TrainerRequestUpdate trainerUpdateData) throws NotFoundException {
         var trainer = trainerRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
-        if (check(request.specializationId()))
-            trainer.setSpecialization(trainingTypeRepository.findById(request.specializationId())
+        if (check(trainerUpdateData.specializationId()))
+            trainer.setSpecialization(trainingTypeRepository.findById(trainerUpdateData.specializationId())
                     .orElseThrow(() -> new NotFoundException("Specialization Not Found")));
 
-        trainer.getUser().setIsActive(request.isActive());
-        trainer.getUser().setUsername(request.username());
-        trainer.getUser().setFirstName(request.firstname());
-        trainer.getUser().setLastName(request.lastname());
+        trainer.getUser().setIsActive(trainerUpdateData.isActive());
+        trainer.getUser().setUsername(trainerUpdateData.username());
+        trainer.getUser().setFirstName(trainerUpdateData.firstname());
+        trainer.getUser().setLastName(trainerUpdateData.lastname());
         return TrainerMapper.INSTANCE.toDto(trainerRepository.update(id, trainer));
     }
 
