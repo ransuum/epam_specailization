@@ -1,5 +1,6 @@
 package org.epam.controller;
 
+import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.models.SecurityContextHolder;
@@ -24,7 +25,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/sign-in")
-    public ResponseEntity<?> authenticate(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> authenticate(@RequestBody @Valid AuthRequest authRequest) {
         var temp = authenticationService.authenticate(authRequest.username(), authRequest.password());
         this.securityContextHolder.setUsername(temp.getUsername());
         this.securityContextHolder.setUserId(temp.getUserId());

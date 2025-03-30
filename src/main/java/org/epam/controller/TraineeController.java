@@ -1,6 +1,7 @@
 package org.epam.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.epam.exception.PermissionException;
 import org.epam.models.SecurityContextHolder;
 import org.epam.models.dto.AuthResponseDto;
@@ -42,7 +43,7 @@ public class TraineeController {
 
     @PostMapping("/register")
     @RequiredRole(UserType.NOT_AUTHORIZE)
-    public ResponseEntity<AuthResponseDto> register(@RequestBody TraineeRegistrationRequest request) {
+    public ResponseEntity<AuthResponseDto> register(@RequestBody @Valid TraineeRegistrationRequest request) {
         var save = userService.save(new UserRequestCreate(request.firstname(), request.lastname(), Boolean.TRUE));
         return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
                 -> traineeService.save(new TraineeRequestCreate(save.id(), LocalDate.parse(request.dateOfBirth(), formatter), request.address()))
@@ -66,7 +67,7 @@ public class TraineeController {
 
     @PutMapping("/update")
     @RequiredRole(UserType.TRAINEE)
-    public ResponseEntity<TraineeDto> updateTrainee(@RequestBody TraineeRequestUpdate traineeRequestUpdate) {
+    public ResponseEntity<TraineeDto> updateTrainee(@RequestBody @Valid TraineeRequestUpdate traineeRequestUpdate) {
         return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
                 -> traineeService.update(securityContextHolder.getUserId(), traineeRequestUpdate))
         );

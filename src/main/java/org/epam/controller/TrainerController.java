@@ -1,6 +1,7 @@
 package org.epam.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.epam.models.SecurityContextHolder;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TrainerDto;
@@ -38,7 +39,7 @@ public class TrainerController {
 
     @PostMapping("/register")
     @RequiredRole(UserType.NOT_AUTHORIZE)
-    public ResponseEntity<AuthResponseDto> register(@RequestBody TrainerRegistrationRequest request) {
+    public ResponseEntity<AuthResponseDto> register(@RequestBody @Valid TrainerRegistrationRequest request) {
         var save = userService.save(new UserRequestCreate(request.firstname(), request.lastname(), Boolean.TRUE));
         return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
                 -> trainerService.save(new TrainerRequestCreate(
@@ -60,7 +61,7 @@ public class TrainerController {
 
     @PutMapping("/update")
     @RequiredRole(UserType.TRAINER)
-    public ResponseEntity<TrainerDto> updateTrainer(@RequestBody TrainerRequestUpdate requestUpdate) {
+    public ResponseEntity<TrainerDto> updateTrainer(@RequestBody @Valid TrainerRequestUpdate requestUpdate) {
         return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
                 -> trainerService.update(securityContextHolder.getUserId(), requestUpdate)));
     }

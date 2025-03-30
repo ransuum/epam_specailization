@@ -1,6 +1,7 @@
 package org.epam.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.epam.models.dto.TrainingDto;
 import org.epam.models.dto.TrainingListDto;
 import org.epam.models.enums.TrainingTypeName;
@@ -32,7 +33,7 @@ public class TrainingController {
 
     @PostMapping("/create")
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
-    public ResponseEntity<?> create(@RequestBody TrainingRequestCreate trainingRequestCreate) {
+    public ResponseEntity<?> create(@RequestBody @Valid TrainingRequestCreate trainingRequestCreate) {
         transactionExecution.executeWithTransaction(() -> trainingService.save(trainingRequestCreate));
         return ResponseEntity.ok("Training request created successfully");
     }
@@ -51,7 +52,7 @@ public class TrainingController {
 
     @PutMapping("/update/{trainingId}")
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
-    public ResponseEntity<TrainingDto> update(@PathVariable String trainingId, @RequestBody TrainingRequestUpdate update) {
+    public ResponseEntity<TrainingDto> update(@PathVariable String trainingId, @RequestBody @Valid TrainingRequestUpdate update) {
         return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
                 -> trainingService.update(trainingId, update)));
     }

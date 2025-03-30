@@ -1,6 +1,7 @@
 package org.epam.models.request.update;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,6 @@ public class TraineeRequestUpdate {
     private String lastname;
     @NotBlank(message = "username is blank")
     private String username;
-    @NotBlank(message = "isActive is blank")
+    @NotNull(message = "isActive must not be null")
     private Boolean isActive;
 }
