@@ -5,7 +5,6 @@ import org.epam.models.SecurityContextHolder;
 import org.epam.models.entity.*;
 import org.epam.models.enums.UserType;
 import org.epam.utils.transactionlogging.RestControllerLoggingAspect;
-import org.epam.utils.transactionlogging.TransactionLoggingAspect;
 import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -14,7 +13,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
-
 
 @Configuration
 @ComponentScan(basePackages = {
@@ -32,11 +30,6 @@ public class AppConfig {
     @Bean
     public InternalResourceViewResolver defaultViewResolver() {
         return new InternalResourceViewResolver();
-    }
-
-    @Bean
-    public TransactionLoggingAspect transactionLoggingAspect() {
-        return new TransactionLoggingAspect();
     }
 
     @Bean

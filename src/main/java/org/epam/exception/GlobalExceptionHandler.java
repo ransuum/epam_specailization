@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestControllerAdvice
@@ -20,6 +21,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiError> handleResponseStatusException(ResponseStatusException ex) {
         return buildResponse((HttpStatus) ex.getStatusCode(), ex.getReason(), ex);
+    }
+
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<ApiError> handleDateTimeParseException(DateTimeParseException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Date format is not correct", ex);
     }
 
     @ExceptionHandler(NotFoundException.class)
