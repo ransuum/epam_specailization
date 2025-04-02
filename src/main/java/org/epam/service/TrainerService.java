@@ -6,13 +6,14 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.request.create.TrainerRequestCreate;
+import org.epam.models.request.update.TrainerUpdateDto;
 
 import java.util.List;
 
 public interface TrainerService {
     AuthResponseDto save(TrainerRequestCreate request) throws NotFoundException;
 
-    TrainerDto update(String id, org.epam.models.request.update.TrainerRequestUpdate request) throws NotFoundException;
+    TrainerDto update(String id, TrainerUpdateDto request) throws NotFoundException;
 
     void delete(String id) throws NotFoundException;
 

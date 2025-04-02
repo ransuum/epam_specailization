@@ -8,7 +8,7 @@ import org.epam.models.dto.UserDto;
 import org.epam.models.entity.*;
 import org.epam.models.enums.TrainingTypeName;
 import org.epam.models.request.create.TrainerRequestCreate;
-import org.epam.models.request.update.TrainerRequestUpdate;
+import org.epam.models.request.update.TrainerUpdateDto;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
@@ -119,7 +119,7 @@ class TrainerServiceTest {
 
     @Test
     void update_shouldUpdateSpecialization() throws NotFoundException {
-        var request = new TrainerRequestUpdate("newSpecializationId", testUser.getFirstName(),
+        var request = new TrainerUpdateDto("newSpecializationId", testUser.getFirstName(),
                 testUser.getLastName(), testUser.getUsername(), testUser.getIsActive());
         var newSpecialization = TrainingType.builder()
                 .id("newSpecializationId")

@@ -1,9 +1,8 @@
 package org.epam.repository.impl;
 
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.User;
 import org.epam.repository.UserRepository;
@@ -13,17 +12,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@RequiredArgsConstructor
+@Log4j2
 public class UserRepositoryImpl implements UserRepository {
     private final EntityManager entityManager;
 
-    public UserRepositoryImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
-    private static final Logger log = LogManager.getLogger(UserRepositoryImpl.class);
-
     @Override
-    @Transactional
     public User save(User user) {
         try {
             if (user.getId() == null) entityManager.persist(user);
@@ -78,7 +72,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    @Transactional
     public User update(String id, User userRequest) {
         findById(id).ifPresent(traineeById -> userRequest.setId(id));
 

@@ -1,9 +1,8 @@
 package org.epam.repository.impl;
 
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
@@ -19,23 +18,19 @@ import java.util.Optional;
 import static org.epam.utils.CheckerField.check;
 
 @Repository
+@RequiredArgsConstructor
+@Log4j2
 public class TrainingTypeRepositoryImpl implements TrainingTypeRepository {
-    private static final Logger logger = LogManager.getLogger(TrainingTypeRepositoryImpl.class);
     private final EntityManager entityManager;
 
-    public TrainingTypeRepositoryImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
     @Override
-    @Transactional
     public TrainingType save(TrainingType trainingType) {
         try {
             if (trainingType.getId() == null) entityManager.persist(trainingType);
             else trainingType = entityManager.merge(trainingType);
             return trainingType;
         } catch (Exception e) {
-            logger.error("Error in saving trainee: {}", e.getMessage());
+            log.error("Error in saving trainee: {}", e.getMessage());
             return null;
         }
     }
@@ -46,7 +41,6 @@ public class TrainingTypeRepositoryImpl implements TrainingTypeRepository {
     }
 
     @Override
-    @Transactional
     public void delete(String id) throws NotFoundException {
         var trainingType = findById(id).orElseThrow(()
                 -> new NotFoundException("Not found trainingView by id: " + id));
@@ -71,7 +65,6 @@ public class TrainingTypeRepositoryImpl implements TrainingTypeRepository {
     }
 
     @Override
-    @Transactional
     public TrainingType update(String id, TrainingType trainingType) {
         findById(id).ifPresent(trainingViewById -> trainingViewById.setId(id));
 
@@ -87,7 +80,7 @@ public class TrainingTypeRepositoryImpl implements TrainingTypeRepository {
                     .getResultStream()
                     .findFirst();
         } catch (Exception e) {
-            logger.error("Error finding training type by training type name: {}", e.getMessage());
+            log.error("Error finding training type by training type name: {}", e.getMessage());
             return Optional.empty();
         }
     }

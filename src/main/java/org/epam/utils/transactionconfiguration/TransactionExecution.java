@@ -1,14 +1,13 @@
-package org.epam.utils.menurender.transactionconfiguration;
+package org.epam.utils.transactionconfiguration;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
 @Component
+@Log4j2
 public class TransactionExecution {
-    private static final Logger log = LogManager.getLogger(TransactionExecution.class);
 
     private final EntityManager entityManager;
 
@@ -24,9 +23,7 @@ public class TransactionExecution {
             transaction.commit();
             return result;
         } catch (Exception e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            if (transaction.isActive()) transaction.rollback();
             log.error("Transaction failed for transaction: {}", e.getMessage());
             throw e;
         }
@@ -39,9 +36,7 @@ public class TransactionExecution {
             operation.execute();
             transaction.commit();
         } catch (Exception e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+            if (transaction.isActive()) transaction.rollback();
             log.error("Transaction failed for void transaction: {}", e.getMessage());
             throw e;
         }

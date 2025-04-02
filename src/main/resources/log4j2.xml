@@ -4,20 +4,23 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
-        <RollingFile name="ErrorFile" fileName="logs/error.log"
-                     filePattern="logs/error-%d{yyyy-MM-dd}-%i.log">
+        <File name="TransactionLog" fileName="logs/transactions.log">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-            <Policies>
-                <SizeBasedTriggeringPolicy size="10 MB"/>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
-            </Policies>
-            <DefaultRolloverStrategy max="10"/>
-        </RollingFile>
+        </File>
+        <File name="RestLog" fileName="logs/rest.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
     </Appenders>
+
     <Loggers>
-        <Root level="info">
+        <Logger name="org.epam.utils.transactionlogging.TransactionLoggingAspect" level="INFO" additivity="false">
+            <AppenderRef ref="TransactionLog"/>
+        </Logger>
+        <Logger name="org.epam.utils.transactionlogging.RestControllerLoggingAspect" level="INFO" additivity="false">
+            <AppenderRef ref="RestLog"/>
+        </Logger>
+        <Root level="INFO">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="ErrorFile" level="ERROR"/>
         </Root>
     </Loggers>
 </Configuration>

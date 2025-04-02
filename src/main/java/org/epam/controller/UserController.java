@@ -1,6 +1,7 @@
 package org.epam.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.epam.models.dto.UserDto;
 import org.epam.models.enums.UserType;
 import org.epam.service.UserService;
@@ -14,12 +15,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/user")
 @Tag(name = "User Management", description = "APIs for managing user operations")
+@RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     @GetMapping("/{id}")
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})

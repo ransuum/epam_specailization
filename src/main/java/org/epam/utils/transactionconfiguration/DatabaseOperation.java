@@ -1,4 +1,4 @@
-package org.epam.utils.menurender.transactionconfiguration;
+package org.epam.utils.transactionconfiguration;
 
 public interface DatabaseOperation<T> {
     T execute();

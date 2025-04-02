@@ -1,39 +1,35 @@
 package org.epam.service.impl;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
-import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainee;
 import org.epam.models.request.create.TraineeRequestCreate;
-import org.epam.models.request.update.TraineeRequestUpdate;
+import org.epam.models.request.update.TraineeRequestDto;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.UserRepository;
 import org.epam.service.TraineeService;
 import org.epam.utils.mappers.TraineeMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 
 import static org.epam.utils.CheckerField.check;
 
 @Service
+@RequiredArgsConstructor
 public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
     private final UserRepository userRepository;
-    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
-    public TraineeServiceImpl(UserRepository userRepository, TraineeRepository traineeRepository) {
-        this.traineeRepository = traineeRepository;
-        this.userRepository = userRepository;
-    }
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     @Override
+    @Transactional
     public AuthResponseDto save(TraineeRequestCreate traineeCreationData) throws NotFoundException {
         return TraineeMapper.INSTANCE.toAuthResponseDto(traineeRepository.save(Trainee.builder()
                 .address(traineeCreationData.address())
@@ -44,13 +40,14 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public TraineeDto update(String id, TraineeRequestUpdate traineeUpdateData) throws NotFoundException {
+    @Transactional
+    public TraineeDto update(String id, TraineeRequestDto traineeUpdateData) throws NotFoundException {
         var traineeById = traineeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         if (check(traineeUpdateData.getAddress())) traineeById.setAddress(traineeUpdateData.getAddress());
         if (check(traineeUpdateData.getDateOfBirth()))
-            traineeById.setDateOfBirth(LocalDate.parse(traineeUpdateData.getDateOfBirth(), formatter));
+            traineeById.setDateOfBirth(LocalDate.parse(traineeUpdateData.getDateOfBirth(), FORMATTER));
         traineeById.getUser().setIsActive(traineeUpdateData.getIsActive());
         traineeById.getUser().setUsername(traineeUpdateData.getUsername());
         traineeById.getUser().setFirstName(traineeUpdateData.getFirstname());
@@ -59,6 +56,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional
     public void delete(String id) {
         traineeRepository.delete(id);
     }
@@ -80,6 +78,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional
     public TraineeDto changePassword(String id, String oldPassword, String newPassword) throws NotFoundException, CredentialException {
         var trainee = traineeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Trainee not found with id " + id));
@@ -93,17 +92,20 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional
     public TraineeDto findByUsername(String username) throws NotFoundException {
         return TraineeMapper.INSTANCE.toDto(traineeRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found by username")));
     }
 
     @Override
+    @Transactional
     public String deleteByUsername(String username) throws NotFoundException {
         return traineeRepository.deleteByUsername(username);
     }
 
     @Override
+    @Transactional
     public TraineeDto changeStatus(String username) throws NotFoundException {
         var trainee = traineeRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));

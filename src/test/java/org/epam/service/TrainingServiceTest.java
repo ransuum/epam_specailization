@@ -4,9 +4,9 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.entity.*;
 import org.epam.models.enums.TrainingTypeName;
 import org.epam.models.request.create.TrainingRequestCreate;
-import org.epam.models.request.update.TraineeTrainingRequestUpdate;
-import org.epam.models.request.update.TrainerTrainingRequestUpdate;
-import org.epam.models.request.update.TrainingRequestUpdate;
+import org.epam.models.request.update.TraineeTrainingUpdateDto;
+import org.epam.models.request.update.TrainerTrainingUpdateDto;
+import org.epam.models.request.update.TrainingUpdateDto;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingRepository;
@@ -166,7 +166,7 @@ class TrainingServiceTest {
 
     @Test
     void update_shouldUpdateTrainingFields() throws NotFoundException {
-        var request = new TrainingRequestUpdate(
+        var request = new TrainingUpdateDto(
                 null,
                 null,
                 "Updated Training",
@@ -199,7 +199,7 @@ class TrainingServiceTest {
 
     @Test
     void update_shouldUpdateAllProvidedFields() throws NotFoundException {
-        var request = new TrainingRequestUpdate(
+        var request = new TrainingUpdateDto(
                 "johndoe",
                 "janesmith",
                 "Updated Training",
@@ -226,7 +226,7 @@ class TrainingServiceTest {
 
     @Test
     void update_shouldThrowExceptionWhenTrainingNotFound() {
-        var request = new TrainingRequestUpdate(
+        var request = new TrainingUpdateDto(
                 null,
                 null,
                 "Updated Training",
@@ -352,7 +352,7 @@ class TrainingServiceTest {
     @Test
     void updateTrainingsOfTrainee_shouldCreateTrainingsForTrainee() throws NotFoundException {
         var request = List.of(
-                new TraineeTrainingRequestUpdate(
+                new TraineeTrainingUpdateDto(
                         "janesmith",
                         "Updated Training",
                         "Self Placing",
@@ -387,7 +387,7 @@ class TrainingServiceTest {
     @Test
     void check_shouldHandleNullValuesCorrectly() {
         var request = List.of(
-                new TrainerTrainingRequestUpdate(
+                new TrainerTrainingUpdateDto(
                         "johndoe",
                         "Updated Training",
                         "Self Placing",

@@ -6,16 +6,16 @@ import org.epam.models.dto.TrainingDto;
 import org.epam.models.dto.TrainingListDto;
 import org.epam.models.enums.TrainingTypeName;
 import org.epam.models.request.create.TrainingRequestCreate;
-import org.epam.models.request.update.TraineeTrainingRequestUpdate;
-import org.epam.models.request.update.TrainerTrainingRequestUpdate;
-import org.epam.models.request.update.TrainingRequestUpdate;
+import org.epam.models.request.update.TraineeTrainingUpdateDto;
+import org.epam.models.request.update.TrainerTrainingUpdateDto;
+import org.epam.models.request.update.TrainingUpdateDto;
 
 import java.util.List;
 
 public interface TrainingService {
     TrainingDto save(TrainingRequestCreate request) throws NotFoundException;
 
-    TrainingDto update(String id, TrainingRequestUpdate trainingUpdateData) throws NotFoundException;
+    TrainingDto update(String id, TrainingUpdateDto trainingUpdateData) throws NotFoundException;
 
     void delete(String id) throws NotFoundException;
 
@@ -31,7 +31,7 @@ public interface TrainingService {
                                                                      String toDate, String traineeName,
                                                                      TrainingTypeName trainingTypeName);
 
-    List<TrainingDto> updateTrainingsOfTrainee(String traineeUsername, List<TraineeTrainingRequestUpdate> trainingUpdateData) throws NotFoundException;
+    List<TrainingDto> updateTrainingsOfTrainee(String traineeUsername, List<TraineeTrainingUpdateDto> trainingUpdateData) throws NotFoundException;
 
-    List<TrainingDto> updateTrainingsOfTrainer(String trainerUsername, List<TrainerTrainingRequestUpdate> trainingUpdateData) throws NotFoundException;
+    List<TrainingDto> updateTrainingsOfTrainer(String trainerUsername, List<TrainerTrainingUpdateDto> trainingUpdateData) throws NotFoundException;
 }

@@ -2,17 +2,18 @@ package org.epam.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.epam.models.SecurityContextHolder;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.enums.UserType;
-import org.epam.models.request.TrainerRegistrationRequest;
+import org.epam.models.request.TrainerRegistrationDto;
 import org.epam.models.request.create.TrainerRequestCreate;
 import org.epam.models.request.create.UserRequestCreate;
-import org.epam.models.request.update.TrainerRequestUpdate;
+import org.epam.models.request.update.TrainerUpdateDto;
 import org.epam.service.TrainerService;
 import org.epam.service.UserService;
-import org.epam.utils.menurender.transactionconfiguration.TransactionExecution;
+import org.epam.utils.transactionconfiguration.TransactionExecution;
 import org.epam.utils.permissionforroles.RequiredRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/trainer")
+@RequiredArgsConstructor
 @Tag(name = "Trainer Management", description = "APIs for managing trainer operations")
 public class TrainerController {
     private final TrainerService trainerService;
@@ -29,21 +31,13 @@ public class TrainerController {
     private final TransactionExecution transactionExecution;
     private final SecurityContextHolder securityContextHolder;
 
-    public TrainerController(TrainerService trainerService, UserService userService,
-                             TransactionExecution transactionExecution, SecurityContextHolder securityContextHolder) {
-        this.trainerService = trainerService;
-        this.userService = userService;
-        this.transactionExecution = transactionExecution;
-        this.securityContextHolder = securityContextHolder;
-    }
-
     @PostMapping("/register")
     @RequiredRole(UserType.NOT_AUTHORIZE)
-    public ResponseEntity<AuthResponseDto> register(@RequestBody @Valid TrainerRegistrationRequest request) {
-        var save = userService.save(new UserRequestCreate(request.firstname(), request.lastname(), Boolean.TRUE));
+    public ResponseEntity<AuthResponseDto> register(@RequestBody @Valid TrainerRegistrationDto request) {
+        var savedUser = userService.save(new UserRequestCreate(request.firstname(), request.lastname(), Boolean.TRUE));
         return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
                 -> trainerService.save(new TrainerRequestCreate(
-                save.id(), request.specializationId()))), HttpStatus.CREATED);
+                savedUser.id(), request.specializationId()))), HttpStatus.CREATED);
     }
 
     @GetMapping("/profile")
@@ -54,14 +48,14 @@ public class TrainerController {
 
     @DeleteMapping("/{id}")
     @RequiredRole(UserType.TRAINER)
-    public ResponseEntity<?> deleteById(@PathVariable String id) {
+    public ResponseEntity<String> deleteById(@PathVariable String id) {
         transactionExecution.executeVoidWithTransaction(() -> trainerService.delete(id));
         return ResponseEntity.ok("DELETED");
     }
 
     @PutMapping("/update")
     @RequiredRole(UserType.TRAINER)
-    public ResponseEntity<TrainerDto> updateTrainer(@RequestBody @Valid TrainerRequestUpdate requestUpdate) {
+    public ResponseEntity<TrainerDto> updateTrainer(@RequestBody @Valid TrainerUpdateDto requestUpdate) {
         return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
                 -> trainerService.update(securityContextHolder.getUserId(), requestUpdate)));
     }
@@ -88,7 +82,7 @@ public class TrainerController {
 
     @PatchMapping("/change-status/{trainerUsername}")
     @RequiredRole(UserType.TRAINER)
-    public ResponseEntity<?> changeStatus(@PathVariable String trainerUsername) {
+    public ResponseEntity<String> changeStatus(@PathVariable String trainerUsername) {
         transactionExecution.executeWithTransaction(() -> trainerService.changeStatus(trainerUsername));
         return ResponseEntity.ok("Status changed");
     }

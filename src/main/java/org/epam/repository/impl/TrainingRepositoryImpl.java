@@ -1,9 +1,8 @@
 package org.epam.repository.impl;
 
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Training;
 import org.epam.models.enums.TrainingTypeName;
@@ -20,28 +19,20 @@ import java.util.Optional;
 
 import static org.epam.utils.CheckerField.check;
 
-
 @Repository
+@RequiredArgsConstructor
+@Log4j2
 public class TrainingRepositoryImpl implements TrainingRepository {
-    private static final Logger logger = LogManager.getLogger(TrainingRepositoryImpl.class);
-
     private final EntityManager entityManager;
 
-    private TypedQueryBuilder<Training> trainingTypedQueryBuilder;
-
-    public TrainingRepositoryImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
     @Override
-    @Transactional
     public Training save(Training training) {
         try {
             if (training.getId() == null) entityManager.persist(training);
             else training = entityManager.merge(training);
             return training;
         } catch (Exception e) {
-            logger.error("Error in saving trainee: {}", e.getMessage());
+            log.error("Error in saving trainee: {}", e.getMessage());
             return null;
         }
     }
@@ -52,7 +43,6 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     }
 
     @Override
-    @Transactional
     public void delete(String id) throws NotFoundException {
         var training = findById(id).orElseThrow(()
                 -> new NotFoundException("Not found trainee by id: " + id));
@@ -73,7 +63,6 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     }
 
     @Override
-    @Transactional
     public Training update(String id, Training training) {
         findById(id).ifPresent(trainingById -> training.setId(id));
         return entityManager.merge(training);
@@ -109,14 +98,13 @@ public class TrainingRepositoryImpl implements TrainingRepository {
                     new TraineeTypedQueryBuilder(username, fromDate, toDate, trainerName, trainingTypeName, entityManager);
             return queryBuilder.createQuery(jpqlBuilder).getResultList();
         } catch (Exception e) {
-            logger.error("Error in finding trainings by trainee username: {}", e.getMessage());
+            log.error("Error in finding trainings by trainee username: {}", e.getMessage());
             return Collections.emptyList();
         }
 
     }
 
     @Override
-    @Transactional
     public List<Training> getTrainerTrainings(String username, LocalDate fromDate,
                                               LocalDate toDate, String traineeName,
                                               TrainingTypeName trainingTypeName) {
@@ -146,7 +134,7 @@ public class TrainingRepositoryImpl implements TrainingRepository {
                     new TrainerTypedQueryBuilder(username, fromDate, toDate, traineeName, trainingTypeName, entityManager);
             return queryBuilder.createQuery(jpqlBuilder).getResultList();
         } catch (Exception e) {
-            logger.error("Error in finding trainings by trainer username: {}", e.getMessage());
+            log.error("Error in finding trainings by trainer username: {}", e.getMessage());
             return Collections.emptyList();
         }
     }

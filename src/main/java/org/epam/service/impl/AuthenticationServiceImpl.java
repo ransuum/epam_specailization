@@ -1,5 +1,7 @@
 package org.epam.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.exception.CredentialException;
@@ -15,17 +17,12 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
+@Log4j2
 public class AuthenticationServiceImpl implements AuthenticationService {
-    private static final Logger log = LogManager.getLogger(AuthenticationServiceImpl.class);
     private final UserRepository userRepository;
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
-
-    public AuthenticationServiceImpl(UserRepository userRepository, TraineeRepository traineeRepository, TrainerRepository trainerRepository) {
-        this.userRepository = userRepository;
-        this.traineeRepository = traineeRepository;
-        this.trainerRepository = trainerRepository;
-    }
 
     @Override
     public SecurityContextHolder authenticate(String username, String password) throws NotFoundException, CredentialException {

@@ -1,11 +1,14 @@
 package org.epam.utils;
 
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.epam.models.enums.TrainingTypeName;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CheckerField {
     public static boolean check(String val) {
         return val != null && !val.trim().isEmpty() && !val.isBlank() && !val.equals(" ");

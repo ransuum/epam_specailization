@@ -14,8 +14,6 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-
 
 @Mapper(uses = {UserMapper.class})
 public interface TraineeMapper {
@@ -35,15 +33,11 @@ public interface TraineeMapper {
         return trainings.stream()
                 .map(Training::getTrainer)
                 .distinct()
-                .map(trainer -> {
-                    return new TrainerDto(
-                            trainer.getId(),
-                            createUserDto(trainer.getUser()),
-                            trainer.getSpecialization().getTrainingTypeName().getVal(),
-                            null
-                    );
-                })
-                .collect(Collectors.toList());
+                .map(trainer -> new TrainerDto(trainer.getId(),
+                        createUserDto(trainer.getUser()),
+                        trainer.getSpecialization().getTrainingTypeName().getVal(),
+                        null)
+                ).toList();
     }
 
     default UserDto createUserDto(User user) {
