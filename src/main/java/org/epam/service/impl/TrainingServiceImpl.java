@@ -8,10 +8,10 @@ import org.epam.models.dto.TrainingListDto;
 import org.epam.models.entity.Training;
 import org.epam.models.enums.NotFoundMessages;
 import org.epam.models.enums.TrainingTypeName;
-import org.epam.models.request.create.TrainingRequestCreate;
-import org.epam.models.request.update.TraineeTrainingUpdateDto;
-import org.epam.models.request.update.TrainerTrainingUpdateDto;
-import org.epam.models.request.update.TrainingUpdateDto;
+import org.epam.models.dto.create.TrainingCreateDto;
+import org.epam.models.dto.update.TraineeTrainingUpdateDto;
+import org.epam.models.dto.update.TrainerTrainingUpdateDto;
+import org.epam.models.dto.update.TrainingUpdateDto;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingRepository;
@@ -24,7 +24,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.epam.utils.CheckerField.check;
+import static org.epam.utils.CheckerBuilder.check;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +37,7 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional
-    public TrainingDto save(TrainingRequestCreate trainingCreationData) throws NotFoundException {
+    public TrainingDto save(TrainingCreateDto trainingCreationData) throws NotFoundException {
         var trainer = trainerRepository.findByUsername(trainingCreationData.trainerUsername())
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
         var trainee = traineeRepository.findByUsername(trainingCreationData.traineeUsername())

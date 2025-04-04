@@ -7,14 +7,11 @@ import org.epam.models.SecurityContextHolder;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.enums.UserType;
-import org.epam.models.request.TrainerRegistrationDto;
-import org.epam.models.request.create.TrainerRequestCreate;
-import org.epam.models.request.create.UserRequestCreate;
-import org.epam.models.request.update.TrainerUpdateDto;
+import org.epam.models.dto.create.TrainerCreateDto;
+import org.epam.models.dto.update.TrainerUpdateDto;
 import org.epam.service.TrainerService;
-import org.epam.service.UserService;
-import org.epam.utils.transactionconfiguration.TransactionExecution;
-import org.epam.utils.permissionforroles.RequiredRole;
+import org.epam.transaction.transactionconfiguration.TransactionExecution;
+import org.epam.security.RequiredRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,29 +24,26 @@ import java.util.List;
 @Tag(name = "Trainer Management", description = "APIs for managing trainer operations")
 public class TrainerController {
     private final TrainerService trainerService;
-    private final UserService userService;
     private final TransactionExecution transactionExecution;
     private final SecurityContextHolder securityContextHolder;
 
     @PostMapping("/register")
     @RequiredRole(UserType.NOT_AUTHORIZE)
-    public ResponseEntity<AuthResponseDto> register(@RequestBody @Valid TrainerRegistrationDto request) {
-        var savedUser = userService.save(new UserRequestCreate(request.firstname(), request.lastname(), Boolean.TRUE));
+    public ResponseEntity<AuthResponseDto> register(@RequestBody @Valid TrainerCreateDto trainerCreateDto) {
         return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
-                -> trainerService.save(new TrainerRequestCreate(
-                savedUser.id(), request.specializationId()))), HttpStatus.CREATED);
+                -> trainerService.save(trainerCreateDto)), HttpStatus.CREATED);
     }
 
     @GetMapping("/profile")
     @RequiredRole(UserType.TRAINER)
     public ResponseEntity<TrainerDto> profile() {
-        return new ResponseEntity<>(trainerService.findById(securityContextHolder.getUserId()), HttpStatus.FOUND);
+        return new ResponseEntity<>(trainerService.findById(securityContextHolder.getUserId()), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     @RequiredRole(UserType.TRAINER)
     public ResponseEntity<String> deleteById(@PathVariable String id) {
-        transactionExecution.executeVoidWithTransaction(() -> trainerService.delete(id));
+        transactionExecution.executeWithTransaction(() -> trainerService.delete(id));
         return ResponseEntity.ok("DELETED");
     }
 

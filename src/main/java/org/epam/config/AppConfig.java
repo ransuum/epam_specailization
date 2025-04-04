@@ -4,7 +4,7 @@ import jakarta.persistence.EntityManager;
 import org.epam.models.SecurityContextHolder;
 import org.epam.models.entity.*;
 import org.epam.models.enums.UserType;
-import org.epam.utils.transactionlogging.RestControllerLoggingAspect;
+import org.epam.transaction.transactionlogging.RestControllerLoggingAspect;
 import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;

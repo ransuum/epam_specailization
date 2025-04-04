@@ -7,7 +7,7 @@ import org.epam.models.enums.TrainingTypeName;
 
 import java.time.LocalDate;
 
-import static org.epam.utils.CheckerField.check;
+import static org.epam.utils.CheckerBuilder.check;
 
 public class TraineeTypedQueryBuilder implements TypedQueryBuilder<Training> {
     private final String username;

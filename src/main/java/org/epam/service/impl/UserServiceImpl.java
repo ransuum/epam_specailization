@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.User;
-import org.epam.models.request.create.UserRequestCreate;
+import org.epam.models.dto.create.UserCreateDto;
 import org.epam.repository.UserRepository;
 import org.epam.service.UserService;
 import org.epam.utils.CredentialsGenerator;
@@ -14,8 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static org.epam.utils.CheckerField.check;
-
+import static org.epam.utils.CheckerBuilder.check;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +24,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto save(UserRequestCreate request) {
+    public UserDto save(UserCreateDto request) {
         var username = credentialsGenerator.generateUsername(request.getFirstName(), request.getLastName());
         return UserMapper.INSTANCE.toDto(userRepository.save(
                 User.builder()

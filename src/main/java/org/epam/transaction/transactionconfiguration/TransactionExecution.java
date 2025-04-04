@@ -1,9 +1,9 @@
-package org.epam.utils.transactionconfiguration;
+package org.epam.transaction.transactionconfiguration;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import lombok.extern.log4j.Log4j2;
-import org.epam.utils.transactionlogging.TransactionContext;
+import org.epam.transaction.transactionlogging.TransactionContext;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,7 +41,7 @@ public class TransactionExecution {
         }
     }
 
-    public void executeVoidWithTransaction(VoidDatabaseOperation operation) {
+    public void executeWithTransaction(VoidDatabaseOperation operation) {
         String transactionId = TransactionContext.getTransactionId();
         EntityTransaction transaction = entityManager.getTransaction();
 

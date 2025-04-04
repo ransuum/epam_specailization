@@ -18,4 +18,13 @@ public class SecurityContextHolder {
     private LocalDateTime generateAt;
     private LocalDateTime expiredAt;
     private UserType userType;
+
+    public SecurityContextHolder newBuild(SecurityContextHolder securityContextHolder) {
+        this.username = securityContextHolder.getUsername();
+        this.userId = securityContextHolder.getUserId();
+        this.generateAt = securityContextHolder.getGenerateAt();
+        this.expiredAt = securityContextHolder.getExpiredAt();
+        this.userType = securityContextHolder.getUserType();
+        return this;
+    }
 }

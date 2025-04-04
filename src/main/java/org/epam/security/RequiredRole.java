@@ -1,4 +1,4 @@
-package org.epam.utils.permissionforroles;
+package org.epam.security;
 
 import org.epam.models.enums.UserType;
 

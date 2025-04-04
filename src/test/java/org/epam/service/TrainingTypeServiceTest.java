@@ -107,7 +107,7 @@ class TrainingTypeServiceTest {
         var exception = assertThrows(NotFoundException.class, () ->
                 trainingTypeService.update(testId, updatedTrainingTypeName));
 
-        assertEquals("Training type not found", exception.getMessage());
+        assertEquals("Training Type Not Found", exception.getMessage());
         verify(trainingTypeRepository).findById(testId);
         verify(trainingTypeRepository, never()).update(anyString(), any());
     }
@@ -189,7 +189,7 @@ class TrainingTypeServiceTest {
         var exception = assertThrows(NotFoundException.class, () ->
                 trainingTypeService.findById(testId));
 
-        assertEquals("Training type not found", exception.getMessage());
+        assertEquals("Training Type Not Found", exception.getMessage());
         verify(trainingTypeRepository).findById(testId);
     }
 

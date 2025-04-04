@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.epam.models.dto.TrainingTypeDto;
 import org.epam.models.enums.UserType;
 import org.epam.service.TrainingTypeService;
-import org.epam.utils.transactionconfiguration.TransactionExecution;
-import org.epam.utils.permissionforroles.RequiredRole;
+import org.epam.transaction.transactionconfiguration.TransactionExecution;
+import org.epam.security.RequiredRole;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +29,7 @@ public class TrainingTypeController {
     @DeleteMapping("/{id}")
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
     public ResponseEntity<String> delete(@PathVariable String id) {
-        transactionExecution.executeVoidWithTransaction(() -> trainingTypeService.delete(id));
+        transactionExecution.executeWithTransaction(() -> trainingTypeService.delete(id));
         return ResponseEntity.ok("DELETED");
     }
 

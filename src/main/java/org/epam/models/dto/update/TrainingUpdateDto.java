@@ -1,4 +1,4 @@
-package org.epam.models.request.update;
+package org.epam.models.dto.update;
 
 public record TrainingUpdateDto(String traineeUsername,
                                 String trainerUsername,

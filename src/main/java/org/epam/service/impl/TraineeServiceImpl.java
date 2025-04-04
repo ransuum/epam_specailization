@@ -7,11 +7,12 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
-import org.epam.models.request.create.TraineeRequestCreate;
-import org.epam.models.request.update.TraineeRequestDto;
+import org.epam.models.dto.create.TraineeCreateDto;
+import org.epam.models.dto.update.TraineeRequestDto;
+import org.epam.models.entity.User;
 import org.epam.repository.TraineeRepository;
-import org.epam.repository.UserRepository;
 import org.epam.service.TraineeService;
+import org.epam.utils.CredentialsGenerator;
 import org.epam.utils.mappers.TraineeMapper;
 import org.springframework.stereotype.Service;
 
@@ -19,23 +20,29 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.epam.utils.CheckerField.check;
+import static org.epam.utils.CheckerBuilder.check;
 
 @Service
 @RequiredArgsConstructor
 public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
-    private final UserRepository userRepository;
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private final CredentialsGenerator credentialsGenerator;
 
     @Override
     @Transactional
-    public AuthResponseDto save(TraineeRequestCreate traineeCreationData) throws NotFoundException {
+    public AuthResponseDto save(TraineeCreateDto traineeCreationData) throws NotFoundException {
+        var username = credentialsGenerator.generateUsername(traineeCreationData.firstname(), traineeCreationData.lastname());
         return TraineeMapper.INSTANCE.toAuthResponseDto(traineeRepository.save(Trainee.builder()
                 .address(traineeCreationData.address())
-                .dateOfBirth(traineeCreationData.dateOfBirth())
-                .user(userRepository.findById(traineeCreationData.userId())
-                        .orElseThrow(() -> new NotFoundException("User not found")))
+                .dateOfBirth(LocalDate.parse(traineeCreationData.dateOfBirth(), FORMATTER))
+                .user(User.builder()
+                        .firstName(traineeCreationData.firstname())
+                        .lastName(traineeCreationData.lastname())
+                        .isActive(Boolean.TRUE)
+                        .username(username)
+                        .password(credentialsGenerator.generatePassword(username))
+                        .build())
                 .build()));
     }
 
@@ -85,10 +92,8 @@ public class TraineeServiceImpl implements TraineeService {
 
         if (!trainee.getUser().getPassword().equals(oldPassword))
             throw new CredentialException("Old password do not match");
-        var user = trainee.getUser();
-        user.setPassword(newPassword);
-        userRepository.update(user.getId(), user);
-        return TraineeMapper.INSTANCE.toDto(trainee);
+        trainee.getUser().setPassword(newPassword);
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.update(id, trainee));
     }
 
     @Override
@@ -110,10 +115,8 @@ public class TraineeServiceImpl implements TraineeService {
         var trainee = traineeRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
-        var user = trainee.getUser();
-        user.setIsActive(user.getIsActive().equals(Boolean.TRUE)
-                ? Boolean.FALSE : Boolean.TRUE);
-        trainee.setUser(userRepository.update(user.getId(), user));
-        return TraineeMapper.INSTANCE.toDto(trainee);
+        trainee.getUser().setIsActive(trainee.getUser().getIsActive()
+                .equals(Boolean.TRUE) ? Boolean.FALSE : Boolean.TRUE);
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.update(trainee.getId(), trainee));
     }
 }

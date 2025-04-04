@@ -5,15 +5,15 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainingDto;
 import org.epam.models.dto.TrainingListDto;
 import org.epam.models.enums.TrainingTypeName;
-import org.epam.models.request.create.TrainingRequestCreate;
-import org.epam.models.request.update.TraineeTrainingUpdateDto;
-import org.epam.models.request.update.TrainerTrainingUpdateDto;
-import org.epam.models.request.update.TrainingUpdateDto;
+import org.epam.models.dto.create.TrainingCreateDto;
+import org.epam.models.dto.update.TraineeTrainingUpdateDto;
+import org.epam.models.dto.update.TrainerTrainingUpdateDto;
+import org.epam.models.dto.update.TrainingUpdateDto;
 
 import java.util.List;
 
 public interface TrainingService {
-    TrainingDto save(TrainingRequestCreate request) throws NotFoundException;
+    TrainingDto save(TrainingCreateDto request) throws NotFoundException;
 
     TrainingDto update(String id, TrainingUpdateDto trainingUpdateData) throws NotFoundException;
 

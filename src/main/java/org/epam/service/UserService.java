@@ -3,12 +3,12 @@ package org.epam.service;
 
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.User;
-import org.epam.models.request.create.UserRequestCreate;
+import org.epam.models.dto.create.UserCreateDto;
 
 import java.util.List;
 
 public interface UserService {
-    UserDto save(UserRequestCreate request);
+    UserDto save(UserCreateDto request);
 
     UserDto update(String id, User request);
 

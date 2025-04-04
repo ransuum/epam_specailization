@@ -8,37 +8,46 @@ import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
+import org.epam.models.entity.User;
 import org.epam.models.enums.NotFoundMessages;
-import org.epam.models.request.create.TrainerRequestCreate;
-import org.epam.models.request.update.TrainerUpdateDto;
+import org.epam.models.dto.create.TrainerCreateDto;
+import org.epam.models.dto.update.TrainerUpdateDto;
+import org.epam.models.enums.TrainingTypeName;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
-import org.epam.repository.UserRepository;
 import org.epam.service.TrainerService;
+import org.epam.utils.CredentialsGenerator;
 import org.epam.utils.mappers.TrainerMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static org.epam.utils.CheckerField.check;
+import static org.epam.utils.CheckerBuilder.check;
 
 @Service
 @RequiredArgsConstructor
 public class TrainerServiceImpl implements TrainerService {
     private final TrainerRepository trainerRepository;
-    private final UserRepository userRepository;
     private final TrainingTypeRepository trainingTypeRepository;
     private final TraineeRepository traineeRepository;
+    private final CredentialsGenerator credentialsGenerator;
 
     @Override
     @Transactional
-    public AuthResponseDto save(TrainerRequestCreate trainerCreateData) throws NotFoundException {
+    public AuthResponseDto save(TrainerCreateDto trainerCreateData) throws NotFoundException {
+        var username = credentialsGenerator.generateUsername(trainerCreateData.firstname(), trainerCreateData.lastname());
         return TrainerMapper.INSTANCE.toAuthResponseDto(trainerRepository.save(
                 Trainer.builder()
-                        .user(userRepository.findById(trainerCreateData.userId())
-                                .orElseThrow(() -> new NotFoundException("User not found")))
-                        .specialization(trainingTypeRepository.findById(trainerCreateData.specializationId())
+                        .user(User.builder()
+                                .firstName(trainerCreateData.firstname())
+                                .lastName(trainerCreateData.lastname())
+                                .username(username)
+                                .password(credentialsGenerator.generatePassword(username))
+                                .isActive(Boolean.TRUE)
+                                .build())
+                        .specialization(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName
+                                        .getTrainingNameFromString(trainerCreateData.specialization()))
                                 .orElseThrow(() -> new NotFoundException("Specialization Not Found")))
                         .build())
         );
@@ -91,10 +100,8 @@ public class TrainerServiceImpl implements TrainerService {
         if (!trainer.getUser().getPassword().equals(oldPassword))
             throw new CredentialException("Old password do not match");
 
-        var user = trainer.getUser();
-        user.setPassword(newPassword);
-        userRepository.update(user.getId(), user);
-        return TrainerMapper.INSTANCE.toDto(trainer);
+        trainer.getUser().setPassword(newPassword);
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.update(id, trainer));
     }
 
     @Override
@@ -111,11 +118,9 @@ public class TrainerServiceImpl implements TrainerService {
         var trainer = trainerRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
-        var user = trainer.getUser();
-        user.setIsActive(user.getIsActive().equals(Boolean.TRUE)
-                ? Boolean.FALSE : Boolean.TRUE);
-        trainer.setUser(userRepository.update(user.getId(), user));
-        return TrainerMapper.INSTANCE.toDto(trainer);
+        trainer.getUser().setIsActive(trainer.getUser().getIsActive()
+                .equals(Boolean.TRUE) ? Boolean.FALSE : Boolean.TRUE);
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.update(trainer.getId(), trainer));
     }
 
     @Override

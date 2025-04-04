@@ -1,5 +1,6 @@
-package org.epam.utils.permissionforroles;
+package org.epam.security;
 
+import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -10,13 +11,9 @@ import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
+@RequiredArgsConstructor
 public class RoleCheckAspect {
-
     private final SecurityContextHolder securityContextHolder;
-
-    public RoleCheckAspect(SecurityContextHolder securityContextHolder) {
-        this.securityContextHolder = securityContextHolder;
-    }
 
     @Around("@annotation(requiredRole)")
     public Object checkUserRole(ProceedingJoinPoint joinPoint, RequiredRole requiredRole) throws Throwable {

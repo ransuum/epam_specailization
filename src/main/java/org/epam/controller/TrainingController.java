@@ -7,12 +7,12 @@ import org.epam.models.dto.TrainingDto;
 import org.epam.models.dto.TrainingListDto;
 import org.epam.models.enums.TrainingTypeName;
 import org.epam.models.enums.UserType;
-import org.epam.models.request.create.TrainingRequestCreate;
-import org.epam.models.request.update.TraineeTrainingUpdateDto;
-import org.epam.models.request.update.TrainerTrainingUpdateDto;
+import org.epam.models.dto.create.TrainingCreateDto;
+import org.epam.models.dto.update.TraineeTrainingUpdateDto;
+import org.epam.models.dto.update.TrainerTrainingUpdateDto;
 import org.epam.service.TrainingService;
-import org.epam.utils.transactionconfiguration.TransactionExecution;
-import org.epam.utils.permissionforroles.RequiredRole;
+import org.epam.transaction.transactionconfiguration.TransactionExecution;
+import org.epam.security.RequiredRole;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +28,8 @@ public class TrainingController {
 
     @PostMapping("/create")
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
-    public ResponseEntity<String> create(@RequestBody @Valid TrainingRequestCreate trainingRequestCreate) {
-        transactionExecution.executeWithTransaction(() -> trainingService.save(trainingRequestCreate));
+    public ResponseEntity<String> create(@RequestBody @Valid TrainingCreateDto trainingCreateDto) {
+        transactionExecution.executeWithTransaction(() -> trainingService.save(trainingCreateDto));
         return ResponseEntity.ok("Training request created successfully");
     }
 

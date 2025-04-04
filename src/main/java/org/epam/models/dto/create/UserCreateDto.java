@@ -1,4 +1,4 @@
-package org.epam.models.request.create;
+package org.epam.models.dto.create;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserRequestCreate {
+public class UserCreateDto {
     @NotBlank(message = "firstName is blank")
     private String firstName;
 

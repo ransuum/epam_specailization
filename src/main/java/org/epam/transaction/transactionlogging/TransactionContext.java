@@ -1,4 +1,4 @@
-package org.epam.utils.transactionlogging;
+package org.epam.transaction.transactionlogging;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

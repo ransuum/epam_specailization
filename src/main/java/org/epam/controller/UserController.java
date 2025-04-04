@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.epam.models.dto.UserDto;
 import org.epam.models.enums.UserType;
 import org.epam.service.UserService;
-import org.epam.utils.permissionforroles.RequiredRole;
+import org.epam.security.RequiredRole;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
