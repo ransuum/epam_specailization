@@ -11,7 +11,7 @@ import org.epam.models.dto.create.TrainingCreateDto;
 import org.epam.models.dto.update.TraineeTrainingUpdateDto;
 import org.epam.models.dto.update.TrainerTrainingUpdateDto;
 import org.epam.service.TrainingService;
-import org.epam.transaction.transactionconfiguration.TransactionExecution;
+import org.epam.transaction.configuration.TransactionExecution;
 import org.epam.security.RequiredRole;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

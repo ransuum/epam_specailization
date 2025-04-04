@@ -1,4 +1,4 @@
-package org.epam.transaction.transactionconfiguration;
+package org.epam.transaction.configuration;
 
 public interface VoidDatabaseOperation {
     void execute();

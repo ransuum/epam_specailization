@@ -1,9 +1,9 @@
-package org.epam.transaction.transactionconfiguration;
+package org.epam.transaction.configuration;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import lombok.extern.log4j.Log4j2;
-import org.epam.transaction.transactionlogging.TransactionContext;
+import org.epam.transaction.logging.TransactionContext;
 import org.springframework.stereotype.Component;
 
 @Component

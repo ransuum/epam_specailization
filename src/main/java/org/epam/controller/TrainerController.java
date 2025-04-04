@@ -10,7 +10,7 @@ import org.epam.models.enums.UserType;
 import org.epam.models.dto.create.TrainerCreateDto;
 import org.epam.models.dto.update.TrainerUpdateDto;
 import org.epam.service.TrainerService;
-import org.epam.transaction.transactionconfiguration.TransactionExecution;
+import org.epam.transaction.configuration.TransactionExecution;
 import org.epam.security.RequiredRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

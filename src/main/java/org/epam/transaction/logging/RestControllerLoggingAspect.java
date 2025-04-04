@@ -1,4 +1,4 @@
-package org.epam.transaction.transactionlogging;
+package org.epam.transaction.logging;
 
 import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.ProceedingJoinPoint;

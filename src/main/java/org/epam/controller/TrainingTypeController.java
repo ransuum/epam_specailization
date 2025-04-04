@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.epam.models.dto.TrainingTypeDto;
 import org.epam.models.enums.UserType;
 import org.epam.service.TrainingTypeService;
-import org.epam.transaction.transactionconfiguration.TransactionExecution;
+import org.epam.transaction.configuration.TransactionExecution;
 import org.epam.security.RequiredRole;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
