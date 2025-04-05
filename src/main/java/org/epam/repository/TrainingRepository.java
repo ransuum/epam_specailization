@@ -15,8 +15,8 @@ public interface TrainingRepository extends JpaRepository<Training, String> {
             "WHERE t.trainee.users.username = :username " +
             "AND (:fromDate IS NULL OR t.startTime >= :fromDate) " +
             "AND (:toDate IS NULL OR t.startTime <= :toDate) " +
-            "AND (:trainerName IS NULL OR t.trainer.users.firstName LIKE %:trainerName%) " +
-            "AND (:trainingType IS NULL OR t.trainingType = :trainingType)")
+            "AND (:trainerName IS NULL OR t.trainer.users.firstName = :trainerName) " +
+            "AND (:trainingType IS NULL OR t.trainingType.trainingTypeName = :trainingType)")
     List<Training> getTraineeTrainings(@Param("username") String username,
                                        @Param("fromDate") LocalDate fromDate,
                                        @Param("toDate") LocalDate toDate,
@@ -27,8 +27,8 @@ public interface TrainingRepository extends JpaRepository<Training, String> {
             "WHERE t.trainer.users.username = :username " +
             "AND (:fromDate IS NULL OR t.startTime >= :fromDate) " +
             "AND (:toDate IS NULL OR t.startTime <= :toDate) " +
-            "AND (:traineeName IS NULL OR t.trainee.users.firstName LIKE %:traineeName%) " +
-            "AND (:trainingType IS NULL OR t.trainingType = :trainingType)")
+            "AND (:traineeName IS NULL OR t.trainee.users.firstName = :trainerName) " +
+            "AND (:trainingType IS NULL OR t.trainingType.trainingTypeName = :trainingType)")
     List<Training> getTrainerTrainings(@Param("username") String username,
                                        @Param("fromDate") LocalDate fromDate,
                                        @Param("toDate") LocalDate toDate,

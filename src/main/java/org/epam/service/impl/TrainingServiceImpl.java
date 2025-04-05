@@ -84,8 +84,9 @@ public class TrainingServiceImpl implements TrainingService {
     @Override
     @Transactional
     public void delete(String id) throws NotFoundException {
-        trainingRepository.deleteById(id);
-
+        var training = trainingRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING.getVal()));
+        trainingRepository.delete(training);
     }
 
     @Override

@@ -122,11 +122,12 @@ class TraineeServiceTest {
 
     @Test
     void delete_shouldDeleteTrainee() {
-        doNothing().when(traineeRepository).deleteById(testId);
+        when(traineeRepository.findById(testId)).thenReturn(Optional.of(testTrainee));
+        doNothing().when(traineeRepository).delete(testTrainee);
 
         traineeService.delete(testId);
 
-        verify(traineeRepository).deleteById(testId);
+        verify(traineeRepository).delete(testTrainee);
     }
 
     @Test
@@ -232,7 +233,7 @@ class TraineeServiceTest {
         testUsers.setIsActive(false);
         when(traineeRepository.findByUsers_Username(testUsername)).thenReturn(Optional.of(testTrainee));
         when(traineeRepository.save(any(Trainee.class))).thenAnswer(invocation -> {
-            Trainee updatedTrainee = invocation.getArgument(1);
+            Trainee updatedTrainee = invocation.getArgument(0);
             assertTrue(updatedTrainee.getUsers().getIsActive());
             return updatedTrainee;
         });
@@ -250,7 +251,7 @@ class TraineeServiceTest {
         testUsers.setIsActive(true);
         when(traineeRepository.findByUsers_Username(testUsername)).thenReturn(Optional.of(testTrainee));
         when(traineeRepository.save(any(Trainee.class))).thenAnswer(invocation -> {
-            Trainee updatedTrainee = invocation.getArgument(1);
+            Trainee updatedTrainee = invocation.getArgument(0);
             assertFalse(updatedTrainee.getUsers().getIsActive());
             return updatedTrainee;
         });

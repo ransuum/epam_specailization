@@ -9,6 +9,7 @@ import org.epam.models.entity.Trainee;
 import org.epam.models.dto.create.TraineeCreateDto;
 import org.epam.models.dto.update.TraineeRequestDto;
 import org.epam.models.entity.Users;
+import org.epam.models.enums.NotFoundMessages;
 import org.epam.repository.TraineeRepository;
 import org.epam.service.TraineeService;
 import org.epam.utils.CredentialsGenerator;
@@ -65,7 +66,9 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional
     public void delete(String id) {
-        traineeRepository.deleteById(id);
+        var trainee = traineeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal()));
+        traineeRepository.delete(trainee);
     }
 
     @Override

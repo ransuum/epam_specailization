@@ -318,11 +318,12 @@ class TrainerServiceTest {
 
     @Test
     void delete_shouldDeleteTrainer() throws NotFoundException {
-        doNothing().when(trainerRepository).deleteById("trainerId");
+        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
+        doNothing().when(trainerRepository).delete(testTrainer);
 
         trainerService.delete("trainerId");
 
-        verify(trainerRepository).deleteById("trainerId");
+        verify(trainerRepository).delete(testTrainer);
     }
 
     @Test

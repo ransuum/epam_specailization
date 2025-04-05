@@ -119,27 +119,19 @@ class UsersServiceTest {
         var exception = assertThrows(NotFoundException.class, () ->
                 userService.update(TEST_ID, updateRequest));
 
-        assertEquals("User not found", exception.getMessage());
+        assertEquals("User Not Found", exception.getMessage());
         verify(userRepository).findById(TEST_ID);
         verify(userRepository, never()).save(any());
     }
 
     @Test
     void delete_shouldDeleteUser() {
-        doNothing().when(userRepository).deleteById(TEST_ID);
+        when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUsers));
+        doNothing().when(userRepository).delete(testUsers);
 
         userService.delete(TEST_ID);
 
-        verify(userRepository).deleteById(TEST_ID);
-    }
-
-    @Test
-    void delete_shouldHandleNotFoundExceptionGracefully() throws NotFoundException {
-        doNothing().when(userRepository).deleteById(TEST_ID);
-
-        userService.delete(TEST_ID);
-
-        verify(userRepository).deleteById(TEST_ID);
+        verify(userRepository).delete(testUsers);
     }
 
     @Test
@@ -184,7 +176,7 @@ class UsersServiceTest {
 
         var result = assertThrows(NotFoundException.class, () -> userService.findById(TEST_ID));
 
-        assertEquals("User not found", result.getMessage());
+        assertEquals("User Not Found", result.getMessage());
         verify(userRepository).findById(TEST_ID);
         verify(userRepository, never()).save(any());
     }

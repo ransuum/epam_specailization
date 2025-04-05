@@ -25,12 +25,12 @@ public interface TrainingMapper {
     TrainingListDto toListDto(Training training);
 
     @Mapping(target = "trainingType", source = "trainingType", qualifiedByName = "mapTrainingType")
-    @Mapping(target = "firstname", expression = "java(training.getTrainer().getUsers().getFirstName())")
-    @Mapping(target = "lastname", expression = "java(training.getTrainer().getUsers().getLastName())")
+    @Mapping(target = "firstname", expression = "java(training.getTrainee().getUsers().getFirstName())")
+    @Mapping(target = "lastname", expression = "java(training.getTrainee().getUsers().getLastName())")
     TrainingListDto.TrainingListDtoForUser toListDtoForTrainer(Training training);
 
     @Mapping(target = "trainingType", source = "trainingType", qualifiedByName = "mapTrainingType")
-    @Mapping(target = "firstname", expression = "java(training.getTrainee().getUsers().getFirstName())")
-    @Mapping(target = "lastname", expression = "java(training.getTrainee().getUsers().getLastName())")
+    @Mapping(target = "firstname", expression = "java(training.getTrainer().getUsers().getFirstName())")
+    @Mapping(target = "lastname", expression = "java(training.getTrainer().getUsers().getLastName())")
     TrainingListDto.TrainingListDtoForUser toListDtoForTrainee(Training training);
 }

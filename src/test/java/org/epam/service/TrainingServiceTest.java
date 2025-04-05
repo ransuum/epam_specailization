@@ -51,20 +51,18 @@ class TrainingServiceTest {
     private Trainer testTrainer;
     private TrainingType testTrainingType;
     private Training testTraining;
-    private Users testUsers;
-    private Users testTrainerUsers;
     private String testId;
 
     @BeforeEach
     void setUp() {
         testId = "test-id";
-        testUsers = new Users();
+        var testUsers = new Users();
         testUsers.setId("user-id");
         testUsers.setFirstName("John");
         testUsers.setLastName("Doe");
         testUsers.setUsername("johndoe");
 
-        testTrainerUsers = new Users();
+        var testTrainerUsers = new Users();
         testTrainerUsers.setId("trainer-user-id");
         testTrainerUsers.setFirstName("Jane");
         testTrainerUsers.setLastName("Smith");
@@ -136,9 +134,8 @@ class TrainingServiceTest {
 
         when(trainerRepository.findByUsers_Username("janesmith")).thenReturn(Optional.of(testTrainer));
 
-        var exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.save(request);
-        });
+        var exception = assertThrows(NotFoundException.class, () ->
+            trainingService.save(request));
 
         assertEquals("Trainee Not Found", exception.getMessage());
         verify(trainingRepository, never()).save(any(Training.class));
@@ -157,9 +154,8 @@ class TrainingServiceTest {
 
         when(trainerRepository.findByUsers_Username("janesmith")).thenReturn(Optional.empty());
 
-        var exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.save(request);
-        });
+        var exception = assertThrows(NotFoundException.class, () ->
+            trainingService.save(request));
 
         assertEquals("Trainer Not Found", exception.getMessage());
         verify(trainingRepository, never()).save(any(Training.class));
@@ -239,9 +235,7 @@ class TrainingServiceTest {
 
         when(trainingRepository.findById("non-existent-id")).thenReturn(Optional.empty());
 
-        var exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.update("non-existent-id", request);
-        });
+        var exception = assertThrows(NotFoundException.class, () -> trainingService.update("non-existent-id", request));
 
         assertEquals("Training not found", exception.getMessage());
         verify(trainingRepository, never()).save(any(Training.class));
@@ -249,23 +243,25 @@ class TrainingServiceTest {
 
     @Test
     void delete_shouldDeleteTraining() throws NotFoundException {
-        doNothing().when(trainingRepository).deleteById(testId);
+        when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
+        doNothing().when(trainingRepository).delete(testTraining);
 
         trainingService.delete(testId);
 
-        verify(trainingRepository).deleteById(testId);
+        verify(trainingRepository).delete(testTraining);
     }
 
     @Test
     void delete_shouldHandleNotFoundExceptionGracefully() {
         String nonExistentId = "non-existent-id";
-        doThrow(new NotFoundException("Training not found")).when(trainingRepository).deleteById(nonExistentId);
+        when(trainingRepository.findById(nonExistentId))
+                .thenReturn(Optional.empty());
 
-        var exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.delete(nonExistentId);
-        });
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> trainingService.delete(nonExistentId));
 
-        assertEquals("Training not found", exception.getMessage());
+        assertEquals("Training Not Found", exception.getMessage());
+        verify(trainingRepository, never()).delete(any(Training.class));
     }
 
     @Test
@@ -298,9 +294,7 @@ class TrainingServiceTest {
         String nonExistentId = "non-existent-id";
         when(trainingRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        var exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.findById(nonExistentId);
-        });
+        var exception = assertThrows(NotFoundException.class, () -> trainingService.findById(nonExistentId));
 
         assertEquals("Trainee not found by id " + nonExistentId, exception.getMessage());
     }

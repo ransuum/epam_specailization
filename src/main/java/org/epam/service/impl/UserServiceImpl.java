@@ -5,6 +5,7 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.Users;
 import org.epam.models.dto.create.UserCreateDto;
+import org.epam.models.enums.NotFoundMessages;
 import org.epam.repository.UserRepository;
 import org.epam.service.UserService;
 import org.epam.utils.CredentialsGenerator;
@@ -41,7 +42,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto update(String id, Users request) throws NotFoundException {
         var user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException(NotFoundMessages.USERS.getVal()));
 
         if (check(request.getFirstName())) user.setFirstName(request.getFirstName());
         if (check(request.getLastName())) user.setLastName(request.getLastName());
@@ -56,7 +57,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(String id) {
-        userRepository.deleteById(id);
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(NotFoundMessages.USERS.getVal()));
+        userRepository.delete(user);
     }
 
     @Override
@@ -71,7 +74,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto findById(String id) throws NotFoundException {
         return UserMapper.INSTANCE.toDto(userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found")));
+                .orElseThrow(() -> new NotFoundException(NotFoundMessages.USERS.getVal())));
 
     }
 
