@@ -11,7 +11,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = {"org.springdoc"})
 @EnableAutoConfiguration(exclude = SpringDocDataRestConfiguration.class)
 public class SwaggerConfig implements WebMvcConfigurer {
 

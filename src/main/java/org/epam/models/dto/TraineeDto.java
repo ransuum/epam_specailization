@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record TraineeDto(String id,
-                         UserDto user,
+                         UserDto users,
                          @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
                          LocalDate dateOfBirth,
                          String address,

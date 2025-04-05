@@ -87,7 +87,7 @@ class TrainingTypeServiceTest {
                 .build();
 
         when(trainingTypeRepository.findById(testId)).thenReturn(Optional.of(testTrainingTypeEntity));
-        when(trainingTypeRepository.update(eq(testId), any(TrainingType.class))).thenReturn(updatedTrainingView);
+        when(trainingTypeRepository.save(any(TrainingType.class))).thenReturn(updatedTrainingView);
 
         var result = trainingTypeService.update(testId, updatedTrainingTypeName);
 
@@ -96,7 +96,7 @@ class TrainingTypeServiceTest {
         assertEquals(updatedTrainingTypeName.getVal(), result.trainingName());
 
         verify(trainingTypeRepository).findById(testId);
-        verify(trainingTypeRepository).update(eq(testId), argThat(view ->
+        verify(trainingTypeRepository).save(argThat(view ->
                 view.getTrainingTypeName() == updatedTrainingTypeName));
     }
 
@@ -109,27 +109,27 @@ class TrainingTypeServiceTest {
 
         assertEquals("Training Type Not Found", exception.getMessage());
         verify(trainingTypeRepository).findById(testId);
-        verify(trainingTypeRepository, never()).update(anyString(), any());
+        verify(trainingTypeRepository, never()).save(any());
     }
 
     @Test
     void delete_shouldDeleteTrainingView() throws NotFoundException {
-        doNothing().when(trainingTypeRepository).delete(testId);
+        doNothing().when(trainingTypeRepository).deleteById(testId);
 
         trainingTypeService.delete(testId);
 
-        verify(trainingTypeRepository).delete(testId);
+        verify(trainingTypeRepository).deleteById(testId);
     }
 
     @Test
     void delete_shouldHandleNotFoundExceptionGracefully() throws NotFoundException {
-        doThrow(new NotFoundException("Training view not found")).when(trainingTypeRepository).delete(testId);
+        doThrow(new NotFoundException("Training view not found")).when(trainingTypeRepository).deleteById(testId);
 
         var exception = assertThrows(NotFoundException.class, () ->
                 trainingTypeService.delete(testId));
 
         assertEquals("Training view not found", exception.getMessage());
-        verify(trainingTypeRepository).delete(testId);
+        verify(trainingTypeRepository).deleteById(testId);
     }
 
     @Test

@@ -10,7 +10,6 @@ import org.epam.models.enums.UserType;
 import org.epam.models.dto.create.TrainerCreateDto;
 import org.epam.models.dto.update.TrainerUpdateDto;
 import org.epam.service.TrainerService;
-import org.epam.transaction.configuration.TransactionExecution;
 import org.epam.security.RequiredRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,14 +23,12 @@ import java.util.List;
 @Tag(name = "Trainer Management", description = "APIs for managing trainer operations")
 public class TrainerController {
     private final TrainerService trainerService;
-    private final TransactionExecution transactionExecution;
     private final SecurityContextHolder securityContextHolder;
 
     @PostMapping("/register")
     @RequiredRole(UserType.NOT_AUTHORIZE)
     public ResponseEntity<AuthResponseDto> register(@RequestBody @Valid TrainerCreateDto trainerCreateDto) {
-        return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
-                -> trainerService.save(trainerCreateDto)), HttpStatus.CREATED);
+        return new ResponseEntity<>(trainerService.save(trainerCreateDto), HttpStatus.CREATED);
     }
 
     @GetMapping("/profile")
@@ -43,15 +40,14 @@ public class TrainerController {
     @DeleteMapping("/{id}")
     @RequiredRole(UserType.TRAINER)
     public ResponseEntity<String> deleteById(@PathVariable String id) {
-        transactionExecution.executeWithTransaction(() -> trainerService.delete(id));
+        trainerService.delete(id);
         return ResponseEntity.ok("DELETED");
     }
 
     @PutMapping("/update")
     @RequiredRole(UserType.TRAINER)
     public ResponseEntity<TrainerDto> updateTrainer(@RequestBody @Valid TrainerUpdateDto requestUpdate) {
-        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
-                -> trainerService.update(securityContextHolder.getUserId(), requestUpdate)));
+        return ResponseEntity.ok(trainerService.update(securityContextHolder.getUserId(), requestUpdate));
     }
 
     @GetMapping("/all")
@@ -64,8 +60,7 @@ public class TrainerController {
     @RequiredRole(UserType.TRAINER)
     public ResponseEntity<TrainerDto> changePassword(@RequestParam String oldPassword,
                                                      @RequestParam String newPassword) {
-        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
-                -> trainerService.changePassword(securityContextHolder.getUserId(), oldPassword, newPassword)));
+        return ResponseEntity.ok(trainerService.changePassword(securityContextHolder.getUserId(), oldPassword, newPassword));
     }
 
     @GetMapping("/username/{username}")
@@ -77,7 +72,7 @@ public class TrainerController {
     @PatchMapping("/change-status/{trainerUsername}")
     @RequiredRole(UserType.TRAINER)
     public ResponseEntity<String> changeStatus(@PathVariable String trainerUsername) {
-        transactionExecution.executeWithTransaction(() -> trainerService.changeStatus(trainerUsername));
+        trainerService.changeStatus(trainerUsername);
         return ResponseEntity.ok("Status changed");
     }
 

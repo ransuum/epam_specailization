@@ -6,7 +6,7 @@ import org.epam.models.dto.TrainerDto;
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
-import org.epam.models.entity.User;
+import org.epam.models.entity.Users;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -20,7 +20,7 @@ import java.util.List;
 public interface TrainerMapper {
     TrainerMapper INSTANCE = Mappers.getMapper(TrainerMapper.class);
 
-    @Mapping(target = "user.password", ignore = true)
+    @Mapping(target = "users.password", ignore = true)
     @Mapping(target = "specialization", expression = "java(trainer.getSpecialization().getTrainingTypeName().getVal())")
     @Mapping(target = "trainees", source = "trainings", qualifiedByName = "mapTraineesForTrainer")
     TrainerDto toDto(Trainer trainer);
@@ -35,25 +35,25 @@ public interface TrainerMapper {
                 .distinct()
                 .map(trainee -> new TraineeDto(
                             trainee.getId(),
-                            createUserDto(trainee.getUser()),
+                            createUserDto(trainee.getUsers()),
                             trainee.getDateOfBirth(),
                             trainee.getAddress(),
                             null)
                 ).toList();
     }
 
-    default UserDto createUserDto(User user) {
+    default UserDto createUserDto(Users users) {
         return new UserDto(
-                user.getId(),
-                user.getUsername(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getIsActive(),
+                users.getId(),
+                users.getUsername(),
+                users.getFirstName(),
+                users.getLastName(),
+                users.getIsActive(),
                 null
         );
     }
 
-    @Mapping(target = "username", expression = "java(trainer.getUser().getUsername())")
-    @Mapping(target = "password", expression = "java(trainer.getUser().getPassword())")
+    @Mapping(target = "username", expression = "java(trainer.getUsers().getUsername())")
+    @Mapping(target = "password", expression = "java(trainer.getUsers().getPassword())")
     AuthResponseDto toAuthResponseDto(Trainer trainer);
 }

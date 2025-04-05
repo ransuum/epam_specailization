@@ -1,6 +1,5 @@
 package org.epam.service.impl;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainingDto;
@@ -19,6 +18,7 @@ import org.epam.repository.TrainingTypeRepository;
 import org.epam.service.TrainingService;
 import org.epam.utils.mappers.TrainingMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -38,9 +38,9 @@ public class TrainingServiceImpl implements TrainingService {
     @Override
     @Transactional
     public TrainingDto save(TrainingCreateDto trainingCreationData) throws NotFoundException {
-        var trainer = trainerRepository.findByUsername(trainingCreationData.trainerUsername())
+        var trainer = trainerRepository.findByUsers_Username(trainingCreationData.trainerUsername())
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
-        var trainee = traineeRepository.findByUsername(trainingCreationData.traineeUsername())
+        var trainee = traineeRepository.findByUsers_Username(trainingCreationData.traineeUsername())
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal()));
         var trainingType = trainingTypeRepository.findByTrainingTypeName(
                         TrainingTypeName.getTrainingNameFromString(trainingCreationData.trainingTypeName()))
@@ -65,11 +65,11 @@ public class TrainingServiceImpl implements TrainingService {
                 .orElseThrow(() -> new NotFoundException("Training not found"));
 
         if (check(trainingUpdateData.traineeUsername()))
-            training.setTrainee(traineeRepository.findByUsername(trainingUpdateData.traineeUsername())
+            training.setTrainee(traineeRepository.findByUsers_Username(trainingUpdateData.traineeUsername())
                     .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal())));
 
         if (check(trainingUpdateData.trainerUsername()))
-            training.setTrainer(trainerRepository.findByUsername(trainingUpdateData.trainerUsername())
+            training.setTrainer(trainerRepository.findByUsers_Username(trainingUpdateData.trainerUsername())
                     .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal())));
 
         if (check(trainingUpdateData.trainingTypeId()))
@@ -84,7 +84,7 @@ public class TrainingServiceImpl implements TrainingService {
     @Override
     @Transactional
     public void delete(String id) throws NotFoundException {
-        trainingRepository.delete(id);
+        trainingRepository.deleteById(id);
 
     }
 
@@ -133,7 +133,7 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     public List<TrainingDto> updateTrainingsOfTrainee(String traineeUsername, List<TraineeTrainingUpdateDto> trainingUpdateData) throws NotFoundException {
-        var trainee = traineeRepository.findByUsername(traineeUsername)
+        var trainee = traineeRepository.findByUsers_Username(traineeUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         return trainingUpdateData.stream()
@@ -141,7 +141,7 @@ public class TrainingServiceImpl implements TrainingService {
                         -> TrainingMapper.INSTANCE.toDto(trainingRepository.save(
                         Training.builder()
                                 .trainingName(traineeTrainingUpdateDto.trainingName())
-                                .trainer(trainerRepository.findByUsername(traineeTrainingUpdateDto.trainerUsername())
+                                .trainer(trainerRepository.findByUsers_Username(traineeTrainingUpdateDto.trainerUsername())
                                         .orElseThrow(() -> new NotFoundException("Trainer not found")))
                                 .trainee(trainee)
                                 .trainingType(trainingTypeRepository.findByTrainingTypeName(
@@ -155,7 +155,7 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     public List<TrainingDto> updateTrainingsOfTrainer(String trainerUsername, List<TrainerTrainingUpdateDto> trainingUpdateData) throws NotFoundException {
-        var trainer = trainerRepository.findByUsername(trainerUsername)
+        var trainer = trainerRepository.findByUsers_Username(trainerUsername)
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
         return trainingUpdateData.stream()
@@ -164,7 +164,7 @@ public class TrainingServiceImpl implements TrainingService {
                         Training.builder()
                                 .trainingName(trainerTrainingUpdateDto.trainingName())
                                 .trainer(trainer)
-                                .trainee(traineeRepository.findByUsername(trainerTrainingUpdateDto.traineeUsername())
+                                .trainee(traineeRepository.findByUsers_Username(trainerTrainingUpdateDto.traineeUsername())
                                         .orElseThrow(() -> new NotFoundException("Trainee not found")))
                                 .trainingType(trainingTypeRepository.findByTrainingTypeName(
                                                 TrainingTypeName.getTrainingNameFromString(trainerTrainingUpdateDto.trainingTypeName()))

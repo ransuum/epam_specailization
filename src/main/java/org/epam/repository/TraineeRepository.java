@@ -1,20 +1,12 @@
 package org.epam.repository;
 
-import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainee;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface TraineeRepository extends CrudRepository<String, Trainee> {
-    Trainee save(Trainee trainee);
+public interface TraineeRepository extends JpaRepository<Trainee, String> {
+    Optional<Trainee> findByUsers_Username(String username);
+    void deleteByUsers_Username(String username);
 
-    Optional<Trainee> findById(String id);
-
-    void delete(String id) throws NotFoundException;
-
-    Trainee update(String id, Trainee trainee);
-
-    Optional<Trainee> findByUsername(String username);
-
-    String deleteByUsername(String username) throws NotFoundException;
 }

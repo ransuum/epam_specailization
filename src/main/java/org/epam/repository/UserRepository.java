@@ -1,23 +1,14 @@
 package org.epam.repository;
 
+import org.epam.models.entity.Users;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import org.epam.models.entity.User;
-
-import java.util.List;
 import java.util.Optional;
 
-public interface UserRepository extends CrudRepository<String, User> {
-    User save(User user);
-
-    Optional<User> findById(String id);
-
-    void delete(String id);
-
-    List<User> findAll();
-
+public interface UserRepository extends JpaRepository<Users, String> {
     boolean existsByUsername(String username);
 
-    Optional<User> findByUsername(String username);
+    Optional<Users> findByUsername(String username);
 
     void deleteByUsername(String username);
 }

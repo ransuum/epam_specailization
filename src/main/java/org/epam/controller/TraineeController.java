@@ -10,7 +10,6 @@ import org.epam.models.enums.UserType;
 import org.epam.models.dto.create.TraineeCreateDto;
 import org.epam.models.dto.update.TraineeRequestDto;
 import org.epam.service.TraineeService;
-import org.epam.transaction.configuration.TransactionExecution;
 import org.epam.security.RequiredRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,13 +24,11 @@ import java.util.List;
 public class TraineeController {
     private final TraineeService traineeService;
     private final SecurityContextHolder securityContextHolder;
-    private final TransactionExecution transactionExecution;
 
     @PostMapping("/register")
     @RequiredRole(UserType.NOT_AUTHORIZE)
     public ResponseEntity<AuthResponseDto> register(@RequestBody TraineeCreateDto traineeCreateDto) {
-        return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
-                -> traineeService.save(traineeCreateDto)), HttpStatus.CREATED);
+        return new ResponseEntity<>(traineeService.save(traineeCreateDto), HttpStatus.CREATED);
     }
 
     @GetMapping("/profile")
@@ -43,16 +40,14 @@ public class TraineeController {
     @DeleteMapping("/{id}")
     @RequiredRole(UserType.TRAINEE)
     public ResponseEntity<String> deleteById(@PathVariable String id) {
-        transactionExecution.executeWithTransaction(() -> traineeService.delete(id));
+        traineeService.delete(id);
         return ResponseEntity.ok("Deleted successfully!");
     }
 
     @PutMapping("/update")
     @RequiredRole(UserType.TRAINEE)
     public ResponseEntity<TraineeDto> updateTrainee(@RequestBody @Valid TraineeRequestDto traineeRequestDto) {
-        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
-                -> traineeService.update(securityContextHolder.getUserId(), traineeRequestDto))
-        );
+        return ResponseEntity.ok(traineeService.update(securityContextHolder.getUserId(), traineeRequestDto));
     }
 
     @GetMapping
@@ -65,8 +60,7 @@ public class TraineeController {
     @RequiredRole(UserType.TRAINEE)
     public ResponseEntity<String> changePassword(@RequestParam String oldPassword,
                                                  @RequestParam String newPassword) {
-        transactionExecution.executeWithTransaction(()
-                -> traineeService.changePassword(securityContextHolder.getUserId(), oldPassword, newPassword));
+        traineeService.changePassword(securityContextHolder.getUserId(), oldPassword, newPassword);
         return ResponseEntity.ok("Password changed");
     }
 
@@ -79,14 +73,13 @@ public class TraineeController {
     @DeleteMapping("/username/{username}")
     @RequiredRole(UserType.TRAINEE)
     public ResponseEntity<String> deleteTraineeByUsername(@PathVariable String username) {
-        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
-                -> traineeService.deleteByUsername(username)));
+        return ResponseEntity.ok(traineeService.deleteByUsername(username));
     }
 
     @PatchMapping("/change-status/{username}")
     @RequiredRole(UserType.TRAINEE)
     public ResponseEntity<String> changeStatus(@PathVariable String username) {
-        transactionExecution.executeWithTransaction(() -> traineeService.changeStatus(username));
+        traineeService.changeStatus(username);
         return ResponseEntity.ok("Changed status successfully");
     }
 }

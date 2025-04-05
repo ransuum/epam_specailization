@@ -1,16 +1,16 @@
 package org.epam.service.impl;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.UserDto;
-import org.epam.models.entity.User;
+import org.epam.models.entity.Users;
 import org.epam.models.dto.create.UserCreateDto;
 import org.epam.repository.UserRepository;
 import org.epam.service.UserService;
 import org.epam.utils.CredentialsGenerator;
 import org.epam.utils.mappers.UserMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
     public UserDto save(UserCreateDto request) {
         var username = credentialsGenerator.generateUsername(request.getFirstName(), request.getLastName());
         return UserMapper.INSTANCE.toDto(userRepository.save(
-                User.builder()
+                Users.builder()
                         .lastName(request.getLastName())
                         .firstName(request.getFirstName())
                         .password(credentialsGenerator.generatePassword(username))
@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto update(String id, User request) throws NotFoundException {
+    public UserDto update(String id, Users request) throws NotFoundException {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
@@ -50,13 +50,13 @@ public class UserServiceImpl implements UserService {
         String password = credentialsGenerator.generatePassword(username);
         user.setPassword(password);
         user.setUsername(username);
-        return UserMapper.INSTANCE.toDto(userRepository.update(id, user));
+        return UserMapper.INSTANCE.toDto(userRepository.save(user));
     }
 
     @Override
     @Transactional
     public void delete(String id) {
-        userRepository.delete(id);
+        userRepository.deleteById(id);
     }
 
     @Override

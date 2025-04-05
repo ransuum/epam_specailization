@@ -11,7 +11,6 @@ import org.epam.models.dto.create.TrainingCreateDto;
 import org.epam.models.dto.update.TraineeTrainingUpdateDto;
 import org.epam.models.dto.update.TrainerTrainingUpdateDto;
 import org.epam.service.TrainingService;
-import org.epam.transaction.configuration.TransactionExecution;
 import org.epam.security.RequiredRole;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,12 +23,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TrainingController {
     private final TrainingService trainingService;
-    private final TransactionExecution transactionExecution;
 
     @PostMapping("/create")
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
     public ResponseEntity<String> create(@RequestBody @Valid TrainingCreateDto trainingCreateDto) {
-        transactionExecution.executeWithTransaction(() -> trainingService.save(trainingCreateDto));
+        trainingService.save(trainingCreateDto);
         return ResponseEntity.ok("Training request created successfully");
     }
 
@@ -69,15 +67,13 @@ public class TrainingController {
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
     public ResponseEntity<List<TrainingDto>> updateTrainingsOfTrainee(@PathVariable String traineeUsername,
                                                                       @RequestBody List<TraineeTrainingUpdateDto> trainingCreationData) {
-        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
-                -> trainingService.updateTrainingsOfTrainee(traineeUsername, trainingCreationData)));
+        return ResponseEntity.ok(trainingService.updateTrainingsOfTrainee(traineeUsername, trainingCreationData));
     }
 
     @PutMapping("/add-to-trainer/{trainerUsername}")
     @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
     public ResponseEntity<List<TrainingDto>> updateTrainingsOfTrainer(@PathVariable String trainerUsername,
                                                                       @RequestBody List<TrainerTrainingUpdateDto> trainingCreationData) {
-        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
-                -> trainingService.updateTrainingsOfTrainer(trainerUsername, trainingCreationData)));
+        return ResponseEntity.ok(trainingService.updateTrainingsOfTrainer(trainerUsername, trainingCreationData));
     }
 }

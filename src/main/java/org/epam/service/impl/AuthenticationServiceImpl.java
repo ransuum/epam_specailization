@@ -2,8 +2,6 @@ package org.epam.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.SecurityContextHolder;
@@ -26,7 +24,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final SecurityContextHolder securityContextHolder;
 
     @Override
-    public SecurityContextHolder authenticate(String username, String password) throws NotFoundException, CredentialException {
+    public void authenticate(String username, String password) throws NotFoundException, CredentialException {
         var user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CredentialException("Username or password is incorrect"));
 
@@ -36,26 +34,30 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         try {
             var trainee = traineeRepository.findById(user.getId())
                     .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));
-            if (trainee != null)
-                return securityContextHolder.newBuild(new SecurityContextHolder(
+            if (trainee != null) {
+                securityContextHolder.newBuild(new SecurityContextHolder(
                         username, trainee.getId(),
                         LocalDateTime.now(),
                         LocalDateTime.now().plusDays(12),
                         UserType.TRAINEE)
                 );
+                return;
+            }
         } catch (Exception e) {
             log.info("You are not trainee");
         }
 
         var trainer = trainerRepository.findById(user.getId())
                 .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));
-        if (trainer != null)
-            return securityContextHolder.newBuild(new SecurityContextHolder(
+        if (trainer != null) {
+            securityContextHolder.newBuild(new SecurityContextHolder(
                     username, trainer.getId(),
                     LocalDateTime.now(),
                     LocalDateTime.now().plusDays(12),
                     UserType.TRAINER)
             );
+            return;
+        }
 
         throw new CredentialException("User role could not be determined");
     }

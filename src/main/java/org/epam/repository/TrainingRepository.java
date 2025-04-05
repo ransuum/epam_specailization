@@ -1,30 +1,37 @@
 package org.epam.repository;
 
-
-import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Training;
 import org.epam.models.enums.TrainingTypeName;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
-public interface TrainingRepository extends CrudRepository<String, Training> {
-    Training save(Training training);
+public interface TrainingRepository extends JpaRepository<Training, String> {
 
-    Optional<Training> findById(String id);
+    @Query("SELECT t FROM Training t " +
+            "WHERE t.trainee.users.username = :username " +
+            "AND (:fromDate IS NULL OR t.startTime >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.startTime <= :toDate) " +
+            "AND (:trainerName IS NULL OR t.trainer.users.firstName LIKE %:trainerName%) " +
+            "AND (:trainingType IS NULL OR t.trainingType = :trainingType)")
+    List<Training> getTraineeTrainings(@Param("username") String username,
+                                       @Param("fromDate") LocalDate fromDate,
+                                       @Param("toDate") LocalDate toDate,
+                                       @Param("trainerName") String trainerName,
+                                       @Param("trainingType") TrainingTypeName trainingType);
 
-    void delete(String id) throws NotFoundException;
-
-    List<Training> findAll();
-
-    Training update(String id, Training training);
-
-    List<Training> getTraineeTrainings(String username, LocalDate fromDate,
-                                       LocalDate toDate, String trainerName,
-                                       TrainingTypeName trainingTypeName);
-
-    List<Training> getTrainerTrainings(String username, LocalDate fromDate,
-                                       LocalDate toDate, String traineeName,
-                                       TrainingTypeName trainingTypeName);
+    @Query("SELECT t FROM Training t " +
+            "WHERE t.trainer.users.username = :username " +
+            "AND (:fromDate IS NULL OR t.startTime >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.startTime <= :toDate) " +
+            "AND (:traineeName IS NULL OR t.trainee.users.firstName LIKE %:traineeName%) " +
+            "AND (:trainingType IS NULL OR t.trainingType = :trainingType)")
+    List<Training> getTrainerTrainings(@Param("username") String username,
+                                       @Param("fromDate") LocalDate fromDate,
+                                       @Param("toDate") LocalDate toDate,
+                                       @Param("traineeName") String traineeName,
+                                       @Param("trainingType") TrainingTypeName trainingType);
 }
