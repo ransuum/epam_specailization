@@ -80,8 +80,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto findByUsername(String username) throws NotFoundException {
-        return UserMapper.INSTANCE.toDto(userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("There is no user with this username!")));
+    public Users findByUsername(String username) throws NotFoundException {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("There is no user with this username or password is not correct"));
     }
 }

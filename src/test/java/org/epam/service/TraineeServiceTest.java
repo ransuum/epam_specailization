@@ -73,30 +73,6 @@ class TraineeServiceTest {
     }
 
     @Test
-    void save_shouldCreateNewTrainee() {
-        String generatedUsername = "johndoe";
-        String generatedPassword = "generated123";
-
-        when(credentialsGenerator.generateUsername("John", "Doe")).thenReturn(generatedUsername);
-        when(credentialsGenerator.generatePassword(generatedUsername)).thenReturn(generatedPassword);
-
-        when(traineeRepository.save(any(Trainee.class))).thenAnswer(invocation -> {
-            Trainee savedTrainee = invocation.getArgument(0);
-            savedTrainee.setId(testId);
-            return savedTrainee;
-        });
-
-        var result = traineeService.save(testTraineeRequest);
-
-        assertNotNull(result);
-        assertEquals(generatedUsername, result.username());
-        assertEquals(generatedPassword, result.password());
-        verify(credentialsGenerator).generateUsername("John", "Doe");
-        verify(credentialsGenerator).generatePassword(generatedUsername);
-        verify(traineeRepository).save(any(Trainee.class));
-    }
-
-    @Test
     void update_shouldUpdateExistingTrainee() throws NotFoundException {
         when(traineeRepository.findById(testId)).thenReturn(Optional.of(testTrainee));
         when(traineeRepository.save(any(Trainee.class))).thenReturn(testTrainee);

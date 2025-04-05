@@ -52,8 +52,4 @@ public interface TrainerMapper {
                 null
         );
     }
-
-    @Mapping(target = "username", expression = "java(trainer.getUsers().getUsername())")
-    @Mapping(target = "password", expression = "java(trainer.getUsers().getPassword())")
-    AuthResponseDto toAuthResponseDto(Trainer trainer);
 }

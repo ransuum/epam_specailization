@@ -3,7 +3,6 @@ package org.epam.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
-import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.entity.Trainee;
 import org.epam.models.dto.create.TraineeCreateDto;
@@ -14,6 +13,7 @@ import org.epam.repository.TraineeRepository;
 import org.epam.service.TraineeService;
 import org.epam.utils.CredentialsGenerator;
 import org.epam.utils.mappers.TraineeMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,25 +32,27 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public AuthResponseDto save(TraineeCreateDto traineeCreationData) throws NotFoundException {
+    public Trainee save(TraineeCreateDto traineeCreationData) throws NotFoundException {
         var username = credentialsGenerator.generateUsername(traineeCreationData.firstname(), traineeCreationData.lastname());
-        return TraineeMapper.INSTANCE.toAuthResponseDto(traineeRepository.save(Trainee.builder()
+        return traineeRepository.save(Trainee.builder()
                 .address(traineeCreationData.address())
                 .dateOfBirth(LocalDate.parse(traineeCreationData.dateOfBirth(), FORMATTER))
                 .users(Users.builder()
                         .firstName(traineeCreationData.firstname())
                         .lastName(traineeCreationData.lastname())
                         .isActive(Boolean.TRUE)
+                        .roles("ROLE_TRAINEE")
                         .username(username)
                         .password(credentialsGenerator.generatePassword(username))
                         .build())
-                .build()));
+                .build());
     }
 
     @Override
     @Transactional
-    public TraineeDto update(String id, TraineeRequestDto traineeUpdateData) throws NotFoundException {
-        var traineeById = traineeRepository.findById(id)
+    public TraineeDto update(TraineeRequestDto traineeUpdateData) throws NotFoundException {
+        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        var traineeById = traineeRepository.findByUsers_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         if (check(traineeUpdateData.getAddress())) traineeById.setAddress(traineeUpdateData.getAddress());
@@ -88,10 +90,17 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    public TraineeDto profile() throws NotFoundException {
+        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        return findByUsername(authUsername);
+    }
+
+    @Override
     @Transactional
-    public TraineeDto changePassword(String id, String oldPassword, String newPassword) throws NotFoundException, CredentialException {
-        var trainee = traineeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Trainee not found with id " + id));
+    public TraineeDto changePassword(String oldPassword, String newPassword) throws NotFoundException, CredentialException {
+        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        var trainee = traineeRepository.findByUsers_Username(authUsername)
+                .orElseThrow(() -> new NotFoundException("Trainee not found with id " + authUsername));
 
         if (!trainee.getUsers().getPassword().equals(oldPassword))
             throw new CredentialException("Old password do not match");
@@ -114,8 +123,9 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public TraineeDto changeStatus(String username) throws NotFoundException {
-        var trainee = traineeRepository.findByUsers_Username(username)
+    public TraineeDto changeStatus() throws NotFoundException {
+        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        var trainee = traineeRepository.findByUsers_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         trainee.getUsers().setIsActive(trainee.getUsers().getIsActive()

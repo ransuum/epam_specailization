@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -33,6 +35,12 @@ public class Users {
 
     @Column(nullable = false, name = "is_active")
     private Boolean isActive;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<RefreshToken> refreshTokens;
+
+    @Column(nullable = false, name = "roles")
+    private String roles;
 
     public Users(String firstName, String lastName, Boolean isActive) {
         this.firstName = firstName;

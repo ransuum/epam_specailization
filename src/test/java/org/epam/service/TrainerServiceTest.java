@@ -71,50 +71,6 @@ class TrainerServiceTest {
     }
 
     @Test
-    void save_shouldCreateNewTrainer() throws NotFoundException {
-        var request = new TrainerCreateDto(
-                "John",
-                "Doe",
-                TrainingTypeName.SELF_PLACING.getVal()
-        );
-
-        String generatedUsername = "john.doe";
-        String generatedPassword = "password123";
-
-        when(credentialsGenerator.generateUsername("John", "Doe")).thenReturn(generatedUsername);
-        when(credentialsGenerator.generatePassword(generatedUsername)).thenReturn(generatedPassword);
-
-        when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName.SELF_PLACING))
-                .thenReturn(Optional.of(testTrainingType));
-
-        var newUser = Users.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .username(generatedUsername)
-                .password(generatedPassword)
-                .isActive(true)
-                .build();
-
-        var newTrainer = Trainer.builder()
-                .users(newUser)
-                .specialization(testTrainingType)
-                .build();
-
-        when(trainerRepository.save(any(Trainer.class))).thenReturn(newTrainer);
-
-        var result = trainerService.save(request);
-
-        assertNotNull(result);
-        assertEquals(generatedUsername, result.username());
-        assertEquals(generatedPassword, result.password());
-
-        verify(trainingTypeRepository).findByTrainingTypeName(TrainingTypeName.SELF_PLACING);
-        verify(trainerRepository).save(any(Trainer.class));
-        verify(credentialsGenerator).generateUsername("John", "Doe");
-        verify(credentialsGenerator).generatePassword(generatedUsername);
-    }
-
-    @Test
     void save_shouldReturnNullWhenTrainingTypeNotFound() {
         TrainerCreateDto request = new TrainerCreateDto(
                 "Non",

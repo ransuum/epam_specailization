@@ -3,7 +3,6 @@ package org.epam.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
-import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
@@ -18,6 +17,7 @@ import org.epam.repository.TrainingTypeRepository;
 import org.epam.service.TrainerService;
 import org.epam.utils.CredentialsGenerator;
 import org.epam.utils.mappers.TrainerMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,9 +35,9 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional
-    public AuthResponseDto save(TrainerCreateDto trainerCreateData) throws NotFoundException {
+    public Trainer save(TrainerCreateDto trainerCreateData) throws NotFoundException {
         var username = credentialsGenerator.generateUsername(trainerCreateData.firstname(), trainerCreateData.lastname());
-        return TrainerMapper.INSTANCE.toAuthResponseDto(trainerRepository.save(
+        return trainerRepository.save(
                 Trainer.builder()
                         .users(Users.builder()
                                 .firstName(trainerCreateData.firstname())
@@ -49,18 +49,19 @@ public class TrainerServiceImpl implements TrainerService {
                         .specialization(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName
                                         .getTrainingNameFromString(trainerCreateData.specialization()))
                                 .orElseThrow(() -> new NotFoundException("Specialization Not Found")))
-                        .build())
-        );
+                        .build());
     }
 
     @Override
     @Transactional
-    public TrainerDto update(String id, TrainerUpdateDto trainerUpdateData) throws NotFoundException {
-        var trainer = trainerRepository.findById(id)
+    public TrainerDto update(TrainerUpdateDto trainerUpdateData) throws NotFoundException {
+        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        var trainer = trainerRepository.findByUsers_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
-        if (check(trainerUpdateData.specializationId()))
-            trainer.setSpecialization(trainingTypeRepository.findById(trainerUpdateData.specializationId())
+        if (check(trainerUpdateData.specialization()))
+            trainer.setSpecialization(trainingTypeRepository.findByTrainingTypeName(
+                    TrainingTypeName.getTrainingNameFromString(trainerUpdateData.specialization()))
                     .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal())));
 
         trainer.getUsers().setIsActive(trainerUpdateData.isActive());
@@ -94,9 +95,16 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
+    public TrainerDto profile() throws NotFoundException {
+        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        return findByUsername(authUsername);
+    }
+
+    @Override
     @Transactional
-    public TrainerDto changePassword(String id, String oldPassword, String newPassword) throws NotFoundException, CredentialException {
-        var trainer = trainerRepository.findById(id)
+    public TrainerDto changePassword(String oldPassword, String newPassword) throws NotFoundException, CredentialException {
+        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        var trainer = trainerRepository.findByUsers_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
         if (!trainer.getUsers().getPassword().equals(oldPassword))

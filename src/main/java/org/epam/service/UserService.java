@@ -18,5 +18,5 @@ public interface UserService {
 
     UserDto findById(String id);
 
-    UserDto findByUsername(String username);
+    Users findByUsername(String username);
 }

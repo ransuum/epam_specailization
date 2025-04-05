@@ -50,8 +50,4 @@ public interface TraineeMapper {
                 null
         );
     }
-
-    @Mapping(target = "username", expression = "java(trainee.getUsers().getUsername())")
-    @Mapping(target = "password", expression = "java(trainee.getUsers().getPassword())")
-    AuthResponseDto toAuthResponseDto(Trainee trainee);
 }
