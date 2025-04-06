@@ -10,7 +10,6 @@ import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
 import org.epam.service.impl.TrainerServiceImpl;
-import org.epam.utils.CredentialsGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +17,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,15 +32,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TrainerServiceTest {
     @Mock
     private TrainerRepository trainerRepository;
 
     @Mock
     private TraineeRepository traineeRepository;
-
-    @Mock
-    private CredentialsGenerator credentialsGenerator;
 
     @Mock
     private TrainingTypeRepository trainingTypeRepository;
@@ -68,6 +70,16 @@ class TrainerServiceTest {
                 .specialization(testTrainingType)
                 .trainings(new ArrayList<>())
                 .build();
+
+        setupSecurityContext();
+    }
+
+    private void setupSecurityContext() {
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("testUser");
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
@@ -90,8 +102,14 @@ class TrainerServiceTest {
 
     @Test
     void update_shouldUpdateSpecialization() throws NotFoundException {
-        var request = new TrainerUpdateDto("newSpecializationId", testUsers.getFirstName(),
-                testUsers.getLastName(), testUsers.getUsername(), testUsers.getIsActive());
+        var request = new TrainerUpdateDto(
+                "Laboratory",
+                testUsers.getFirstName(),
+                testUsers.getLastName(),
+                testUsers.getUsername(),
+                testUsers.getIsActive()
+        );
+
         var newSpecialization = TrainingType.builder()
                 .id("newSpecializationId")
                 .trainingTypeName(TrainingTypeName.LABORATORY)
@@ -104,34 +122,39 @@ class TrainerServiceTest {
                 .trainings(new ArrayList<>())
                 .build();
 
-        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
-        when(trainingTypeRepository.findById("newSpecializationId")).thenReturn(Optional.of(newSpecialization));
-        when(trainerRepository.save(any(Trainer.class))).thenReturn(updatedTrainer);
+        when(trainerRepository.findByUsers_Username(request.username()))
+                .thenReturn(Optional.of(testTrainer));
+        when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName.LABORATORY))
+                .thenReturn(Optional.of(newSpecialization));
+        when(trainerRepository.save(any(Trainer.class)))
+                .thenReturn(updatedTrainer);
 
-        var result = trainerService.update("trainerId", request);
+        var result = trainerService.update(request);
 
         assertNotNull(result);
         assertEquals("trainerId", result.id());
-        assertEquals(newSpecialization.getTrainingTypeName().getVal(), result.specialization());
+        assertEquals("Laboratory", result.specialization());
 
-        verify(trainerRepository).findById("trainerId");
-        verify(trainingTypeRepository).findById("newSpecializationId");
+        // Verify interactions
+        verify(trainerRepository).findByUsers_Username(request.username());
+        verify(trainingTypeRepository).findByTrainingTypeName(TrainingTypeName.LABORATORY);
         verify(trainerRepository).save(any(Trainer.class));
     }
 
     @Test
     void changePassword_shouldUpdatePasswordSuccessfully() throws NotFoundException, CredentialException {
         String trainerId = "trainerId";
+        String trainerUsername = "testUser";
         String oldPassword = "oldPassword";
         String newPassword = "newPassword";
 
-        when(trainerRepository.findById(trainerId)).thenReturn(Optional.of(testTrainer));
+        when(trainerRepository.findByUsers_Username(trainerUsername)).thenReturn(Optional.of(testTrainer));
 
         var updatedTrainer = Trainer.builder()
                 .id(trainerId)
                 .users(Users.builder()
                         .id("userId")
-                        .username("testUser")
+                        .username(trainerUsername)
                         .password(newPassword)
                         .isActive(true)
                         .build())
@@ -141,11 +164,11 @@ class TrainerServiceTest {
 
         when(trainerRepository.save(any(Trainer.class))).thenReturn(updatedTrainer);
 
-        var result = trainerService.changePassword(trainerId, oldPassword, newPassword);
+        var result = trainerService.changePassword(oldPassword, newPassword);
 
         assertNotNull(result);
 
-        verify(trainerRepository).findById(trainerId);
+        verify(trainerRepository).findByUsers_Username(trainerUsername);
         verify(trainerRepository).save(any(Trainer.class));
 
         ArgumentCaptor<Trainer> trainerCaptor = ArgumentCaptor.forClass(Trainer.class);
@@ -155,13 +178,13 @@ class TrainerServiceTest {
 
     @Test
     void changePassword_shouldReturnNullWhenOldPasswordMismatch() {
-        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
+        when(trainerRepository.findByUsers_Username("testUser")).thenReturn(Optional.of(testTrainer));
 
         assertThrows(CredentialException.class, () ->
-                trainerService.changePassword("trainerId", "wrongOldPassword", "newPassword")
+                trainerService.changePassword("wrongOldPassword", "newPassword")
         );
 
-        verify(trainerRepository).findById("trainerId");
+        verify(trainerRepository).findByUsers_Username("testUser");
     }
 
     @Test

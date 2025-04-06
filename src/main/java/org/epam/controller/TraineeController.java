@@ -21,35 +21,38 @@ public class TraineeController {
     private final TraineeService traineeService;
 
     @GetMapping("/id/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_SEARCH_TRAINEES')")
     public ResponseEntity<TraineeDto> findById(@PathVariable String id) {
         return new ResponseEntity<>(traineeService.findById(id), HttpStatus.OK);
     }
 
     @GetMapping("/profile")
-    @PreAuthorize("hasAuthority('SCOPE_ACC_TRAINEE')")
+    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINEE_PROFILE')")
     public ResponseEntity<TraineeDto> profile() {
         return new ResponseEntity<>(traineeService.profile(), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_FULL_ACCESS')")
     public ResponseEntity<String> deleteById(@PathVariable String id) {
         traineeService.delete(id);
         return ResponseEntity.ok("Deleted successfully!");
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('SCOPE_ACC_TRAINEE')")
+    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINEE_PROFILE')")
     public ResponseEntity<TraineeDto> updateTrainee(@RequestBody @Valid TraineeRequestDto traineeRequestDto) {
         return ResponseEntity.ok(traineeService.update(traineeRequestDto));
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('SCOPE_SEARCH_TRAINEES')")
     public ResponseEntity<List<TraineeDto>> findAll() {
         return new ResponseEntity<>(traineeService.findAll(), HttpStatus.OK);
     }
 
     @PutMapping("/change-password")
-    @PreAuthorize("hasAuthority('SCOPE_ACC_TRAINEE')")
+    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINEE_PROFILE')")
     public ResponseEntity<String> changePassword(@RequestParam String oldPassword,
                                                  @RequestParam String newPassword) {
         traineeService.changePassword(oldPassword, newPassword);
@@ -57,17 +60,19 @@ public class TraineeController {
     }
 
     @GetMapping("/username/{username}")
+    @PreAuthorize("hasAuthority('SCOPE_SEARCH_TRAINEES')")
     public ResponseEntity<TraineeDto> findByUsername(@PathVariable String username) {
         return ResponseEntity.ok(traineeService.findByUsername(username));
     }
 
     @DeleteMapping("/username/{username}")
+    @PreAuthorize("hasAuthority('SCOPE_FULL_ACCESS')")
     public ResponseEntity<String> deleteTraineeByUsername(@PathVariable String username) {
         return ResponseEntity.ok(traineeService.deleteByUsername(username));
     }
 
     @PatchMapping("/change-status")
-    @PreAuthorize("hasAuthority('SCOPE_ACC_TRAINEE')")
+    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINEE_PROFILE')")
     public ResponseEntity<String> changeStatus() {
         traineeService.changeStatus();
         return ResponseEntity.ok("Changed status successfully");

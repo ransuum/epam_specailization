@@ -23,5 +23,4 @@ public enum TrainingTypeName {
                 .findFirst().orElseThrow(()
                         -> new NotFoundException("Training name not found in list"));
     }
-
 }

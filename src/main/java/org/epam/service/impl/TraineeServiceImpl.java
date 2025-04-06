@@ -100,7 +100,7 @@ public class TraineeServiceImpl implements TraineeService {
     public TraineeDto changePassword(String oldPassword, String newPassword) throws NotFoundException, CredentialException {
         var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         var trainee = traineeRepository.findByUsers_Username(authUsername)
-                .orElseThrow(() -> new NotFoundException("Trainee not found with id " + authUsername));
+                .orElseThrow(() -> new NotFoundException("Trainee not found with authUsername " + authUsername));
 
         if (!trainee.getUsers().getPassword().equals(oldPassword))
             throw new CredentialException("Old password do not match");
