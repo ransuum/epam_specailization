@@ -8,6 +8,7 @@ target/
 .idea/
 *.iml
 *.ipr
+/src/main/resources/certs/
 
 ### Eclipse ###
 .apt_generated
