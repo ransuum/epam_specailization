@@ -13,7 +13,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableWebMvc
 @EnableAutoConfiguration(exclude = SpringDocDataRestConfiguration.class)
 public class SwaggerConfig implements WebMvcConfigurer {
-
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI();

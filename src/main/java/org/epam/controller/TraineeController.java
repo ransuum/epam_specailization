@@ -51,7 +51,7 @@ public class TraineeController {
     }
 
     @GetMapping
-    @RequiredRole(UserType.TRAINEE)
+    @RequiredRole({UserType.TRAINEE, UserType.ADMIN})
     public ResponseEntity<List<TraineeDto>> findAll() {
         return new ResponseEntity<>(traineeService.findAll(), HttpStatus.OK);
     }
