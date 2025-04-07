@@ -1,74 +1,41 @@
 package org.epam.controller;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.epam.models.dto.TrainingTypeDto;
-import org.epam.models.enums.TrainingName;
+import org.epam.models.enums.UserType;
 import org.epam.service.TrainingTypeService;
-import org.springframework.stereotype.Controller;
+import org.epam.transaction.configuration.TransactionExecution;
+import org.epam.security.RequiredRole;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Scanner;
+import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/training-type")
+@RequiredArgsConstructor
+@Tag(name = "TrainingType Management", description = "APIs for managing trainingType operations")
 public class TrainingTypeController {
     private final TrainingTypeService trainingTypeService;
-    private static final Logger logger = LogManager.getLogger(TrainingTypeController.class);
+    private final TransactionExecution transactionExecution;
 
-    public TrainingTypeController(TrainingTypeService trainingTypeService) {
-        this.trainingTypeService = trainingTypeService;
+    @GetMapping("/{id}")
+    @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
+    public ResponseEntity<TrainingTypeDto> findById(@PathVariable String id) {
+        return ResponseEntity.ok(trainingTypeService.findById(id));
     }
 
-    public TrainingTypeDto create(Scanner scanner) {
-        try {
-            System.out.print("Enter training type: ");
-            var trainingName = scanner.nextLine().trim();
-            return trainingTypeService.save(TrainingName.getTrainingNameFromString(trainingName));
-        } catch (Exception e) {
-            logger.error("Error creating training view: {}", e.getMessage());
-            return null;
-        }
+    @DeleteMapping("/{id}")
+    @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
+    public ResponseEntity<String> delete(@PathVariable String id) {
+        transactionExecution.executeWithTransaction(() -> trainingTypeService.delete(id));
+        return ResponseEntity.ok("DELETED");
     }
 
-    public TrainingTypeDto update(Scanner scanner) {
-        try {
-            System.out.print("Enter trainingView id: ");
-            var trainingViewId = scanner.next();
-            scanner.nextLine();
-            System.out.print("Enter training type: ");
-            var trainingName = scanner.nextLine().trim();
-            return trainingTypeService.update(trainingViewId, TrainingName.getTrainingNameFromString(trainingName));
-        } catch (Exception e) {
-            logger.error("Error updating training view: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    public TrainingTypeDto findById(Scanner scanner) {
-        try {
-            System.out.print("Enter trainingView id: ");
-            var trainingViewId = scanner.next().trim();
-            return trainingTypeService.findById(trainingViewId);
-        } catch (Exception e) {
-            logger.error("Error finding training view: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    public void delete(Scanner scanner) {
-        try {
-            System.out.print("Enter trainingView id: ");
-            var trainingViewId = scanner.next().trim();
-            trainingTypeService.delete(trainingViewId);
-        } catch (Exception e) {
-            logger.error("Error deleting training view: {}", e.getMessage());
-        }
-    }
-
-    public void findAll() {
-        try {
-            trainingTypeService.findAll().forEach(System.out::println);
-        } catch (Exception e) {
-            logger.error("Error find all training view: {}", e.getMessage());
-        }
+    @GetMapping("/all")
+    @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
+    public ResponseEntity<List<TrainingTypeDto>> findAll() {
+        return ResponseEntity.ok(trainingTypeService.findAll());
     }
 }

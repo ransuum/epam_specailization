@@ -1,42 +1,41 @@
 package org.epam.repository.impl;
 
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainee;
+import org.epam.models.entity.Training;
 import org.epam.repository.TraineeRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.epam.utils.FieldValidator.check;
+
 @Repository
+@RequiredArgsConstructor
+@Log4j2
 public class TraineeRepositoryImpl implements TraineeRepository {
-    private static final Logger logger = LogManager.getLogger(TraineeRepositoryImpl.class);
 
     private final EntityManager entityManager;
 
-    public TraineeRepositoryImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
     @Override
-    @Transactional
     public Trainee save(Trainee trainee) {
         try {
             if (trainee.getId() == null) entityManager.persist(trainee);
             else trainee = entityManager.merge(trainee);
             return trainee;
         } catch (Exception e) {
-            logger.error("Error in saving trainee: {}", e.getMessage());
+            log.error("Error in saving trainee: {}", e.getMessage());
             return null;
         }
+
     }
 
     @Override
-    @Transactional
     public Trainee update(String id, Trainee trainee) {
         findById(id).ifPresent(traineeById -> trainee.setId(id));
         return entityManager.merge(trainee);
@@ -51,7 +50,7 @@ public class TraineeRepositoryImpl implements TraineeRepository {
                     .getResultStream()
                     .findFirst();
         } catch (Exception e) {
-            logger.error("Error finding trainer by username: {}", e.getMessage());
+            log.error("Error finding trainer by username: {}", e.getMessage());
             return Optional.empty();
         }
     }
@@ -60,7 +59,14 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     public String deleteByUsername(String username) throws NotFoundException {
         var trainee = findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
+        if (check(trainee.getTrainings())) {
+            for (Training training : new ArrayList<>(trainee.getTrainings()))
+                entityManager.remove(training);
+            trainee.setTrainings(new ArrayList<>());
+        }
+
         entityManager.remove(trainee);
+
         entityManager.remove(trainee.getUser());
         return username;
     }
@@ -75,11 +81,15 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     public void delete(String id) throws NotFoundException {
         var trainee = findById(id).orElseThrow(()
                 -> new NotFoundException("Not found trainee by id: " + id));
-        if (entityManager.contains(trainee)) {
-            entityManager.remove(trainee);
-            entityManager.remove(trainee.getUser());
+        if (check(trainee.getTrainings())) {
+            for (Training training : new ArrayList<>(trainee.getTrainings()))
+                entityManager.remove(training);
+            trainee.setTrainings(new ArrayList<>());
         }
-        else entityManager.merge(trainee);
+
+        entityManager.remove(trainee);
+
+        entityManager.remove(trainee.getUser());
     }
 
     @Override

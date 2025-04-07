@@ -1,34 +1,40 @@
 package org.epam.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.EntityManager;
 import org.epam.models.SecurityContextHolder;
 import org.epam.models.entity.*;
 import org.epam.models.enums.UserType;
+import org.epam.transaction.logging.RestControllerLoggingAspect;
 import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 @Configuration
-@ComponentScan(basePackages = {"org.epam", "org.epam.models.entity"})
+@ComponentScan(basePackages = {
+        "org.epam",
+        "org.epam.models.entity"})
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class AppConfig {
-    @Bean
-    public ObjectMapper beanMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        return objectMapper;
-    }
-
     @Bean
     public SecurityContextHolder securityContextHolder() {
         return SecurityContextHolder.builder()
                 .userType(UserType.NOT_AUTHORIZE)
                 .build();
+    }
+
+    @Bean
+    public InternalResourceViewResolver defaultViewResolver() {
+        return new InternalResourceViewResolver();
+    }
+
+    @Bean
+    public RestControllerLoggingAspect restControllerLoggingAspect() {
+        return new RestControllerLoggingAspect();
     }
 
     @Bean

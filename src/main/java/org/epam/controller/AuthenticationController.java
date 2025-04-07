@@ -1,53 +1,29 @@
 package org.epam.controller;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.epam.models.SecurityContextHolder;
-import org.epam.models.enums.UserType;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.epam.models.dto.AuthDto;
 import org.epam.service.AuthenticationService;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Scanner;
-
-@Controller
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
+@Log4j2
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
-    private final SecurityContextHolder securityContextHolder;
-    private static final Logger logger = LogManager.getLogger(AuthenticationController.class);
 
-    public AuthenticationController(AuthenticationService authenticationService,
-                                    SecurityContextHolder securityContextHolder) {
-        this.authenticationService = authenticationService;
-        this.securityContextHolder = securityContextHolder;
+    @PostMapping("/sign-in")
+    public ResponseEntity<String> authenticate(@RequestBody @Valid AuthDto authDto) {
+        authenticationService.authenticate(authDto.username(), authDto.password());
+        return ResponseEntity.ok("Authentication successful");
     }
 
-    public SecurityContextHolder authenticate(Scanner scanner) {
-        try {
-            System.out.print("Please enter your username: ");
-            String username = scanner.next();
-            System.out.print("Please enter your password: ");
-            String password = scanner.next();
-
-            SecurityContextHolder temp = authenticationService.authenticate(username, password);
-
-            this.securityContextHolder.setUsername(temp.getUsername());
-            this.securityContextHolder.setUserId(temp.getUserId());
-            this.securityContextHolder.setGenerateAt(temp.getGenerateAt());
-            this.securityContextHolder.setExpiredAt(temp.getExpiredAt());
-            this.securityContextHolder.setUserType(temp.getUserType());
-            return this.securityContextHolder;
-        } catch (Exception e) {
-            logger.error("Authentication failed: {}", e.getMessage());
-            return this.securityContextHolder;
-        }
-    }
-
-    public SecurityContextHolder logout() {
-        this.securityContextHolder.setUsername(null);
-        this.securityContextHolder.setUserId(null);
-        this.securityContextHolder.setGenerateAt(null);
-        this.securityContextHolder.setExpiredAt(null);
-        this.securityContextHolder.setUserType(UserType.NOT_AUTHORIZE);
-        return this.securityContextHolder;
+    @PostMapping("/sign-out")
+    public ResponseEntity<String> logout() {
+        authenticationService.logout();
+        return ResponseEntity.ok("Logout successful");
     }
 }

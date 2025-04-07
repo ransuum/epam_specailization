@@ -3,7 +3,7 @@ package org.epam.repository;
 
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Training;
-import org.epam.models.enums.TrainingName;
+import org.epam.models.enums.TrainingTypeName;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,11 +20,11 @@ public interface TrainingRepository extends CrudRepository<String, Training> {
 
     Training update(String id, Training training);
 
-    List<Training> findTrainingWithUsernameOfTrainee(String username, LocalDate fromDate,
-                                                     LocalDate toDate, String trainerName,
-                                                     TrainingName trainingName);
+    List<Training> getTraineeTrainings(String username, LocalDate fromDate,
+                                       LocalDate toDate, String trainerName,
+                                       TrainingTypeName trainingTypeName);
 
-    List<Training> findTrainingWithUsernameOfTrainer(String username, LocalDate fromDate,
-                                                     LocalDate toDate, String traineeName,
-                                                     TrainingName trainingName);
+    List<Training> getTrainerTrainings(String username, LocalDate fromDate,
+                                       LocalDate toDate, String traineeName,
+                                       TrainingTypeName trainingTypeName);
 }

@@ -1,5 +1,7 @@
 package org.epam.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epam.exception.CredentialException;
@@ -15,17 +17,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
+@Log4j2
 public class AuthenticationServiceImpl implements AuthenticationService {
-    private static final Logger log = LogManager.getLogger(AuthenticationServiceImpl.class);
     private final UserRepository userRepository;
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
-
-    public AuthenticationServiceImpl(UserRepository userRepository, TraineeRepository traineeRepository, TrainerRepository trainerRepository) {
-        this.userRepository = userRepository;
-        this.traineeRepository = traineeRepository;
-        this.trainerRepository = trainerRepository;
-    }
+    private final SecurityContextHolder securityContextHolder;
 
     @Override
     public SecurityContextHolder authenticate(String username, String password) throws NotFoundException, CredentialException {
@@ -39,7 +37,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             var trainee = traineeRepository.findById(user.getId())
                     .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));
             if (trainee != null)
-                return new SecurityContextHolder(username, trainee.getId(), LocalDateTime.now(), LocalDateTime.now().plusDays(12), UserType.TRAINEE);
+                return securityContextHolder.newBuild(new SecurityContextHolder(
+                        username, trainee.getId(),
+                        LocalDateTime.now(),
+                        LocalDateTime.now().plusDays(12),
+                        UserType.TRAINEE)
+                );
         } catch (Exception e) {
             log.info("You are not trainee");
         }
@@ -47,8 +50,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var trainer = trainerRepository.findById(user.getId())
                 .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));
         if (trainer != null)
-            return new SecurityContextHolder(username, trainer.getId(), LocalDateTime.now(), LocalDateTime.now().plusDays(12), UserType.TRAINER);
+            return securityContextHolder.newBuild(new SecurityContextHolder(
+                    username, trainer.getId(),
+                    LocalDateTime.now(),
+                    LocalDateTime.now().plusDays(12),
+                    UserType.TRAINER)
+            );
 
         throw new CredentialException("User role could not be determined");
+    }
+
+    @Override
+    public void logout() {
+        this.securityContextHolder.setUsername(null);
+        this.securityContextHolder.setUserId(null);
+        this.securityContextHolder.setGenerateAt(null);
+        this.securityContextHolder.setExpiredAt(null);
+        this.securityContextHolder.setUserType(UserType.NOT_AUTHORIZE);
     }
 }

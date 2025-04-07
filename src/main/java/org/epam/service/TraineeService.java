@@ -1,17 +1,18 @@
 package org.epam.service;
 
-
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
+import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
-import org.epam.models.request.create.TraineeRequestCreate;
+import org.epam.models.dto.create.TraineeCreateDto;
+import org.epam.models.dto.update.TraineeRequestDto;
 
 import java.util.List;
 
 public interface TraineeService {
-    TraineeDto save(TraineeRequestCreate request) throws NotFoundException;
+    AuthResponseDto save(TraineeCreateDto request) throws NotFoundException;
 
-    TraineeDto update(String id, org.epam.models.request.update.TraineeRequestUpdate request) throws NotFoundException;
+    TraineeDto update(String id, TraineeRequestDto request) throws NotFoundException;
 
     void delete(String id) throws NotFoundException;
 

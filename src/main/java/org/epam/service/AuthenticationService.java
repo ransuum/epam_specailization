@@ -7,4 +7,5 @@ import org.epam.models.SecurityContextHolder;
 
 public interface AuthenticationService {
     SecurityContextHolder authenticate(String username, String password) throws NotFoundException, CredentialException;
+    void logout();
 }

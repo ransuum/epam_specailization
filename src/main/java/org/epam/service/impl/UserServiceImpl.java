@@ -1,9 +1,11 @@
 package org.epam.service.impl;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.User;
-import org.epam.models.request.create.UserRequestCreate;
+import org.epam.models.dto.create.UserCreateDto;
 import org.epam.repository.UserRepository;
 import org.epam.service.UserService;
 import org.epam.utils.CredentialsGenerator;
@@ -12,21 +14,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static org.epam.utils.CheckerField.check;
-
+import static org.epam.utils.FieldValidator.check;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final CredentialsGenerator credentialsGenerator;
 
-    public UserServiceImpl(UserRepository userRepository, CredentialsGenerator credentialsGenerator) {
-        this.userRepository = userRepository;
-        this.credentialsGenerator = credentialsGenerator;
-    }
-
     @Override
-    public UserDto save(UserRequestCreate request) {
+    @Transactional
+    public UserDto save(UserCreateDto request) {
         var username = credentialsGenerator.generateUsername(request.getFirstName(), request.getLastName());
         return UserMapper.INSTANCE.toDto(userRepository.save(
                 User.builder()
@@ -40,6 +38,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto update(String id, User request) throws NotFoundException {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -55,6 +54,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void delete(String id) {
         userRepository.delete(id);
     }
@@ -68,6 +68,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto findById(String id) throws NotFoundException {
         return UserMapper.INSTANCE.toDto(userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found")));
@@ -75,6 +76,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto findByUsername(String username) throws NotFoundException {
         return UserMapper.INSTANCE.toDto(userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("There is no user with this username!")));

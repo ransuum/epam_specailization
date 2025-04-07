@@ -1,6 +1,5 @@
 package org.epam.repository;
 
-
 import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainee;
 

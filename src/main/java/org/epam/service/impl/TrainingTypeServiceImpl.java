@@ -1,9 +1,12 @@
 package org.epam.service.impl;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainingTypeDto;
 import org.epam.models.entity.TrainingType;
-import org.epam.models.enums.TrainingName;
+import org.epam.models.enums.NotFoundMessages;
+import org.epam.models.enums.TrainingTypeName;
 import org.epam.repository.TrainingTypeRepository;
 import org.epam.service.TrainingTypeService;
 import org.epam.utils.mappers.TrainingTypeMapper;
@@ -11,35 +14,35 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static org.epam.utils.CheckerField.check;
+import static org.epam.utils.FieldValidator.check;
 
 @Service
+@RequiredArgsConstructor
 public class TrainingTypeServiceImpl implements TrainingTypeService {
     private final TrainingTypeRepository trainingTypeRepository;
 
-    public TrainingTypeServiceImpl(TrainingTypeRepository trainingTypeRepository) {
-        this.trainingTypeRepository = trainingTypeRepository;
-    }
-
     @Override
-    public TrainingTypeDto save(TrainingName trainingName) {
+    @Transactional
+    public TrainingTypeDto save(TrainingTypeName trainingTypeName) {
         return TrainingTypeMapper.INSTANCE.toDto(trainingTypeRepository.save(
                 TrainingType.builder()
-                        .trainingName(trainingName)
+                        .trainingTypeName(trainingTypeName)
                         .build())
         );
     }
 
     @Override
-    public TrainingTypeDto update(String id, TrainingName trainingName) throws NotFoundException {
+    @Transactional
+    public TrainingTypeDto update(String id, TrainingTypeName trainingTypeName) throws NotFoundException {
         var trainingView = trainingTypeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Training type not found"));
+                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal()));
 
-        if (check(trainingName)) trainingView.setTrainingName(trainingName);
+        if (check(trainingTypeName)) trainingView.setTrainingTypeName(trainingTypeName);
         return TrainingTypeMapper.INSTANCE.toDto(trainingTypeRepository.update(id, trainingView));
     }
 
     @Override
+    @Transactional
     public void delete(String id) throws NotFoundException {
         trainingTypeRepository.delete(id);
     }
@@ -53,8 +56,9 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     }
 
     @Override
+    @Transactional
     public TrainingTypeDto findById(String id) throws NotFoundException {
         return TrainingTypeMapper.INSTANCE.toDto(trainingTypeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Training type not found")));
+                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal())));
     }
 }

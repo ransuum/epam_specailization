@@ -1,134 +1,92 @@
 package org.epam.controller;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.epam.exception.CredentialException;
-import org.epam.exception.NotFoundException;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.epam.models.SecurityContextHolder;
+import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
-import org.epam.models.dto.UserDto;
-import org.epam.models.entity.User;
-import org.epam.models.request.create.TraineeRequestCreate;
-import org.epam.models.request.create.UserRequestCreate;
-import org.epam.models.request.update.TraineeRequestUpdate;
+import org.epam.models.enums.UserType;
+import org.epam.models.dto.create.TraineeCreateDto;
+import org.epam.models.dto.update.TraineeRequestDto;
 import org.epam.service.TraineeService;
-import org.epam.service.UserService;
-import org.springframework.stereotype.Controller;
+import org.epam.transaction.configuration.TransactionExecution;
+import org.epam.security.RequiredRole;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Scanner;
+import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/trainee")
+@RequiredArgsConstructor
+@Tag(name = "Trainee Management", description = "APIs for managing trainee operations")
 public class TraineeController {
     private final TraineeService traineeService;
-    private static final Logger logger = LogManager.getLogger(TraineeController.class);
-    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private final UserService userService;
+    private final SecurityContextHolder securityContextHolder;
+    private final TransactionExecution transactionExecution;
 
-    public TraineeController(TraineeService traineeService, UserService userService) {
-        this.traineeService = traineeService;
-        this.userService = userService;
+    @PostMapping("/register")
+    @RequiredRole(UserType.NOT_AUTHORIZE)
+    public ResponseEntity<AuthResponseDto> register(@RequestBody TraineeCreateDto traineeCreateDto) {
+        return new ResponseEntity<>(transactionExecution.executeWithTransaction(()
+                -> traineeService.save(traineeCreateDto)), HttpStatus.CREATED);
     }
 
-    public TraineeDto addTrainee(Scanner scanner) {
-        try {
-            System.out.print("Enter firstName: ");
-            var firstName = scanner.next();
-            System.out.print("Enter lastName: ");
-            var lastName = scanner.next();
-            System.out.print("Enter your date of birth (dd-MM-yyyy): ");
-            var dateOfBirth = scanner.next().trim();
-            scanner.nextLine();
-            System.out.print("Enter address: ");
-            var address = scanner.nextLine().trim();
-            var save = userService.save(new UserRequestCreate(firstName, lastName, Boolean.TRUE));
-            return traineeService.save(new TraineeRequestCreate(save.id(), LocalDate.parse(dateOfBirth, formatter), address));
-        } catch (Exception e) {
-            logger.info("Error adding trainee: {}", e.getMessage());
-            return null;
-        }
+    @GetMapping("/profile")
+    @RequiredRole(UserType.TRAINEE)
+    public ResponseEntity<TraineeDto> findById() {
+        return new ResponseEntity<>(traineeService.findById(securityContextHolder.getUserId()), HttpStatus.OK);
     }
 
-    public TraineeDto findById(String id) {
-        try {
-            return traineeService.findById(id);
-        } catch (NotFoundException e) {
-            logger.info("Trainee not found: {}", e.getMessage());
-            return null;
-        }
+    @DeleteMapping("/{id}")
+    @RequiredRole(UserType.TRAINEE)
+    public ResponseEntity<String> deleteById(@PathVariable String id) {
+        transactionExecution.executeWithTransaction(() -> traineeService.delete(id));
+        return ResponseEntity.ok("Deleted successfully!");
     }
 
-    public void deleteById(Scanner scanner) {
-        try {
-            System.out.print("Enter id of trainee: ");
-            String id = scanner.next();
-            traineeService.delete(id);
-        } catch (Exception e) {
-            logger.info("Error deleting trainee: {}", e.getMessage());
-        }
+    @PutMapping("/update")
+    @RequiredRole(UserType.TRAINEE)
+    public ResponseEntity<TraineeDto> updateTrainee(@RequestBody @Valid TraineeRequestDto traineeRequestDto) {
+        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
+                -> traineeService.update(securityContextHolder.getUserId(), traineeRequestDto))
+        );
     }
 
-    public TraineeDto updateTrainee(String id, Scanner scanner) {
-        try {
-            System.out.print("Enter firstName: ");
-            var firstName = scanner.nextLine().trim();
-            System.out.print("Enter lastName: ");
-            var lastName = scanner.nextLine().trim();
-            System.out.print("Active?(true/false): ");
-            var active = Boolean.valueOf(scanner.nextLine());
-            userService.update(id, new User(firstName, lastName, active));
-            System.out.print("Enter address: ");
-            var address = scanner.nextLine().trim();
-            System.out.print("Enter your date of birth (dd-MM-yyyy): ");
-            var dateOfBirth = scanner.nextLine().trim();
-            return traineeService.update(id, new TraineeRequestUpdate(id, LocalDate.parse(dateOfBirth, formatter), address));
-        } catch (Exception e) {
-            logger.info("Error updating trainee: {}", e.getMessage());
-            return null;
-        }
+    @GetMapping
+    @RequiredRole(UserType.TRAINEE)
+    public ResponseEntity<List<TraineeDto>> findAll() {
+        return new ResponseEntity<>(traineeService.findAll(), HttpStatus.OK);
     }
 
-    public void findAll() {
-        try {
-            traineeService.findAll().forEach(System.out::println);
-        } catch (Exception e) {
-            logger.info("Error retrieving trainees: {}", e.getMessage());
-        }
+    @PutMapping("/change-password")
+    @RequiredRole(UserType.TRAINEE)
+    public ResponseEntity<String> changePassword(@RequestParam String oldPassword,
+                                                 @RequestParam String newPassword) {
+        transactionExecution.executeWithTransaction(()
+                -> traineeService.changePassword(securityContextHolder.getUserId(), oldPassword, newPassword));
+        return ResponseEntity.ok("Password changed");
     }
 
-    public TraineeDto changePassword(String id, Scanner scanner) {
-        try {
-            System.out.print("Enter old password: ");
-            var oldPassword = scanner.next();
-            System.out.print("Enter new password: ");
-            var newPassword = scanner.next();
-            return traineeService.changePassword(id, oldPassword, newPassword);
-        } catch (CredentialException e) {
-            logger.info("Password change failed: {}", e.getMessage());
-            return null;
-        } catch (Exception e) {
-            logger.info("Error changing password: {}", e.getMessage());
-            return null;
-        }
+    @GetMapping("/username/{username}")
+    @RequiredRole(UserType.TRAINEE)
+    public ResponseEntity<TraineeDto> findByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(traineeService.findByUsername(username));
     }
 
-    public String deleteTraineeByUsername(Scanner scanner) {
-        try {
-            System.out.print("Enter user's username: ");
-            var username = scanner.next();
-            return traineeService.deleteByUsername(username);
-        } catch (Exception e) {
-            logger.error("Error deleting trainee by username: {}", e.getMessage());
-            return "error";
-        }
+    @DeleteMapping("/username/{username}")
+    @RequiredRole(UserType.TRAINEE)
+    public ResponseEntity<String> deleteTraineeByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(transactionExecution.executeWithTransaction(()
+                -> traineeService.deleteByUsername(username)));
     }
 
-    public TraineeDto changeStatus(String username) {
-        try {
-            return traineeService.changeStatus(username);
-        } catch (Exception e) {
-            logger.info("Error activate action: {}", e.getMessage());
-            return null;
-        }
+    @PatchMapping("/change-status/{username}")
+    @RequiredRole(UserType.TRAINEE)
+    public ResponseEntity<String> changeStatus(@PathVariable String username) {
+        transactionExecution.executeWithTransaction(() -> traineeService.changeStatus(username));
+        return ResponseEntity.ok("Changed status successfully");
     }
 }

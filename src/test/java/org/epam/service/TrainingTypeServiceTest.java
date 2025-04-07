@@ -4,7 +4,7 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
 import org.epam.models.entity.TrainingType;
-import org.epam.models.enums.TrainingName;
+import org.epam.models.enums.TrainingTypeName;
 import org.epam.repository.TrainingTypeRepository;
 import org.epam.service.impl.TrainingTypeServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,16 +32,16 @@ class TrainingTypeServiceTest {
 
     private TrainingType testTrainingTypeEntity;
     private String testId;
-    private TrainingName testTrainingName;
-    private TrainingName updatedTrainingName;
+    private TrainingTypeName testTrainingTypeName;
+    private TrainingTypeName updatedTrainingTypeName;
     private List<Training> testTrainings;
     private List<Trainer> testTrainers;
 
     @BeforeEach
     void setUp() {
         testId = "test-id-123";
-        testTrainingName = TrainingName.LABORATORY;
-        updatedTrainingName = TrainingName.FUNDAMENTALS;
+        testTrainingTypeName = TrainingTypeName.LABORATORY;
+        updatedTrainingTypeName = TrainingTypeName.FUNDAMENTALS;
 
         var training1 = new Training();
         training1.setId("training-1");
@@ -58,7 +57,7 @@ class TrainingTypeServiceTest {
 
         testTrainingTypeEntity = TrainingType.builder()
                 .id(testId)
-                .trainingName(testTrainingName)
+                .trainingTypeName(testTrainingTypeName)
                 .trainings(testTrainings)
                 .trainers(testTrainers)
                 .build();
@@ -68,31 +67,21 @@ class TrainingTypeServiceTest {
     void save_shouldCreateNewTrainingView() {
         when(trainingTypeRepository.save(any(TrainingType.class))).thenReturn(testTrainingTypeEntity);
 
-        var result = trainingTypeService.save(testTrainingName);
+        var result = trainingTypeService.save(testTrainingTypeName);
 
         assertNotNull(result);
         assertEquals(testId, result.id());
-        assertEquals(testTrainingName.getVal(), result.trainingName());
-
-        var expectedTrainingIds = testTrainings.stream()
-                .map(Training::getId)
-                .collect(Collectors.toList());
-        assertEquals(expectedTrainingIds, result.trainingsIds());
-
-        var expectedSpecializationIds = testTrainers.stream()
-                .map(Trainer::getId)
-                .collect(Collectors.toList());
-        assertEquals(expectedSpecializationIds, result.specializationIds());
+        assertEquals(testTrainingTypeName.getVal(), result.trainingName());
 
         verify(trainingTypeRepository).save(argThat(view ->
-                view.getTrainingName() == testTrainingName));
+                view.getTrainingTypeName() == testTrainingTypeName));
     }
 
     @Test
     void update_shouldUpdateTrainingType() throws NotFoundException {
         var updatedTrainingView = TrainingType.builder()
                 .id(testId)
-                .trainingName(updatedTrainingName)
+                .trainingTypeName(updatedTrainingTypeName)
                 .trainings(testTrainings)
                 .trainers(testTrainers)
                 .build();
@@ -100,15 +89,15 @@ class TrainingTypeServiceTest {
         when(trainingTypeRepository.findById(testId)).thenReturn(Optional.of(testTrainingTypeEntity));
         when(trainingTypeRepository.update(eq(testId), any(TrainingType.class))).thenReturn(updatedTrainingView);
 
-        var result = trainingTypeService.update(testId, updatedTrainingName);
+        var result = trainingTypeService.update(testId, updatedTrainingTypeName);
 
         assertNotNull(result);
         assertEquals(testId, result.id());
-        assertEquals(updatedTrainingName.getVal(), result.trainingName());
+        assertEquals(updatedTrainingTypeName.getVal(), result.trainingName());
 
         verify(trainingTypeRepository).findById(testId);
         verify(trainingTypeRepository).update(eq(testId), argThat(view ->
-                view.getTrainingName() == updatedTrainingName));
+                view.getTrainingTypeName() == updatedTrainingTypeName));
     }
 
     @Test
@@ -116,9 +105,9 @@ class TrainingTypeServiceTest {
         when(trainingTypeRepository.findById(testId)).thenReturn(Optional.empty());
 
         var exception = assertThrows(NotFoundException.class, () ->
-                trainingTypeService.update(testId, updatedTrainingName));
+                trainingTypeService.update(testId, updatedTrainingTypeName));
 
-        assertEquals("Training type not found", exception.getMessage());
+        assertEquals("Training Type Not Found", exception.getMessage());
         verify(trainingTypeRepository).findById(testId);
         verify(trainingTypeRepository, never()).update(anyString(), any());
     }
@@ -147,7 +136,7 @@ class TrainingTypeServiceTest {
     void findAll_shouldReturnAllTrainingViews() throws NotFoundException {
         var secondTrainingView = TrainingType.builder()
                 .id("test-id-456")
-                .trainingName(TrainingName.SELF_PLACING)
+                .trainingTypeName(TrainingTypeName.SELF_PLACING)
                 .trainings(Collections.emptyList())
                 .trainers(Collections.emptyList())
                 .build();
@@ -161,9 +150,9 @@ class TrainingTypeServiceTest {
         assertNotNull(results);
         assertEquals(2, results.size());
         assertEquals(testId, results.get(0).id());
-        assertEquals(testTrainingName.getVal(), results.get(0).trainingName());
+        assertEquals(testTrainingTypeName.getVal(), results.get(0).trainingName());
         assertEquals("test-id-456", results.get(1).id());
-        assertEquals(TrainingName.SELF_PLACING.getVal(), results.get(1).trainingName());
+        assertEquals(TrainingTypeName.SELF_PLACING.getVal(), results.get(1).trainingName());
 
         verify(trainingTypeRepository).findAll();
     }
@@ -188,17 +177,7 @@ class TrainingTypeServiceTest {
 
         assertNotNull(result);
         assertEquals(testId, result.id());
-        assertEquals(testTrainingName.getVal(), result.trainingName());
-
-        var expectedTrainingIds = testTrainings.stream()
-                .map(Training::getId)
-                .collect(Collectors.toList());
-        assertEquals(expectedTrainingIds, result.trainingsIds());
-
-        var expectedSpecializationIds = testTrainers.stream()
-                .map(Trainer::getId)
-                .collect(Collectors.toList());
-        assertEquals(expectedSpecializationIds, result.specializationIds());
+        assertEquals(testTrainingTypeName.getVal(), result.trainingName());
 
         verify(trainingTypeRepository).findById(testId);
     }
@@ -210,7 +189,7 @@ class TrainingTypeServiceTest {
         var exception = assertThrows(NotFoundException.class, () ->
                 trainingTypeService.findById(testId));
 
-        assertEquals("Training type not found", exception.getMessage());
+        assertEquals("Training Type Not Found", exception.getMessage());
         verify(trainingTypeRepository).findById(testId);
     }
 
