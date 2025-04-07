@@ -50,8 +50,8 @@ public class TrainerController {
         return ResponseEntity.ok(trainerService.update(securityContextHolder.getUserId(), requestUpdate));
     }
 
-    @GetMapping("/all")
-    @RequiredRole(UserType.TRAINER)
+    @GetMapping()
+    @RequiredRole({UserType.TRAINER, UserType.ADMIN})
     public ResponseEntity<List<TrainerDto>> findAll() {
         return ResponseEntity.ok(trainerService.findAll());
     }

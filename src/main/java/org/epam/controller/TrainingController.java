@@ -31,8 +31,8 @@ public class TrainingController {
         return ResponseEntity.ok("Training request created successfully");
     }
 
-    @GetMapping("/all")
-    @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
+    @GetMapping
+    @RequiredRole({UserType.TRAINEE, UserType.TRAINER, UserType.ADMIN})
     public ResponseEntity<List<TrainingListDto>> findAll() {
         return ResponseEntity.ok(trainingService.findAll());
     }

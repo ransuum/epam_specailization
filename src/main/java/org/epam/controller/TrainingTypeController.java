@@ -31,8 +31,8 @@ public class TrainingTypeController {
         return ResponseEntity.ok("DELETED");
     }
 
-    @GetMapping("/all")
-    @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
+    @GetMapping
+    @RequiredRole({UserType.TRAINEE, UserType.TRAINER, UserType.ADMIN})
     public ResponseEntity<List<TrainingTypeDto>> findAll() {
         return ResponseEntity.ok(trainingTypeService.findAll());
     }

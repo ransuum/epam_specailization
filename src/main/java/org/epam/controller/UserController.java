@@ -25,8 +25,8 @@ public class UserController {
         return ResponseEntity.ok(userService.findById(id));
     }
 
-    @GetMapping("/all")
-    @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
+    @GetMapping
+    @RequiredRole({UserType.TRAINEE, UserType.TRAINER, UserType.ADMIN})
     public ResponseEntity<List<UserDto>> findAll() {
        return ResponseEntity.ok(userService.findAll());
     }
