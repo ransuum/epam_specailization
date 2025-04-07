@@ -39,15 +39,8 @@ public class DatabaseHealthIndicator implements HealthIndicator {
                 entityCounts.put("trainer", jdbcTemplate.queryForObject("SELECT COUNT(*) FROM trainer", Long.class));
                 entityCounts.put("training", jdbcTemplate.queryForObject("SELECT COUNT(*) FROM training", Long.class));
                 entityCounts.put("training_type", jdbcTemplate.queryForObject("SELECT COUNT(*) FROM training_type", Long.class));
-
                 entityCounts.put("active_users", jdbcTemplate.queryForObject(
                         "SELECT COUNT(*) FROM users WHERE is_active = true", Long.class));
-
-                entityCounts.put("avg_trainings_per_trainee", jdbcTemplate.queryForObject(
-                        "SELECT COALESCE(AVG(training_count), 0) FROM " +
-                                "(SELECT COUNT(*) as training_count FROM training GROUP BY trainee_id) as counts",
-                        Double.class));
-
                 return Health.up()
                         .withDetail("database", databaseName)
                         .withDetail("status", "Connected")
