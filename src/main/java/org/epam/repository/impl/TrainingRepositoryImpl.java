@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.epam.utils.CheckerBuilder.check;
+import static org.epam.utils.FieldValidator.check;
 
 @Repository
 @RequiredArgsConstructor
@@ -94,9 +94,13 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             if (check(trainingTypeName))
                 jpqlBuilder.append(" AND tv.trainingTypeName = :trainingTypeName");
 
-            TypedQueryBuilder<Training> queryBuilder =
-                    new TraineeTypedQueryBuilder(username, fromDate, toDate, trainerName, trainingTypeName, entityManager);
-            return queryBuilder.createQuery(jpqlBuilder).getResultList();
+            return new TraineeTypedQueryBuilder(entityManager)
+                    .fromDate(fromDate)
+                    .toDate(toDate)
+                    .trainingTypeName(trainingTypeName)
+                    .username(username)
+                    .trainerName(trainerName)
+                    .createQuery(jpqlBuilder).getResultList();
         } catch (Exception e) {
             log.error("Error in finding trainings by trainee username: {}", e.getMessage());
             return Collections.emptyList();
@@ -130,9 +134,13 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             if (check(trainingTypeName))
                 jpqlBuilder.append(" AND tv.trainingTypeName = :trainingTypeName");
 
-            TypedQueryBuilder<Training> queryBuilder =
-                    new TrainerTypedQueryBuilder(username, fromDate, toDate, traineeName, trainingTypeName, entityManager);
-            return queryBuilder.createQuery(jpqlBuilder).getResultList();
+            return new TrainerTypedQueryBuilder(entityManager)
+                    .fromDate(fromDate)
+                    .traineeName(traineeName)
+                    .username(username)
+                    .toDate(toDate)
+                    .trainingTypeName(trainingTypeName)
+                    .createQuery(jpqlBuilder).getResultList();
         } catch (Exception e) {
             log.error("Error in finding trainings by trainer username: {}", e.getMessage());
             return Collections.emptyList();

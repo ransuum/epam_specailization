@@ -9,9 +9,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class CheckerBuilder {
+public class FieldValidator {
     public static boolean check(String val) {
-        return val != null && !val.trim().isEmpty() && !val.isBlank() && !val.equals(" ");
+        return val != null && !val.trim().isEmpty() && !val.isBlank();
     }
 
     public static boolean check(Integer val) {

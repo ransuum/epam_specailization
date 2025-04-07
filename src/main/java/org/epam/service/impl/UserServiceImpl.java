@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static org.epam.utils.CheckerBuilder.check;
+import static org.epam.utils.FieldValidator.check;
 
 @Service
 @RequiredArgsConstructor
