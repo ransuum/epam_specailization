@@ -1,6 +1,5 @@
 package org.epam.service;
 
-
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainingDto;
 import org.epam.models.dto.TrainingListDto;

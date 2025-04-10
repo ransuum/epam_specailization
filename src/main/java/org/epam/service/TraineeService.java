@@ -2,15 +2,12 @@ package org.epam.service;
 
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
-import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.dto.create.TraineeCreateDto;
 import org.epam.models.dto.update.TraineeRequestDto;
 import org.epam.models.entity.Trainee;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
 
 public interface TraineeService {
     Trainee save(TraineeCreateDto request) throws NotFoundException;

@@ -1,13 +1,10 @@
 package org.epam.service;
 
-
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainingTypeDto;
 import org.epam.models.enums.TrainingTypeName;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
 
 public interface TrainingTypeService {
     TrainingTypeDto save(TrainingTypeName trainingTypeName) ;

@@ -1,9 +1,7 @@
 package org.epam.service;
 
-
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
-import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.dto.create.TrainerCreateDto;
 import org.epam.models.dto.update.TrainerUpdateDto;
