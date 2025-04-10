@@ -44,13 +44,13 @@ class TrainerServiceTest {
     @InjectMocks
     private TrainerServiceImpl trainerService;
 
-    private Users testUsers;
+    private User testUser;
     private Trainer testTrainer;
     private TrainingType testTrainingType;
 
     @BeforeEach
     void setUp() {
-        testUsers = Users.builder()
+        testUser = User.builder()
                 .id("userId")
                 .username("testUser")
                 .password("oldPassword")
@@ -64,7 +64,7 @@ class TrainerServiceTest {
 
         testTrainer = Trainer.builder()
                 .id("trainerId")
-                .users(testUsers)
+                .user(testUser)
                 .specialization(testTrainingType)
                 .trainings(new ArrayList<>())
                 .build();
@@ -87,7 +87,7 @@ class TrainerServiceTest {
         when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName.SELF_PLACING))
                 .thenReturn(Optional.of(testTrainingType));
 
-        var newUser = Users.builder()
+        var newUser = User.builder()
                 .firstName("John")
                 .lastName("Doe")
                 .username(generatedUsername)
@@ -96,7 +96,7 @@ class TrainerServiceTest {
                 .build();
 
         var newTrainer = Trainer.builder()
-                .users(newUser)
+                .user(newUser)
                 .specialization(testTrainingType)
                 .build();
 
@@ -134,8 +134,8 @@ class TrainerServiceTest {
 
     @Test
     void update_shouldUpdateSpecialization() throws NotFoundException {
-        var request = new TrainerUpdateDto("newSpecializationId", testUsers.getFirstName(),
-                testUsers.getLastName(), testUsers.getUsername(), testUsers.getIsActive());
+        var request = new TrainerUpdateDto("newSpecializationId", testUser.getFirstName(),
+                testUser.getLastName(), testUser.getUsername(), testUser.getIsActive());
         var newSpecialization = TrainingType.builder()
                 .id("newSpecializationId")
                 .trainingTypeName(TrainingTypeName.LABORATORY)
@@ -143,7 +143,7 @@ class TrainerServiceTest {
 
         var updatedTrainer = Trainer.builder()
                 .id("trainerId")
-                .users(testUsers)
+                .user(testUser)
                 .specialization(newSpecialization)
                 .trainings(new ArrayList<>())
                 .build();
@@ -173,7 +173,7 @@ class TrainerServiceTest {
 
         var updatedTrainer = Trainer.builder()
                 .id(trainerId)
-                .users(Users.builder()
+                .user(User.builder()
                         .id("userId")
                         .username("testUser")
                         .password(newPassword)
@@ -194,7 +194,7 @@ class TrainerServiceTest {
 
         ArgumentCaptor<Trainer> trainerCaptor = ArgumentCaptor.forClass(Trainer.class);
         verify(trainerRepository).save(trainerCaptor.capture());
-        assertEquals(newPassword, trainerCaptor.getValue().getUsers().getPassword());
+        assertEquals(newPassword, trainerCaptor.getValue().getUser().getPassword());
     }
 
     @Test
@@ -216,7 +216,7 @@ class TrainerServiceTest {
 
         assertNotNull(result);
         assertEquals("trainerId", result.id());
-        assertEquals("userId", result.users().id());
+        assertEquals("userId", result.user().id());
 
         verify(trainerRepository).findById("trainerId");
     }
@@ -246,7 +246,7 @@ class TrainerServiceTest {
 
     @Test
     void activateAction_shouldActivateTrainer() throws NotFoundException {
-        var inactiveUser = Users.builder()
+        var inactiveUser = User.builder()
                 .id("userId")
                 .username("testUser")
                 .isActive(false)
@@ -254,14 +254,14 @@ class TrainerServiceTest {
 
         var inactiveTrainer = Trainer.builder()
                 .id("trainerId")
-                .users(inactiveUser)
+                .user(inactiveUser)
                 .specialization(testTrainingType)
                 .trainings(new ArrayList<>())
                 .build();
 
         var activatedTrainer = Trainer.builder()
                 .id("trainerId")
-                .users(Users.builder()
+                .user(User.builder()
                         .id("userId")
                         .username("testUser")
                         .isActive(true)
@@ -270,27 +270,27 @@ class TrainerServiceTest {
                 .trainings(new ArrayList<>())
                 .build();
 
-        when(trainerRepository.findByUsers_Username("testUser")).thenReturn(Optional.of(inactiveTrainer));
+        when(trainerRepository.findByUser_Username("testUser")).thenReturn(Optional.of(inactiveTrainer));
         when(trainerRepository.save(any(Trainer.class))).thenReturn(activatedTrainer);
 
         var result = trainerService.changeStatus("testUser");
 
         assertNotNull(result);
-        assertTrue(result.users().isActive());
+        assertTrue(result.user().isActive());
 
-        verify(trainerRepository).findByUsers_Username("testUser");
+        verify(trainerRepository).findByUser_Username("testUser");
         verify(trainerRepository).save(any(Trainer.class));
 
         ArgumentCaptor<Trainer> trainerCaptor = ArgumentCaptor.forClass(Trainer.class);
         verify(trainerRepository).save(trainerCaptor.capture());
-        assertTrue(trainerCaptor.getValue().getUsers().getIsActive());
+        assertTrue(trainerCaptor.getValue().getUser().getIsActive());
     }
 
     @Test
     void deactivateAction_shouldDeactivateTrainer() throws NotFoundException {
         var deactivatedTrainer = Trainer.builder()
                 .id("trainerId")
-                .users(Users.builder()
+                .user(User.builder()
                         .id("userId")
                         .username("testUser")
                         .password("oldPassword")
@@ -300,20 +300,20 @@ class TrainerServiceTest {
                 .trainings(new ArrayList<>())
                 .build();
 
-        when(trainerRepository.findByUsers_Username("testUser")).thenReturn(Optional.of(testTrainer));
+        when(trainerRepository.findByUser_Username("testUser")).thenReturn(Optional.of(testTrainer));
         when(trainerRepository.save(any(Trainer.class))).thenReturn(deactivatedTrainer);
 
         var result = trainerService.changeStatus("testUser");
 
         assertNotNull(result);
-        assertFalse(result.users().isActive());
+        assertFalse(result.user().isActive());
 
-        verify(trainerRepository).findByUsers_Username("testUser");
+        verify(trainerRepository).findByUser_Username("testUser");
         verify(trainerRepository).save(any(Trainer.class));
 
         ArgumentCaptor<Trainer> trainerCaptor = ArgumentCaptor.forClass(Trainer.class);
         verify(trainerRepository).save(trainerCaptor.capture());
-        assertFalse(trainerCaptor.getValue().getUsers().getIsActive());
+        assertFalse(trainerCaptor.getValue().getUser().getIsActive());
     }
 
     @Test
@@ -328,37 +328,37 @@ class TrainerServiceTest {
 
     @Test
     void findByUsername_shouldReturnTrainerWhenFound() throws NotFoundException {
-        when(trainerRepository.findByUsers_Username("testUser")).thenReturn(Optional.of(testTrainer));
+        when(trainerRepository.findByUser_Username("testUser")).thenReturn(Optional.of(testTrainer));
 
         var result = trainerService.findByUsername("testUser");
 
         assertNotNull(result);
         assertEquals("trainerId", result.id());
-        assertEquals("testUser", result.users().username());
+        assertEquals("testUser", result.user().username());
 
-        verify(trainerRepository).findByUsers_Username("testUser");
+        verify(trainerRepository).findByUser_Username("testUser");
     }
 
     @Test
     void findByUsername_shouldReturnNullWhenNotFound() {
-        when(trainerRepository.findByUsers_Username("nonExistentUser")).thenReturn(Optional.empty());
+        when(trainerRepository.findByUser_Username("nonExistentUser")).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> trainerService.findByUsername("nonExistentUser"));
 
-        verify(trainerRepository).findByUsers_Username("nonExistentUser");
+        verify(trainerRepository).findByUser_Username("nonExistentUser");
     }
 
     @Test
     void getUnassignedTrainersForTrainee_shouldReturnUnassignedTrainers() throws NotFoundException {
         var trainee = Trainee.builder()
                 .id("traineeId")
-                .users(Users.builder().id("assignedUserId").username("assignedTrainer").build())
+                .user(User.builder().id("assignedUserId").username("assignedTrainer").build())
                 .trainings(new ArrayList<>())
                 .build();
 
         var assignedTrainer = Trainer.builder()
                 .id("assignedTrainerId")
-                .users(Users.builder()
+                .user(User.builder()
                         .id("assignedUserId")
                         .username("assignedTrainer")
                         .isActive(true)
@@ -369,7 +369,7 @@ class TrainerServiceTest {
 
         var unassignedTrainer = Trainer.builder()
                 .id("unassignedTrainerId")
-                .users(Users.builder()
+                .user(User.builder()
                         .id("unassignedUserId")
                         .username("unassignedTrainer")
                         .isActive(true)
@@ -386,7 +386,7 @@ class TrainerServiceTest {
 
         trainee.getTrainings().add(assignedTraining);
 
-        when(traineeRepository.findByUsers_Username("testTrainee")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.findByUser_Username("testTrainee")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findAll()).thenReturn(List.of(assignedTrainer, unassignedTrainer));
 
         var result = trainerService.getUnassignedTrainers("testTrainee");
@@ -395,7 +395,7 @@ class TrainerServiceTest {
         assertEquals(1, result.size());
         assertEquals("unassignedTrainerId", result.getFirst().id());
 
-        verify(traineeRepository).findByUsers_Username("testTrainee");
+        verify(traineeRepository).findByUser_Username("testTrainee");
         verify(trainerRepository).findAll();
     }
 

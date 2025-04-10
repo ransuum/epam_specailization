@@ -35,7 +35,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             var trainee = traineeRepository.findById(user.getId())
                     .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));
             if (trainee != null) {
-                securityContextHolder.newBuild(new SecurityContextHolder(
+                securityContextHolder.initContext(new SecurityContextHolder(
                         username, trainee.getId(),
                         LocalDateTime.now(),
                         LocalDateTime.now().plusDays(12),
@@ -50,7 +50,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var trainer = trainerRepository.findById(user.getId())
                 .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));
         if (trainer != null) {
-            securityContextHolder.newBuild(new SecurityContextHolder(
+            securityContextHolder.initContext(new SecurityContextHolder(
                     username, trainer.getId(),
                     LocalDateTime.now(),
                     LocalDateTime.now().plusDays(12),
@@ -64,10 +64,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout() {
-        this.securityContextHolder.setUsername(null);
-        this.securityContextHolder.setUserId(null);
-        this.securityContextHolder.setGenerateAt(null);
-        this.securityContextHolder.setExpiredAt(null);
-        this.securityContextHolder.setUserType(UserType.NOT_AUTHORIZE);
+        securityContextHolder.clearContext();
     }
 }

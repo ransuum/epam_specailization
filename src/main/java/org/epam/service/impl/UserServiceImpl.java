@@ -3,7 +3,7 @@ package org.epam.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.UserDto;
-import org.epam.models.entity.Users;
+import org.epam.models.entity.User;
 import org.epam.models.dto.create.UserCreateDto;
 import org.epam.models.enums.NotFoundMessages;
 import org.epam.repository.UserRepository;
@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
     public UserDto save(UserCreateDto request) {
         var username = credentialsGenerator.generateUsername(request.getFirstName(), request.getLastName());
         return UserMapper.INSTANCE.toDto(userRepository.save(
-                Users.builder()
+                User.builder()
                         .lastName(request.getLastName())
                         .firstName(request.getFirstName())
                         .password(credentialsGenerator.generatePassword(username))
@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto update(String id, Users request) throws NotFoundException {
+    public UserDto update(String id, User request) throws NotFoundException {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.USERS.getVal()));
 
@@ -82,6 +82,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto findByUsername(String username) throws NotFoundException {
         return UserMapper.INSTANCE.toDto(userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("There is no user with this username!")));
+                .orElseThrow(() -> new NotFoundException("There is no users with this username!")));
     }
 }

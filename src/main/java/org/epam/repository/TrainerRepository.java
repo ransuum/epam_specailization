@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface TrainerRepository extends JpaRepository<Trainer, String> {
-    Optional<Trainer> findByUsers_Username(String username);
+    Optional<Trainer> findByUser_Username(String username);
 
-    void deleteByUsers_Username(String username);
+    void deleteByUser_Username(String username);
 }
