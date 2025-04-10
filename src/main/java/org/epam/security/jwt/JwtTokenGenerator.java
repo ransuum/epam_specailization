@@ -4,7 +4,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.epam.models.entity.RefreshToken;
-import org.epam.models.entity.Users;
+import org.epam.models.entity.User;
 import org.epam.models.enums.Roles;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,7 +28,7 @@ public class JwtTokenGenerator {
         this.jwtEncoder = jwtEncoder;
     }
 
-    public Authentication createAuthenticationObject(Users users) {
+    public Authentication createAuthenticationObject(User users) {
         String username = users.getUsername();
         String password = users.getPassword();
         String roles = users.getRoles();
@@ -98,7 +98,7 @@ public class JwtTokenGenerator {
         return String.join(" ", Roles.getPermissionsForRoles(roleList));
     }
 
-    public RefreshToken createRefreshToken(Users users, Authentication authentication) {
+    public RefreshToken createRefreshToken(User users, Authentication authentication) {
         return RefreshToken.builder()
                 .user(users)
                 .token(generateRefreshToken(authentication))

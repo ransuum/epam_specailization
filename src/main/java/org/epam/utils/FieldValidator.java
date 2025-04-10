@@ -3,15 +3,16 @@ package org.epam.utils;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.epam.models.enums.TrainingTypeName;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class CheckerBuilder {
+public class FieldValidator {
     public static boolean check(String val) {
-        return val != null && !val.trim().isEmpty() && !val.isBlank() && !val.equals(" ");
+        return StringUtils.isNotBlank(val);
     }
 
     public static boolean check(Integer val) {

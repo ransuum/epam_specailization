@@ -91,7 +91,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthResponseDto registerTrainee(TraineeCreateDto traineeCreateDto, HttpServletResponse httpServletResponse) {
-        var userTrainee = traineeService.save(traineeCreateDto).getUsers();
+        var userTrainee = traineeService.save(traineeCreateDto).getUser();
         var authentication = jwtTokenGenerator.createAuthenticationObject(userTrainee);
 
         final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
@@ -115,7 +115,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthResponseDto registerTrainer(TrainerCreateDto trainerCreateDto, HttpServletResponse httpServletResponse) {
-        var userTrainer = trainerService.save(trainerCreateDto).getUsers();
+        var userTrainer = trainerService.save(trainerCreateDto).getUser();
         var authentication = jwtTokenGenerator.createAuthenticationObject(userTrainer);
 
         final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);

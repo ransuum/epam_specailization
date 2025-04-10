@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,8 +22,8 @@ public class Trainee {
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "id")
-    private Users users;
+    @JoinColumn(name = "id", referencedColumnName = "id")
+    private User user;
 
     @Column(nullable = false, name = "date_of_birth")
     private LocalDate dateOfBirth;
@@ -34,8 +33,8 @@ public class Trainee {
     @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Training> trainings;
 
-    public Trainee(Users users, LocalDate dateOfBirth, String address) {
-        this.users = users;
+    public Trainee(User users, LocalDate dateOfBirth, String address) {
+        this.user = users;
         this.dateOfBirth = dateOfBirth;
         this.address = address;
     }

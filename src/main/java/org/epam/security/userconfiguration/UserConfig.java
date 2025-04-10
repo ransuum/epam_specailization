@@ -1,7 +1,7 @@
 package org.epam.security.userconfiguration;
 
 import lombok.RequiredArgsConstructor;
-import org.epam.models.entity.Users;
+import org.epam.models.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,12 +11,11 @@ import java.util.Collection;
 
 @RequiredArgsConstructor
 public class UserConfig implements UserDetails {
-    private final Users users;
+    private final User users;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Arrays
-                .stream(users.getRoles().split(","))
+        return Arrays.stream(users.getRoles().split(","))
                 .map(SimpleGrantedAuthority::new)
                 .toList();
     }
