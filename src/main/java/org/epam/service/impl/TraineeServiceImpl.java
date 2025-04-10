@@ -20,7 +20,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.epam.utils.CheckerBuilder.check;
+import static org.epam.utils.FieldValidator.check;
 
 @Service
 @RequiredArgsConstructor

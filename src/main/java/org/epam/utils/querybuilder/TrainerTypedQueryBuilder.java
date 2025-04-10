@@ -7,24 +7,43 @@ import org.epam.models.enums.TrainingTypeName;
 
 import java.time.LocalDate;
 
-import static org.epam.utils.CheckerBuilder.check;
+import static org.epam.utils.FieldValidator.check;
 
 public class TrainerTypedQueryBuilder implements TypedQueryBuilder<Training> {
-    private final String username;
-    private final LocalDate fromDate;
-    private final LocalDate toDate;
-    private final String traineeName;
-    private final TrainingTypeName trainingTypeName;
+    private String username;
+    private LocalDate fromDate;
+    private LocalDate toDate;
+    private String traineeName;
+    private TrainingTypeName trainingTypeName;
     private final EntityManager em;
 
-    public TrainerTypedQueryBuilder(String username, LocalDate fromDate, LocalDate toDate,
-                                    String trainerName, TrainingTypeName trainingTypeName, EntityManager em) {
-        this.username = username;
-        this.fromDate = fromDate;
-        this.toDate = toDate;
-        this.traineeName = trainerName;
-        this.trainingTypeName = trainingTypeName;
+    public TrainerTypedQueryBuilder(EntityManager em) {
         this.em = em;
+    }
+
+    public TrainerTypedQueryBuilder username(String username) {
+        this.username = username;
+        return this;
+    }
+
+    public TrainerTypedQueryBuilder fromDate(LocalDate fromDate) {
+        this.fromDate = fromDate;
+        return this;
+    }
+
+    public TrainerTypedQueryBuilder toDate(LocalDate toDate) {
+        this.toDate = toDate;
+        return this;
+    }
+
+    public TrainerTypedQueryBuilder traineeName(String trainerName) {
+        this.traineeName = trainerName;
+        return this;
+    }
+
+    public TrainerTypedQueryBuilder trainingTypeName(TrainingTypeName trainingTypeName) {
+        this.trainingTypeName = trainingTypeName;
+        return this;
     }
 
     @Override
@@ -41,9 +60,8 @@ public class TrainerTypedQueryBuilder implements TypedQueryBuilder<Training> {
             query.setParameter("traineeName", "%" + traineeName + "%");
         }
         if (check(trainingTypeName)) {
-            query.setParameter("trainingName", trainingTypeName);
+            query.setParameter("trainingTypeName", trainingTypeName);
         }
         return query;
-
     }
 }
