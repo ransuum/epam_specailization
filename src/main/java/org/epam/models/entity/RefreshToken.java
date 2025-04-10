@@ -28,7 +28,7 @@ public class RefreshToken {
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private Users user;
+    private User user;
 
     @Column(name = "CREATED_AT")
     private Instant createdAt;

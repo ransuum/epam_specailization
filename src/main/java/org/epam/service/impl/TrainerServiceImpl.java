@@ -6,7 +6,7 @@ import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.entity.Trainer;
 import org.epam.models.entity.Training;
-import org.epam.models.entity.Users;
+import org.epam.models.entity.User;
 import org.epam.models.enums.NotFoundMessages;
 import org.epam.models.dto.create.TrainerCreateDto;
 import org.epam.models.dto.update.TrainerUpdateDto;
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.epam.utils.CheckerBuilder.check;
+import static org.epam.utils.FieldValidator.check;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class TrainerServiceImpl implements TrainerService {
         var username = credentialsGenerator.generateUsername(trainerCreateData.firstname(), trainerCreateData.lastname());
         return trainerRepository.save(
                 Trainer.builder()
-                        .users(Users.builder()
+                        .user(User.builder()
                                 .firstName(trainerCreateData.firstname())
                                 .lastName(trainerCreateData.lastname())
                                 .username(username)
@@ -56,7 +56,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Transactional
     public TrainerDto update(TrainerUpdateDto trainerUpdateData) throws NotFoundException {
         var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        var trainer = trainerRepository.findByUsers_Username(authUsername)
+        var trainer = trainerRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
         if (check(trainerUpdateData.specialization()))
@@ -64,10 +64,10 @@ public class TrainerServiceImpl implements TrainerService {
                     TrainingTypeName.getTrainingNameFromString(trainerUpdateData.specialization()))
                     .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal())));
 
-        trainer.getUsers().setIsActive(trainerUpdateData.isActive());
-        trainer.getUsers().setUsername(trainerUpdateData.username());
-        trainer.getUsers().setFirstName(trainerUpdateData.firstname());
-        trainer.getUsers().setLastName(trainerUpdateData.lastname());
+        trainer.getUser().setIsActive(trainerUpdateData.isActive());
+        trainer.getUser().setUsername(trainerUpdateData.username());
+        trainer.getUser().setFirstName(trainerUpdateData.firstname());
+        trainer.getUser().setLastName(trainerUpdateData.lastname());
         return TrainerMapper.INSTANCE.toDto(trainerRepository.save(trainer));
     }
 
@@ -95,6 +95,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
+    @Transactional
     public TrainerDto profile() throws NotFoundException {
         var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         return findByUsername(authUsername);
@@ -104,20 +105,20 @@ public class TrainerServiceImpl implements TrainerService {
     @Transactional
     public TrainerDto changePassword(String oldPassword, String newPassword) throws NotFoundException, CredentialException {
         var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        var trainer = trainerRepository.findByUsers_Username(authUsername)
+        var trainer = trainerRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
-        if (!trainer.getUsers().getPassword().equals(oldPassword))
+        if (!trainer.getUser().getPassword().equals(oldPassword))
             throw new CredentialException("Old password do not match");
 
-        trainer.getUsers().setPassword(newPassword);
+        trainer.getUser().setPassword(newPassword);
         return TrainerMapper.INSTANCE.toDto(trainerRepository.save(trainer));
     }
 
     @Override
     @Transactional
     public TrainerDto findByUsername(String username) throws NotFoundException {
-        return TrainerMapper.INSTANCE.toDto(trainerRepository.findByUsers_Username(username)
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.findByUser_Username(username)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal())));
 
     }
@@ -125,17 +126,17 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     @Transactional
     public TrainerDto changeStatus(String username) throws NotFoundException {
-        var trainer = trainerRepository.findByUsers_Username(username)
+        var trainer = trainerRepository.findByUser_Username(username)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
-        trainer.getUsers().setIsActive(trainer.getUsers().getIsActive()
+        trainer.getUser().setIsActive(trainer.getUser().getIsActive()
                 .equals(Boolean.TRUE) ? Boolean.FALSE : Boolean.TRUE);
         return TrainerMapper.INSTANCE.toDto(trainerRepository.save(trainer));
     }
 
     @Override
     public List<TrainerDto> getUnassignedTrainers(String username) throws NotFoundException {
-        var trainee = traineeRepository.findByUsers_Username(username)
+        var trainee = traineeRepository.findByUser_Username(username)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
         var assignedTrainers = trainee.getTrainings().stream()
@@ -146,7 +147,7 @@ public class TrainerServiceImpl implements TrainerService {
         return trainerRepository.findAll()
                 .stream()
                 .filter(trainer -> !assignedTrainers.contains(trainer)
-                        && trainer.getUsers().getIsActive() == Boolean.TRUE)
+                        && trainer.getUser().getIsActive() == Boolean.TRUE)
                 .map(TrainerMapper.INSTANCE::toDto)
                 .toList();
     }

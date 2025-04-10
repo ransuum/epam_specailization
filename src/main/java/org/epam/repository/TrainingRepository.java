@@ -12,10 +12,10 @@ import java.util.List;
 public interface TrainingRepository extends JpaRepository<Training, String> {
 
     @Query("SELECT t FROM Training t " +
-            "WHERE t.trainee.users.username = :username " +
+            "WHERE t.trainee.user.username = :username " +
             "AND (:fromDate IS NULL OR t.startTime >= :fromDate) " +
             "AND (:toDate IS NULL OR t.startTime <= :toDate) " +
-            "AND (:trainerName IS NULL OR t.trainer.users.firstName = :trainerName) " +
+            "AND (:trainerName IS NULL OR t.trainer.user.firstName = :trainerName) " +
             "AND (:trainingType IS NULL OR t.trainingType.trainingTypeName = :trainingType)")
     List<Training> getTraineeTrainings(@Param("username") String username,
                                        @Param("fromDate") LocalDate fromDate,
@@ -24,10 +24,10 @@ public interface TrainingRepository extends JpaRepository<Training, String> {
                                        @Param("trainingType") TrainingTypeName trainingType);
 
     @Query("SELECT t FROM Training t " +
-            "WHERE t.trainer.users.username = :username " +
+            "WHERE t.trainer.user.username = :username " +
             "AND (:fromDate IS NULL OR t.startTime >= :fromDate) " +
             "AND (:toDate IS NULL OR t.startTime <= :toDate) " +
-            "AND (:traineeName IS NULL OR t.trainee.users.firstName = :trainerName) " +
+            "AND (:traineeName IS NULL OR t.trainee.user.firstName = :trainerName) " +
             "AND (:trainingType IS NULL OR t.trainingType.trainingTypeName = :trainingType)")
     List<Training> getTrainerTrainings(@Param("username") String username,
                                        @Param("fromDate") LocalDate fromDate,

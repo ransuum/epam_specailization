@@ -1,12 +1,11 @@
 package org.epam.utils.mappers;
 
-import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.Trainee;
 import org.epam.models.entity.Training;
-import org.epam.models.entity.Users;
+import org.epam.models.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -34,13 +33,13 @@ public interface TraineeMapper {
                 .map(Training::getTrainer)
                 .distinct()
                 .map(trainer -> new TrainerDto(trainer.getId(),
-                        createUserDto(trainer.getUsers()),
+                        createUserDto(trainer.getUser()),
                         trainer.getSpecialization().getTrainingTypeName().getVal(),
                         null)
                 ).toList();
     }
 
-    default UserDto createUserDto(Users users) {
+    default UserDto createUserDto(User users) {
         return new UserDto(
                 users.getId(),
                 users.getUsername(),
