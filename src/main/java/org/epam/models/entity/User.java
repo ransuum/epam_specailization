@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.relational.core.mapping.Table;
 
 @Data
 @AllArgsConstructor
@@ -13,7 +12,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table(name = "users")
 @Entity
 @Builder
-public class Users {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false)
@@ -34,7 +33,7 @@ public class Users {
     @Column(nullable = false, name = "is_active")
     private Boolean isActive;
 
-    public Users(String firstName, String lastName, Boolean isActive) {
+    public User(String firstName, String lastName, Boolean isActive) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.isActive = isActive;

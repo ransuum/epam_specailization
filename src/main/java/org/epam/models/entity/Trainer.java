@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.List;
 
@@ -22,8 +21,8 @@ public class Trainer {
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "id")
-    private Users users;
+    @JoinColumn(name = "id", referencedColumnName = "id")
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "specialization_id", referencedColumnName = "id", nullable = false)

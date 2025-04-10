@@ -19,7 +19,7 @@ public class SecurityContextHolder {
     private LocalDateTime expiredAt;
     private UserType userType;
 
-    public void newBuild(SecurityContextHolder securityContextHolder) {
+    public void initContext(SecurityContextHolder securityContextHolder) {
         this.username = securityContextHolder.getUsername();
         this.userId = securityContextHolder.getUserId();
         this.generateAt = securityContextHolder.getGenerateAt();
@@ -27,7 +27,7 @@ public class SecurityContextHolder {
         this.userType = securityContextHolder.getUserType();
     }
 
-    public void toNotAuthorize() {
+    public void clearContext() {
         this.username = null;
         this.userId = null;
         this.generateAt = null;

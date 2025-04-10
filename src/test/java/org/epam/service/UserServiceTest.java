@@ -1,7 +1,7 @@
 package org.epam.service;
 
 import org.epam.exception.NotFoundException;
-import org.epam.models.entity.Users;
+import org.epam.models.entity.User;
 import org.epam.models.dto.create.UserCreateDto;
 import org.epam.repository.UserRepository;
 import org.epam.service.impl.UserServiceImpl;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UsersServiceTest {
+class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
@@ -30,7 +30,7 @@ class UsersServiceTest {
     @InjectMocks
     private UserServiceImpl userService;
 
-    private Users testUsers;
+    private User testUser;
     private UserCreateDto testUserRequest;
     private static final String TEST_ID = "test-id";
     private static final String TEST_FIRST_NAME = "John";
@@ -42,7 +42,7 @@ class UsersServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUsers = Users.builder()
+        testUser = User.builder()
                 .id(TEST_ID)
                 .firstName(TEST_FIRST_NAME)
                 .lastName(TEST_LAST_NAME)
@@ -61,7 +61,7 @@ class UsersServiceTest {
     void save_shouldCreateNewUser() {
         when(credentialsGenerator.generateUsername(TEST_FIRST_NAME, TEST_LAST_NAME)).thenReturn(TEST_USERNAME);
         when(credentialsGenerator.generatePassword(TEST_USERNAME)).thenReturn(TEST_PASSWORD);
-        when(userRepository.save(any(Users.class))).thenReturn(testUsers);
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         var result = userService.save(testUserRequest);
 
@@ -75,12 +75,12 @@ class UsersServiceTest {
 
         verify(credentialsGenerator).generateUsername(TEST_FIRST_NAME, TEST_LAST_NAME);
         verify(credentialsGenerator).generatePassword(TEST_USERNAME);
-        verify(userRepository).save(any(Users.class));
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
     void update_shouldUpdateExistingUser() {
-        var updatedUser = Users.builder()
+        var updatedUser = User.builder()
                 .id(TEST_ID)
                 .firstName("Jane")
                 .lastName("Smith")
@@ -89,10 +89,10 @@ class UsersServiceTest {
                 .isActive(false)
                 .build();
 
-        when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUsers));
+        when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUser));
         when(credentialsGenerator.generateUsername("Jane", "Smith")).thenReturn("jane.smith");
         when(credentialsGenerator.generatePassword("jane.smith")).thenReturn("NewPassword123");
-        when(userRepository.save(any(Users.class))).thenReturn(updatedUser);
+        when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
         var result = userService.update(TEST_ID, updatedUser);
 
@@ -107,14 +107,14 @@ class UsersServiceTest {
         verify(userRepository).findById(TEST_ID);
         verify(credentialsGenerator).generateUsername("Jane", "Smith");
         verify(credentialsGenerator).generatePassword("jane.smith");
-        verify(userRepository).save(any(Users.class));
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
     void update_shouldReturnNullWhenUserNotFound() {
         when(userRepository.findById(TEST_ID)).thenReturn(Optional.empty());
 
-        var updateRequest = new Users(TEST_FIRST_NAME_UPDATE, TEST_LAST_NAME_UPDATE, Boolean.TRUE);
+        var updateRequest = new User(TEST_FIRST_NAME_UPDATE, TEST_LAST_NAME_UPDATE, Boolean.TRUE);
 
         var exception = assertThrows(NotFoundException.class, () ->
                 userService.update(TEST_ID, updateRequest));
@@ -126,17 +126,17 @@ class UsersServiceTest {
 
     @Test
     void delete_shouldDeleteUser() {
-        when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUsers));
-        doNothing().when(userRepository).delete(testUsers);
+        when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUser));
+        doNothing().when(userRepository).delete(testUser);
 
         userService.delete(TEST_ID);
 
-        verify(userRepository).delete(testUsers);
+        verify(userRepository).delete(testUser);
     }
 
     @Test
     void findAll_shouldReturnAllUsers() {
-        var users = List.of(testUsers);
+        var users = List.of(testUser);
         when(userRepository.findAll()).thenReturn(users);
 
         var result = userService.findAll();
@@ -155,7 +155,7 @@ class UsersServiceTest {
 
     @Test
     void findById_shouldReturnUserWhenFound() {
-        when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUsers));
+        when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUser));
 
         var result = userService.findById(TEST_ID);
 
@@ -183,13 +183,13 @@ class UsersServiceTest {
 
     @Test
     void update_shouldUpdateOnlyProvidedFields() {
-        var partialUpdate = Users.builder()
+        var partialUpdate = User.builder()
                 .firstName("Jane")
                 .lastName(TEST_LAST_NAME)
                 .isActive(true)
                 .build();
 
-        var expectedUpdated = Users.builder()
+        var expectedUpdated = User.builder()
                 .id(TEST_ID)
                 .firstName("Jane")
                 .lastName(TEST_LAST_NAME)
@@ -198,9 +198,9 @@ class UsersServiceTest {
                 .isActive(true)
                 .build();
 
-        when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUsers));
+        when(userRepository.findById(TEST_ID)).thenReturn(Optional.of(testUser));
         when(credentialsGenerator.generateUsername("Jane", "Doe")).thenReturn("Jane.Doe");
-        when(userRepository.save(any(Users.class))).thenReturn(expectedUpdated);
+        when(userRepository.save(any(User.class))).thenReturn(expectedUpdated);
 
         var result = userService.update(expectedUpdated.getId(), partialUpdate);
 
@@ -212,6 +212,6 @@ class UsersServiceTest {
 
         verify(userRepository).findById(TEST_ID);
         verify(credentialsGenerator).generateUsername("Jane", TEST_LAST_NAME);
-        verify(userRepository).save(any(Users.class));
+        verify(userRepository).save(any(User.class));
     }
 }

@@ -27,13 +27,13 @@ public class ExternalApiHealthIndicator implements HealthIndicator {
                 "Trainer API", "/trainer",
                 "Training API", "/training",
                 "TrainingType API", "/training-type",
-                "User API", "/user"
+                "User API", "/users"
         );
     }
 
     @Override
     public Health health() {
-        securityContextHolder.newBuild(SecurityContextHolder.builder()
+        securityContextHolder.initContext(SecurityContextHolder.builder()
                 .userType(UserType.ADMIN)
                 .expiredAt(LocalDateTime.MAX)
                 .generateAt(LocalDateTime.now())
@@ -64,7 +64,7 @@ public class ExternalApiHealthIndicator implements HealthIndicator {
         if (!allHealthy) builder.down();
 
 
-        securityContextHolder.toNotAuthorize();
+        securityContextHolder.clearContext();
         return builder.build();
     }
 }

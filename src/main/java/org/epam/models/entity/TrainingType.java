@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.epam.models.enums.TrainingTypeName;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.List;
 
