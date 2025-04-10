@@ -11,7 +11,10 @@ import org.springframework.security.core.Authentication;
 
 public interface AuthenticationService {
     AuthResponseDto getJwtTokensAfterAuthentication(Authentication authentication, HttpServletResponse response);
+
     Object getAccessTokenUsingRefreshToken(String authorizationHeader);
+
     AuthResponseDto registerTrainee(TraineeCreateDto traineeCreateDto, HttpServletResponse httpServletResponse);
+
     AuthResponseDto registerTrainer(TrainerCreateDto traineeCreateDto, HttpServletResponse httpServletResponse);
 }

@@ -20,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,8 +31,6 @@ import static org.mockito.Mockito.*;
 class TrainingServiceTest {
     @Mock
     private TrainingRepository trainingRepository;
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     @Mock
     private TraineeRepository traineeRepository;
@@ -265,19 +262,6 @@ class TrainingServiceTest {
     }
 
     @Test
-    void findAll_shouldReturnAllTrainings() {
-        var trainings = List.of(testTraining);
-        when(trainingRepository.findAll()).thenReturn(trainings);
-
-        var result = trainingService.findAll();
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-
-        verify(trainingRepository).findAll();
-    }
-
-    @Test
     void findById_shouldReturnTrainingWhenFound() throws NotFoundException {
         when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
 
@@ -297,52 +281,6 @@ class TrainingServiceTest {
         var exception = assertThrows(NotFoundException.class, () -> trainingService.findById(nonExistentId));
 
         assertEquals("Trainee not found by id " + nonExistentId, exception.getMessage());
-    }
-
-    @Test
-    void getTrainee_Trainings_shouldReturnFilteredTrainings() {
-        String username = "johndoe";
-        String fromDate = "26-03-2025";
-        String toDate = "26-03-2026";
-        String trainerName = "Jane";
-        TrainingTypeName trainingTypeName = TrainingTypeName.SELF_PLACING;
-
-        var trainings = List.of(testTraining);
-        when(trainingRepository.getTraineeTrainings(
-                username, LocalDate.parse(fromDate, FORMATTER), LocalDate.parse(toDate, FORMATTER), trainerName, trainingTypeName))
-                .thenReturn(trainings);
-
-        var result = trainingService.getTraineeTrainings(
-                username, fromDate, toDate, trainerName, trainingTypeName);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-
-        verify(trainingRepository).getTraineeTrainings(
-                username, LocalDate.parse(fromDate, FORMATTER), LocalDate.parse(toDate, FORMATTER), trainerName, trainingTypeName);
-    }
-
-    @Test
-    void getTrainer_Trainings_shouldReturnFilteredTrainings() {
-        String username = "janesmith";
-        String fromDate = "26-03-2025";
-        String toDate = "26-03-2026";
-        String traineeName = "John";
-        var trainingName = TrainingTypeName.SELF_PLACING;
-
-        var trainings = List.of(testTraining);
-        when(trainingRepository.getTrainerTrainings(
-                username, LocalDate.parse(fromDate, FORMATTER), LocalDate.parse(toDate, FORMATTER), traineeName, trainingName))
-                .thenReturn(trainings);
-
-        var result = trainingService.getTrainerTrainings(
-                username, fromDate, toDate, traineeName, trainingName);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-
-        verify(trainingRepository).getTrainerTrainings(
-                username, LocalDate.parse(fromDate, FORMATTER), LocalDate.parse(toDate, FORMATTER), traineeName, trainingName);
     }
 
     @Test

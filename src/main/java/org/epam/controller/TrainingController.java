@@ -10,6 +10,12 @@ import org.epam.models.dto.create.TrainingCreateDto;
 import org.epam.models.dto.update.TraineeTrainingUpdateDto;
 import org.epam.models.dto.update.TrainerTrainingUpdateDto;
 import org.epam.service.TrainingService;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,8 +38,11 @@ public class TrainingController {
 
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('SCOPE_FULL_ACCESS')")
-    public ResponseEntity<List<TrainingListDto>> findAll() {
-        return ResponseEntity.ok(trainingService.findAll());
+    public ResponseEntity<PagedModel<EntityModel<TrainingListDto>>> findAll(
+            @ParameterObject @PageableDefault(sort = "traineeName,asc") Pageable pageable,
+            PagedResourcesAssembler<TrainingListDto> assembler) {
+        final var trainingPages = trainingService.findAll(pageable);
+        return ResponseEntity.ok(assembler.toModel(trainingPages));
     }
 
     @GetMapping("/{trainingId}")
@@ -44,22 +53,28 @@ public class TrainingController {
 
     @GetMapping("/by-trainee/{username}")
     @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
-    public ResponseEntity<List<TrainingListDto.TrainingListDtoForUser>> getTraineeTrainings(@PathVariable String username,
-                                                                                            @RequestParam(required = false) String fromDate,
-                                                                                            @RequestParam(required = false) String toDate,
-                                                                                            @RequestParam(required = false) String trainerName,
-                                                                                            @RequestParam(required = false) TrainingTypeName trainingTypeName) {
-        return ResponseEntity.ok(trainingService.getTraineeTrainings(username, fromDate, toDate, trainerName, trainingTypeName));
+    public ResponseEntity<PagedModel<EntityModel<TrainingListDto.TrainingListDtoForUser>>> getTraineeTrainings(
+            @PathVariable String username, @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate, @RequestParam(required = false) String trainerName,
+            @RequestParam(required = false) TrainingTypeName trainingTypeName,
+            @ParameterObject @PageableDefault(sort = "trainingName,asc") Pageable pageable,
+            PagedResourcesAssembler<TrainingListDto.TrainingListDtoForUser> assembler) {
+        final var trainingPages = trainingService
+                .getTraineeTrainings(username, fromDate, toDate, trainerName, trainingTypeName, pageable);
+        return ResponseEntity.ok(assembler.toModel(trainingPages));
     }
 
     @GetMapping("/by-trainer/{username}")
     @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
-    public ResponseEntity<List<TrainingListDto.TrainingListDtoForUser>> getTrainerTrainings(@PathVariable String username,
-                                                                                            @RequestParam(required = false) String fromDate,
-                                                                                            @RequestParam(required = false) String toDate,
-                                                                                            @RequestParam(required = false) String traineeName,
-                                                                                            @RequestParam(required = false) TrainingTypeName trainingTypeName) {
-        return ResponseEntity.ok(trainingService.getTrainerTrainings(username, fromDate, toDate, traineeName, trainingTypeName));
+    public ResponseEntity<PagedModel<EntityModel<TrainingListDto.TrainingListDtoForUser>>> getTrainerTrainings(
+            @PathVariable String username, @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate, @RequestParam(required = false) String traineeName,
+            @RequestParam(required = false) TrainingTypeName trainingTypeName,
+            @ParameterObject @PageableDefault(sort = "trainingName,asc") Pageable pageable,
+            PagedResourcesAssembler<TrainingListDto.TrainingListDtoForUser> assembler) {
+        final var trainingPages = trainingService
+                .getTraineeTrainings(username, fromDate, toDate, traineeName, trainingTypeName, pageable);
+        return ResponseEntity.ok(assembler.toModel(trainingPages));
     }
 
     @PutMapping("/add-to-trainee/{traineeUsername}")

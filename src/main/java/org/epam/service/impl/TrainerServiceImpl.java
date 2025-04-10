@@ -14,10 +14,12 @@ import org.epam.models.enums.TrainingTypeName;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
+import org.epam.security.config.SecurityService;
 import org.epam.service.TrainerService;
 import org.epam.utils.CredentialsGenerator;
 import org.epam.utils.mappers.TrainerMapper;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,20 +34,22 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainingTypeRepository trainingTypeRepository;
     private final TraineeRepository traineeRepository;
     private final CredentialsGenerator credentialsGenerator;
+    private final SecurityService securityService;
 
     @Override
     @Transactional
     public Trainer save(TrainerCreateDto trainerCreateData) throws NotFoundException {
-        var username = credentialsGenerator.generateUsername(trainerCreateData.firstname(), trainerCreateData.lastname());
+        final var username = credentialsGenerator.generateUsername(trainerCreateData.firstname(), trainerCreateData.lastname());
+        final var user = User.builder()
+                .firstName(trainerCreateData.firstname())
+                .lastName(trainerCreateData.lastname())
+                .username(username)
+                .password(credentialsGenerator.generatePassword(username))
+                .isActive(Boolean.TRUE)
+                .build();
         return trainerRepository.save(
                 Trainer.builder()
-                        .user(User.builder()
-                                .firstName(trainerCreateData.firstname())
-                                .lastName(trainerCreateData.lastname())
-                                .username(username)
-                                .password(credentialsGenerator.generatePassword(username))
-                                .isActive(Boolean.TRUE)
-                                .build())
+                        .user(user)
                         .specialization(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName
                                         .getTrainingNameFromString(trainerCreateData.specialization()))
                                 .orElseThrow(() -> new NotFoundException("Specialization Not Found")))
@@ -55,13 +59,13 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     @Transactional
     public TrainerDto update(TrainerUpdateDto trainerUpdateData) throws NotFoundException {
-        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        var authUsername = securityService.getCurrentUserEmail();
         var trainer = trainerRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
         if (check(trainerUpdateData.specialization()))
             trainer.setSpecialization(trainingTypeRepository.findByTrainingTypeName(
-                    TrainingTypeName.getTrainingNameFromString(trainerUpdateData.specialization()))
+                            TrainingTypeName.getTrainingNameFromString(trainerUpdateData.specialization()))
                     .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal())));
 
         trainer.getUser().setIsActive(trainerUpdateData.isActive());
@@ -80,11 +84,8 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public List<TrainerDto> findAll() {
-        return trainerRepository.findAll()
-                .stream()
-                .map(TrainerMapper.INSTANCE::toDto)
-                .toList();
+    public Page<TrainerDto> findAll(Pageable pageable) {
+        return trainerRepository.findAll(pageable).map(TrainerMapper.INSTANCE::toDto);
     }
 
     @Override
@@ -97,14 +98,15 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     @Transactional
     public TrainerDto profile() throws NotFoundException {
-        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        return findByUsername(authUsername);
+        var authUsername = securityService.getCurrentUserEmail();
+        return TrainerMapper.INSTANCE.toDto(trainerRepository.findByUser_Username(authUsername)
+                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal())));
     }
 
     @Override
     @Transactional
     public TrainerDto changePassword(String oldPassword, String newPassword) throws NotFoundException, CredentialException {
-        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        var authUsername = securityService.getCurrentUserEmail();
         var trainer = trainerRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 

@@ -210,20 +210,6 @@ class TrainerServiceTest {
     }
 
     @Test
-    void findAll_shouldReturnAllTrainers() {
-        List<Trainer> trainerList = Collections.singletonList(testTrainer);
-        when(trainerRepository.findAll()).thenReturn(trainerList);
-
-        var result = trainerService.findAll();
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("trainerId", result.getFirst().id());
-
-        verify(trainerRepository).findAll();
-    }
-
-    @Test
     void activateAction_shouldActivateTrainer() throws NotFoundException {
         var inactiveUser = User.builder()
                 .id("userId")

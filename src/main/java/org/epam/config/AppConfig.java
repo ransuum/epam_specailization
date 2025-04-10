@@ -14,11 +14,10 @@ public class AppConfig {
 
     @Bean
     public CommandLineRunner addPasswordEncoder() {
-        return args -> {
-            userRepository.findAll().forEach(u -> {
-                u.setPassword(new BCryptPasswordEncoder().encode(u.getPassword()));
-                userRepository.save(u);
-            });
-        };
+        return args ->
+                userRepository.findAll().forEach(u -> {
+                    u.setPassword(new BCryptPasswordEncoder().encode(u.getPassword()));
+                    userRepository.save(u);
+                });
     }
 }

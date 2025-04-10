@@ -19,16 +19,14 @@ import java.util.List;
 public interface TrainerMapper {
     TrainerMapper INSTANCE = Mappers.getMapper(TrainerMapper.class);
 
-    @Mapping(target = "users.password", ignore = true)
+    @Mapping(target = "user.password", ignore = true)
     @Mapping(target = "specialization", expression = "java(trainer.getSpecialization().getTrainingTypeName().getVal())")
     @Mapping(target = "trainees", source = "trainings", qualifiedByName = "mapTraineesForTrainer")
     TrainerDto toDto(Trainer trainer);
 
     @Named("mapTraineesForTrainer")
     default List<TraineeDto> mapTraineesForTrainer(List<Training> trainings) {
-        if (trainings == null) {
-            return Collections.emptyList();
-        }
+        if (trainings == null) return Collections.emptyList();
         return trainings.stream()
                 .map(Training::getTrainee)
                 .distinct()

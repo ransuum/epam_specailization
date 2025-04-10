@@ -10,16 +10,17 @@ import org.epam.models.dto.update.TraineeRequestDto;
 import org.epam.models.entity.User;
 import org.epam.models.enums.NotFoundMessages;
 import org.epam.repository.TraineeRepository;
+import org.epam.security.config.SecurityService;
 import org.epam.service.TraineeService;
 import org.epam.utils.CredentialsGenerator;
 import org.epam.utils.mappers.TraineeMapper;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import static org.epam.utils.FieldValidator.check;
 
@@ -29,30 +30,32 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private final CredentialsGenerator credentialsGenerator;
+    private final SecurityService securityService;
 
     @Override
     @Transactional
     public Trainee save(TraineeCreateDto traineeCreationData) throws NotFoundException {
-        var username = credentialsGenerator.generateUsername(traineeCreationData.firstname(), traineeCreationData.lastname());
+        final var username = credentialsGenerator.generateUsername(traineeCreationData.firstname(), traineeCreationData.lastname());
+        final var user = User.builder()
+                .firstName(traineeCreationData.firstname())
+                .lastName(traineeCreationData.lastname())
+                .isActive(Boolean.TRUE)
+                .roles("ROLE_TRAINEE")
+                .username(username)
+                .password(credentialsGenerator.generatePassword(username))
+                .build();
         return traineeRepository.save(Trainee.builder()
                 .address(traineeCreationData.address())
                 .dateOfBirth(LocalDate.parse(traineeCreationData.dateOfBirth(), FORMATTER))
-                .user(User.builder()
-                        .firstName(traineeCreationData.firstname())
-                        .lastName(traineeCreationData.lastname())
-                        .isActive(Boolean.TRUE)
-                        .roles("ROLE_TRAINEE")
-                        .username(username)
-                        .password(credentialsGenerator.generatePassword(username))
-                        .build())
+                .user(user)
                 .build());
     }
 
     @Override
     @Transactional
     public TraineeDto update(TraineeRequestDto traineeUpdateData) throws NotFoundException {
-        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        var traineeById = traineeRepository.findByUser_Username(authUsername)
+        final var authUsername = securityService.getCurrentUserEmail();
+        final var traineeById = traineeRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         if (check(traineeUpdateData.getAddress())) traineeById.setAddress(traineeUpdateData.getAddress());
@@ -68,17 +71,14 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional
     public void delete(String id) {
-        var trainee = traineeRepository.findById(id)
+        final var trainee = traineeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal()));
         traineeRepository.delete(trainee);
     }
 
     @Override
-    public List<TraineeDto> findAll() {
-        return traineeRepository.findAll()
-                .stream()
-                .map(TraineeMapper.INSTANCE::toDto)
-                .toList();
+    public Page<TraineeDto> findAll(Pageable pageable) {
+        return traineeRepository.findAll(pageable).map(TraineeMapper.INSTANCE::toDto);
     }
 
     @Override
@@ -91,15 +91,15 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     public TraineeDto profile() throws NotFoundException {
-        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        final var authUsername = securityService.getCurrentUserEmail();
         return findByUsername(authUsername);
     }
 
     @Override
     @Transactional
     public TraineeDto changePassword(String oldPassword, String newPassword) throws NotFoundException, CredentialException {
-        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        var trainee = traineeRepository.findByUser_Username(authUsername)
+        final var authUsername = securityService.getCurrentUserEmail();
+        final var trainee = traineeRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found with authUsername " + authUsername));
 
         if (!trainee.getUser().getPassword().equals(oldPassword))
@@ -124,8 +124,8 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional
     public TraineeDto changeStatus() throws NotFoundException {
-        var authUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        var trainee = traineeRepository.findByUser_Username(authUsername)
+        final var authUsername = securityService.getCurrentUserEmail();
+        final var trainee = traineeRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         trainee.getUser().setIsActive(trainee.getUser().getIsActive()

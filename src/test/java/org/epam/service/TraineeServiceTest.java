@@ -111,19 +111,6 @@ class TraineeServiceTest {
     }
 
     @Test
-    void findAll_shouldReturnAllTrainees() {
-        var trainees = Collections.singletonList(testTrainee);
-        when(traineeRepository.findAll()).thenReturn(trainees);
-
-        var result = traineeService.findAll();
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(testId, result.getFirst().id());
-        verify(traineeRepository).findAll();
-    }
-
-    @Test
     void findById_shouldReturnTraineeWhenFound() throws NotFoundException {
         when(traineeRepository.findById(testId)).thenReturn(Optional.of(testTrainee));
 

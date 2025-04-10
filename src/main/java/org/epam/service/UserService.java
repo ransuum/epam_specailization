@@ -1,11 +1,10 @@
 package org.epam.service;
 
-
 import org.epam.models.dto.UserDto;
 import org.epam.models.entity.User;
 import org.epam.models.dto.create.UserCreateDto;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
     UserDto save(UserCreateDto request);
@@ -14,9 +13,9 @@ public interface UserService {
 
     void delete(String id);
 
-    List<UserDto> findAll();
+    Page<UserDto> findAll(Pageable pageable);
 
     UserDto findById(String id);
 
-    Users findByUsername(String username);
+    User findByUsername(String username);
 }

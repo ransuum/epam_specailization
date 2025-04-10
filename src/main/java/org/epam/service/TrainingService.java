@@ -9,6 +9,8 @@ import org.epam.models.dto.create.TrainingCreateDto;
 import org.epam.models.dto.update.TraineeTrainingUpdateDto;
 import org.epam.models.dto.update.TrainerTrainingUpdateDto;
 import org.epam.models.dto.update.TrainingUpdateDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -19,17 +21,19 @@ public interface TrainingService {
 
     void delete(String id) throws NotFoundException;
 
-    List<TrainingListDto> findAll();
+    Page<TrainingListDto> findAll(Pageable pageable);
 
     TrainingDto findById(String id) throws NotFoundException;
 
-    List<TrainingListDto.TrainingListDtoForUser> getTraineeTrainings(String username, String fromDate,
+    Page<TrainingListDto.TrainingListDtoForUser> getTraineeTrainings(String username, String fromDate,
                                                                      String toDate, String trainerName,
-                                                                     TrainingTypeName trainingTypeName);
+                                                                     TrainingTypeName trainingTypeName,
+                                                                     Pageable pageable);
 
-    List<TrainingListDto.TrainingListDtoForUser> getTrainerTrainings(String username, String fromDate,
+    Page<TrainingListDto.TrainingListDtoForUser> getTrainerTrainings(String username, String fromDate,
                                                                      String toDate, String traineeName,
-                                                                     TrainingTypeName trainingTypeName);
+                                                                     TrainingTypeName trainingTypeName,
+                                                                     Pageable pageable);
 
     List<TrainingDto> updateTrainingsOfTrainee(String traineeUsername, List<TraineeTrainingUpdateDto> trainingUpdateData) throws NotFoundException;
 

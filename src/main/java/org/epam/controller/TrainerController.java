@@ -6,6 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.dto.update.TrainerUpdateDto;
 import org.epam.service.TrainerService;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,8 +47,11 @@ public class TrainerController {
 
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('SCOPE_SEARCH_TRAINERS')")
-    public ResponseEntity<List<TrainerDto>> findAll() {
-        return ResponseEntity.ok(trainerService.findAll());
+    public ResponseEntity<PagedModel<EntityModel<TrainerDto>>> findAll(
+            @ParameterObject @PageableDefault(sort = "firstName,asc") Pageable pageable,
+            PagedResourcesAssembler<TrainerDto> assembler) {
+        final var trainerPages = trainerService.findAll(pageable);
+        return ResponseEntity.ok(assembler.toModel(trainerPages));
     }
 
     @PutMapping("/change-password")
