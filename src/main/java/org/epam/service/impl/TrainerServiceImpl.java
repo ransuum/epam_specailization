@@ -59,8 +59,8 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     @Transactional
     public TrainerDto update(TrainerUpdateDto trainerUpdateData) throws NotFoundException {
-        var authUsername = securityService.getCurrentUserEmail();
-        var trainer = trainerRepository.findByUser_Username(authUsername)
+        final var authUsername = securityService.getCurrentUsername();
+        final var trainer = trainerRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
         if (check(trainerUpdateData.specialization()))
@@ -78,7 +78,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     @Transactional
     public void delete(String id) throws NotFoundException {
-        var trainer = trainerRepository.findById(id)
+        final var trainer = trainerRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
         trainerRepository.delete(trainer);
     }
@@ -98,7 +98,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     @Transactional
     public TrainerDto profile() throws NotFoundException {
-        var authUsername = securityService.getCurrentUserEmail();
+        final var authUsername = securityService.getCurrentUsername();
         return TrainerMapper.INSTANCE.toDto(trainerRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal())));
     }
@@ -106,8 +106,8 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     @Transactional
     public TrainerDto changePassword(String oldPassword, String newPassword) throws NotFoundException, CredentialException {
-        var authUsername = securityService.getCurrentUserEmail();
-        var trainer = trainerRepository.findByUser_Username(authUsername)
+        final var authUsername = securityService.getCurrentUsername();
+        final var trainer = trainerRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
         if (!trainer.getUser().getPassword().equals(oldPassword))
@@ -128,7 +128,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     @Transactional
     public TrainerDto changeStatus(String username) throws NotFoundException {
-        var trainer = trainerRepository.findByUser_Username(username)
+        final var trainer = trainerRepository.findByUser_Username(username)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
         trainer.getUser().setIsActive(trainer.getUser().getIsActive()
@@ -138,10 +138,10 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     public List<TrainerDto> getUnassignedTrainers(String username) throws NotFoundException {
-        var trainee = traineeRepository.findByUser_Username(username)
+        final var trainee = traineeRepository.findByUser_Username(username)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
-        var assignedTrainers = trainee.getTrainings().stream()
+        final var assignedTrainers = trainee.getTrainings().stream()
                 .map(Training::getTrainer)
                 .distinct()
                 .toList();

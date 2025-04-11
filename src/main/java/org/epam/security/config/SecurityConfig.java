@@ -144,10 +144,7 @@ public class SecurityConfig {
     public SecurityFilterChain registerSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .securityMatcher(new OrRequestMatcher(
-                        new AntPathRequestMatcher("/sign-up/**"),
-                        new AntPathRequestMatcher("/check-username"),
-                        new AntPathRequestMatcher("/check-email"),
-                        new AntPathRequestMatcher("/public/**")))
+                        new AntPathRequestMatcher("/sign-up/**"), new AntPathRequestMatcher("/public/**")))
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth ->

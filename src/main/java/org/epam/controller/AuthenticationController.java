@@ -39,9 +39,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/sign-up/trainee")
-    public ResponseEntity<?> registerTrainee(@Valid @RequestBody TraineeCreateDto traineeCreateDto,
+    public ResponseEntity<Object> registerTrainee(@Valid @RequestBody TraineeCreateDto traineeCreateDto,
                                           BindingResult bindingResult, HttpServletResponse httpServletResponse) {
-
         log.info("[AuthController:registerUser]Signup Process Started for Trainee:{}",
                 traineeCreateDto.firstname() + " " + traineeCreateDto.lastname());
         if (bindingResult.hasErrors()) {
@@ -55,9 +54,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/sign-up/trainer")
-    public ResponseEntity<?> registerTrainer(@Valid @RequestBody TrainerCreateDto trainerCreateDto,
+    public ResponseEntity<Object> registerTrainer(@Valid @RequestBody TrainerCreateDto trainerCreateDto,
                                              BindingResult bindingResult, HttpServletResponse httpServletResponse) {
-
         log.info("[AuthController:registerUser]Signup Process Started for Trainer:{}",
                 trainerCreateDto.firstname() + " " + trainerCreateDto.lastname());
         if (bindingResult.hasErrors()) {

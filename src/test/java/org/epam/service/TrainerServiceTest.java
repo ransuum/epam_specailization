@@ -9,7 +9,9 @@ import org.epam.models.dto.update.TrainerUpdateDto;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
+import org.epam.security.config.SecurityService;
 import org.epam.service.impl.TrainerServiceImpl;
+import org.epam.utils.CredentialsGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +26,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +43,12 @@ class TrainerServiceTest {
 
     @Mock
     private TrainingTypeRepository trainingTypeRepository;
+
+    @Mock
+    private CredentialsGenerator credentialsGenerator;
+
+    @Mock
+    private SecurityService securityService;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
@@ -84,13 +91,17 @@ class TrainerServiceTest {
 
     @Test
     void save_shouldReturnNullWhenTrainingTypeNotFound() {
-        TrainerCreateDto request = new TrainerCreateDto(
+        final var request = new TrainerCreateDto(
                 "Non",
                 "Existent",
                 "Self Placing"
         );
 
-        TrainingTypeName trainingTypeName = TrainingTypeName.getTrainingNameFromString("Self Placing");
+        final var trainingTypeName = TrainingTypeName.getTrainingNameFromString("Self Placing");
+
+        when(credentialsGenerator.generateUsername("Non", "Existent")).thenReturn("non.existent");
+        when(credentialsGenerator.generatePassword("non.existent")).thenReturn("somePassword");
+
         when(trainingTypeRepository.findByTrainingTypeName(trainingTypeName))
                 .thenReturn(Optional.empty());
 
@@ -122,10 +133,14 @@ class TrainerServiceTest {
                 .trainings(new ArrayList<>())
                 .build();
 
+        when(securityService.getCurrentUsername()).thenReturn(request.username());
+
         when(trainerRepository.findByUser_Username(request.username()))
                 .thenReturn(Optional.of(testTrainer));
+
         when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName.LABORATORY))
                 .thenReturn(Optional.of(newSpecialization));
+
         when(trainerRepository.save(any(Trainer.class)))
                 .thenReturn(updatedTrainer);
 
@@ -135,7 +150,7 @@ class TrainerServiceTest {
         assertEquals("trainerId", result.id());
         assertEquals("Laboratory", result.specialization());
 
-        // Verify interactions
+        verify(securityService).getCurrentUsername();
         verify(trainerRepository).findByUser_Username(request.username());
         verify(trainingTypeRepository).findByTrainingTypeName(TrainingTypeName.LABORATORY);
         verify(trainerRepository).save(any(Trainer.class));
@@ -143,10 +158,11 @@ class TrainerServiceTest {
 
     @Test
     void changePassword_shouldUpdatePasswordSuccessfully() throws NotFoundException, CredentialException {
-        String trainerId = "trainerId";
-        String trainerUsername = "testUser";
-        String oldPassword = "oldPassword";
-        String newPassword = "newPassword";
+        when(securityService.getCurrentUsername()).thenReturn("testUser");
+        final String trainerId = "trainerId";
+        final String trainerUsername = "testUser";
+        final String oldPassword = "oldPassword";
+        final String newPassword = "newPassword";
 
         when(trainerRepository.findByUser_Username(trainerUsername)).thenReturn(Optional.of(testTrainer));
 
@@ -178,6 +194,7 @@ class TrainerServiceTest {
 
     @Test
     void changePassword_shouldReturnNullWhenOldPasswordMismatch() {
+        when(securityService.getCurrentUsername()).thenReturn("testUser");
         when(trainerRepository.findByUser_Username("testUser")).thenReturn(Optional.of(testTrainer));
 
         assertThrows(CredentialException.class, () ->

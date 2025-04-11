@@ -54,7 +54,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional
     public TraineeDto update(TraineeRequestDto traineeUpdateData) throws NotFoundException {
-        final var authUsername = securityService.getCurrentUserEmail();
+        final var authUsername = securityService.getCurrentUsername();
         final var traineeById = traineeRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
@@ -91,14 +91,14 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     public TraineeDto profile() throws NotFoundException {
-        final var authUsername = securityService.getCurrentUserEmail();
+        final var authUsername = securityService.getCurrentUsername();
         return findByUsername(authUsername);
     }
 
     @Override
     @Transactional
     public TraineeDto changePassword(String oldPassword, String newPassword) throws NotFoundException, CredentialException {
-        final var authUsername = securityService.getCurrentUserEmail();
+        final var authUsername = securityService.getCurrentUsername();
         final var trainee = traineeRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found with authUsername " + authUsername));
 
@@ -124,7 +124,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional
     public TraineeDto changeStatus() throws NotFoundException {
-        final var authUsername = securityService.getCurrentUserEmail();
+        final var authUsername = securityService.getCurrentUsername();
         final var trainee = traineeRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 

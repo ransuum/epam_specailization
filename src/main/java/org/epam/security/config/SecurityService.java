@@ -13,7 +13,7 @@ import java.util.Collection;
 @Service
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SecurityService {
-    public String getCurrentUserEmail() {
+    public String getCurrentUsername() {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated())
             throw new AuthenticationCredentialsNotFoundException("No authenticated user found");
