@@ -7,7 +7,7 @@ create table users
     last_name  varchar(255) not null,
     password   varchar(255) not null,
     username   varchar(255) not null
-        constraint uk_dc4eq7plr20fdhq528twsak1b
+        constraint ukr43af9ap4edm43mmtq01oddj6
             unique
 );
 
@@ -16,28 +16,17 @@ alter table users
 
 create table training_type
 (
-    id            varchar(255) not null
+    id                 varchar(255) not null
         primary key,
-    training_type_name varchar(255) not null unique
-        constraint training_type_training_type_check
+    training_type_name varchar(255) not null
+        constraint ukqb5b0a5pxrluo3l487u4qi0ri
+            unique
+        constraint training_type_training_type_name_check
             check ((training_type_name)::text = ANY
                    ((ARRAY ['SELF_PLACING'::character varying, 'LABORATORY'::character varying, 'FUNDAMENTALS'::character varying])::text[]))
 );
 
 alter table training_type
-    owner to postgres;
-
-create table trainee
-(
-    id            varchar(255) not null
-        primary key
-        constraint fkd2sx2ixfx78wig2al9w1ou8g4
-            references users,
-    address       varchar(255),
-    date_of_birth date         not null
-);
-
-alter table trainee
     owner to postgres;
 
 create table trainer
@@ -54,12 +43,25 @@ create table trainer
 alter table trainer
     owner to postgres;
 
+create table trainee
+(
+    id            varchar(255) not null
+        primary key
+        constraint fkpx9kccl4t64wtsi8geile7vwo
+            references users,
+    address       varchar(255),
+    date_of_birth date         not null
+);
+
+alter table trainee
+    owner to postgres;
+
 create table training
 (
     id               varchar(255) not null
         primary key,
-    duration         bigint,
-    start_time        date,
+    duration         bigint       not null,
+    start_time       date         not null,
     training_name    varchar(255) not null,
     trainee_id       varchar(255) not null
         constraint fki2dctw34e0xl50d8tsnrre7te
@@ -68,12 +70,14 @@ create table training
         constraint fk7r3b25ygw5bdjamojskmpk0b9
             references trainer,
     training_type_id varchar(255) not null
-        constraint fkmgmxau4i1oxyov1nj3ud1iyto
+        constraint fkosdbocw0x9ygfmna67s7vtewh
             references training_type
 );
 
 alter table training
     owner to postgres;
+
+
 
 INSERT INTO users (id, first_name, last_name, username, password, is_active)
 VALUES ('uuid1', 'John', 'Doe', 'johndoe', 'password123', TRUE),

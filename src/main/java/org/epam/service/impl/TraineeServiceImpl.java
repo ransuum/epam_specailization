@@ -1,6 +1,5 @@
 package org.epam.service.impl;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
@@ -10,11 +9,13 @@ import org.epam.models.entity.Trainee;
 import org.epam.models.dto.create.TraineeCreateDto;
 import org.epam.models.dto.update.TraineeRequestDto;
 import org.epam.models.entity.User;
+import org.epam.models.enums.NotFoundMessages;
 import org.epam.repository.TraineeRepository;
 import org.epam.service.TraineeService;
 import org.epam.utils.CredentialsGenerator;
 import org.epam.utils.mappers.TraineeMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -59,13 +60,15 @@ public class TraineeServiceImpl implements TraineeService {
         traineeById.getUser().setUsername(traineeUpdateData.getUsername());
         traineeById.getUser().setFirstName(traineeUpdateData.getFirstname());
         traineeById.getUser().setLastName(traineeUpdateData.getLastname());
-        return TraineeMapper.INSTANCE.toDto(traineeRepository.update(id, traineeById));
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.save(traineeById));
     }
 
     @Override
     @Transactional
     public void delete(String id) {
-        traineeRepository.delete(id);
+        var trainee = traineeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal()));
+        traineeRepository.delete(trainee);
     }
 
     @Override
@@ -93,30 +96,30 @@ public class TraineeServiceImpl implements TraineeService {
         if (!trainee.getUser().getPassword().equals(oldPassword))
             throw new CredentialException("Old password do not match");
         trainee.getUser().setPassword(newPassword);
-        return TraineeMapper.INSTANCE.toDto(traineeRepository.update(id, trainee));
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.save(trainee));
     }
 
     @Override
-    @Transactional
     public TraineeDto findByUsername(String username) throws NotFoundException {
-        return TraineeMapper.INSTANCE.toDto(traineeRepository.findByUsername(username)
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.findByUser_Username(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found by username")));
     }
 
     @Override
     @Transactional
     public String deleteByUsername(String username) throws NotFoundException {
-        return traineeRepository.deleteByUsername(username);
+        traineeRepository.deleteByUser_Username(username);
+        return username;
     }
 
     @Override
     @Transactional
     public TraineeDto changeStatus(String username) throws NotFoundException {
-        var trainee = traineeRepository.findByUsername(username)
+        var trainee = traineeRepository.findByUser_Username(username)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         trainee.getUser().setIsActive(trainee.getUser().getIsActive()
                 .equals(Boolean.TRUE) ? Boolean.FALSE : Boolean.TRUE);
-        return TraineeMapper.INSTANCE.toDto(traineeRepository.update(trainee.getId(), trainee));
+        return TraineeMapper.INSTANCE.toDto(traineeRepository.save(trainee));
     }
 }

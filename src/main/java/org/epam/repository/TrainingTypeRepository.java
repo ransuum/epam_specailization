@@ -1,22 +1,11 @@
 package org.epam.repository;
 
-import org.epam.exception.NotFoundException;
 import org.epam.models.entity.TrainingType;
 import org.epam.models.enums.TrainingTypeName;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
-public interface TrainingTypeRepository extends CrudRepository<String, TrainingType> {
-    TrainingType save(TrainingType trainingType);
-
-    Optional<TrainingType> findById(String id);
-
-    void delete(String id) throws NotFoundException;
-
-    List<TrainingType> findAll();
-
-    TrainingType update(String id, TrainingType trainingType);
-
+public interface TrainingTypeRepository extends JpaRepository<TrainingType, String> {
     Optional<TrainingType> findByTrainingTypeName(TrainingTypeName trainingTypeName);
 }

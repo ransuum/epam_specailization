@@ -7,7 +7,8 @@ public enum NotFoundMessages {
     TRAINER("Trainer Not Found"),
     TRAINEE("Trainee Not Found"),
     TRAINING_TYPE("Training Type Not Found"),
-    TRAINING("Training Not Found");
+    TRAINING("Training Not Found"),
+    USERS("User Not Found");
 
     private final String val;
 

@@ -33,6 +33,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, "Resource not found", ex);
     }
 
+    @ExceptionHandler(MetricsException.class)
+    public ResponseEntity<ApiError> handleMetricsException(MetricsException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Metrics", ex);
+    }
+
     @ExceptionHandler(CredentialException.class)
     public ResponseEntity<ApiError> handleBadCredentialsException(CredentialException ex) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Authentication failed", ex);

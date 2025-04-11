@@ -51,28 +51,26 @@ class TrainingServiceTest {
     private Trainer testTrainer;
     private TrainingType testTrainingType;
     private Training testTraining;
-    private User testUser;
-    private User testTrainerUser;
     private String testId;
 
     @BeforeEach
     void setUp() {
         testId = "test-id";
-        testUser = new User();
-        testUser.setId("user-id");
-        testUser.setFirstName("John");
-        testUser.setLastName("Doe");
-        testUser.setUsername("johndoe");
+        var testUsers = new User();
+        testUsers.setId("users-id");
+        testUsers.setFirstName("John");
+        testUsers.setLastName("Doe");
+        testUsers.setUsername("johndoe");
 
-        testTrainerUser = new User();
-        testTrainerUser.setId("trainer-user-id");
-        testTrainerUser.setFirstName("Jane");
-        testTrainerUser.setLastName("Smith");
-        testTrainerUser.setUsername("janesmith");
+        var testTrainerUsers = new User();
+        testTrainerUsers.setId("trainer-users-id");
+        testTrainerUsers.setFirstName("Jane");
+        testTrainerUsers.setLastName("Smith");
+        testTrainerUsers.setUsername("janesmith");
 
         testTrainee = new Trainee();
         testTrainee.setId("trainee-id");
-        testTrainee.setUser(testUser);
+        testTrainee.setUser(testUsers);
         testTrainee.setDateOfBirth(LocalDate.of(1990, 1, 1));
         testTrainee.setAddress("123 Main St");
 
@@ -82,7 +80,7 @@ class TrainingServiceTest {
 
         testTrainer = new Trainer();
         testTrainer.setId("trainer-id");
-        testTrainer.setUser(testTrainerUser);
+        testTrainer.setUser(testTrainerUsers);
         testTrainer.setSpecialization(testTrainingType);
 
         testTraining = Training.builder()
@@ -107,8 +105,8 @@ class TrainingServiceTest {
                 60L
         );
 
-        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(testTrainee));
-        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.of(testTrainer));
+        when(traineeRepository.findByUser_Username("johndoe")).thenReturn(Optional.of(testTrainee));
+        when(trainerRepository.findByUser_Username("janesmith")).thenReturn(Optional.of(testTrainer));
         when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName
                 .getTrainingNameFromString(request.trainingTypeName()))).thenReturn(Optional.of(testTrainingType));
         when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
@@ -134,11 +132,10 @@ class TrainingServiceTest {
                 60L
         );
 
-        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.of(testTrainer));
+        when(trainerRepository.findByUser_Username("janesmith")).thenReturn(Optional.of(testTrainer));
 
-        var exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.save(request);
-        });
+        var exception = assertThrows(NotFoundException.class, () ->
+            trainingService.save(request));
 
         assertEquals("Trainee Not Found", exception.getMessage());
         verify(trainingRepository, never()).save(any(Training.class));
@@ -155,15 +152,14 @@ class TrainingServiceTest {
                 60L
         );
 
-        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.empty());
+        when(trainerRepository.findByUser_Username("janesmith")).thenReturn(Optional.empty());
 
-        var exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.save(request);
-        });
+        var exception = assertThrows(NotFoundException.class, () ->
+            trainingService.save(request));
 
         assertEquals("Trainer Not Found", exception.getMessage());
         verify(trainingRepository, never()).save(any(Training.class));
-        verify(traineeRepository, never()).findByUsername(anyString());
+        verify(traineeRepository, never()).findByUser_Username(anyString());
     }
 
     @Test
@@ -211,8 +207,8 @@ class TrainingServiceTest {
         );
 
         when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
-        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(testTrainee));
-        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.of(testTrainer));
+        when(traineeRepository.findByUser_Username("johndoe")).thenReturn(Optional.of(testTrainee));
+        when(trainerRepository.findByUser_Username("janesmith")).thenReturn(Optional.of(testTrainer));
         when(trainingTypeRepository.findById("training-type-id")).thenReturn(Optional.of(testTrainingType));
         when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
 
@@ -221,8 +217,8 @@ class TrainingServiceTest {
         assertNotNull(result);
 
         verify(trainingRepository).save(testTraining);
-        verify(traineeRepository).findByUsername("johndoe");
-        verify(trainerRepository).findByUsername("janesmith");
+        verify(traineeRepository).findByUser_Username("johndoe");
+        verify(trainerRepository).findByUser_Username("janesmith");
         verify(trainingTypeRepository).findById("training-type-id");
     }
 
@@ -239,9 +235,7 @@ class TrainingServiceTest {
 
         when(trainingRepository.findById("non-existent-id")).thenReturn(Optional.empty());
 
-        var exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.update("non-existent-id", request);
-        });
+        var exception = assertThrows(NotFoundException.class, () -> trainingService.update("non-existent-id", request));
 
         assertEquals("Training not found", exception.getMessage());
         verify(trainingRepository, never()).save(any(Training.class));
@@ -249,23 +243,25 @@ class TrainingServiceTest {
 
     @Test
     void delete_shouldDeleteTraining() throws NotFoundException {
-        doNothing().when(trainingRepository).delete(testId);
+        when(trainingRepository.findById(testId)).thenReturn(Optional.of(testTraining));
+        doNothing().when(trainingRepository).delete(testTraining);
 
         trainingService.delete(testId);
 
-        verify(trainingRepository).delete(testId);
+        verify(trainingRepository).delete(testTraining);
     }
 
     @Test
     void delete_shouldHandleNotFoundExceptionGracefully() {
         String nonExistentId = "non-existent-id";
-        doThrow(new NotFoundException("Training not found")).when(trainingRepository).delete(nonExistentId);
+        when(trainingRepository.findById(nonExistentId))
+                .thenReturn(Optional.empty());
 
-        var exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.delete(nonExistentId);
-        });
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> trainingService.delete(nonExistentId));
 
-        assertEquals("Training not found", exception.getMessage());
+        assertEquals("Training Not Found", exception.getMessage());
+        verify(trainingRepository, never()).delete(any(Training.class));
     }
 
     @Test
@@ -298,9 +294,7 @@ class TrainingServiceTest {
         String nonExistentId = "non-existent-id";
         when(trainingRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        var exception = assertThrows(NotFoundException.class, () -> {
-            trainingService.findById(nonExistentId);
-        });
+        var exception = assertThrows(NotFoundException.class, () -> trainingService.findById(nonExistentId));
 
         assertEquals("Trainee not found by id " + nonExistentId, exception.getMessage());
     }
@@ -363,8 +357,8 @@ class TrainingServiceTest {
                 )
         );
 
-        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(testTrainee));
-        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.of(testTrainer));
+        when(traineeRepository.findByUser_Username("johndoe")).thenReturn(Optional.of(testTrainee));
+        when(trainerRepository.findByUser_Username("janesmith")).thenReturn(Optional.of(testTrainer));
         when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName.SELF_PLACING))
                 .thenReturn(Optional.of(testTrainingType));
         when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
@@ -375,8 +369,8 @@ class TrainingServiceTest {
         assertEquals(1, result.size());
         assertEquals(testId, result.getFirst().id());
 
-        verify(traineeRepository).findByUsername("johndoe");
-        verify(trainerRepository).findByUsername("janesmith");
+        verify(traineeRepository).findByUser_Username("johndoe");
+        verify(trainerRepository).findByUser_Username("janesmith");
         verify(trainingTypeRepository).findByTrainingTypeName(TrainingTypeName.SELF_PLACING);
         verify(trainingRepository).save(any(Training.class));
     }
@@ -393,8 +387,8 @@ class TrainingServiceTest {
                 )
         );
 
-        when(trainerRepository.findByUsername("janesmith")).thenReturn(Optional.of(testTrainer));
-        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(testTrainee));
+        when(trainerRepository.findByUser_Username("janesmith")).thenReturn(Optional.of(testTrainer));
+        when(traineeRepository.findByUser_Username("johndoe")).thenReturn(Optional.of(testTrainee));
         when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName.SELF_PLACING))
                 .thenReturn(Optional.of(testTrainingType));
         when(trainingRepository.save(any(Training.class))).thenReturn(testTraining);
@@ -405,8 +399,8 @@ class TrainingServiceTest {
         assertEquals(1, result.size());
         assertEquals(testId, result.getFirst().id());
 
-        verify(trainerRepository).findByUsername("janesmith");
-        verify(traineeRepository).findByUsername("johndoe");
+        verify(trainerRepository).findByUser_Username("janesmith");
+        verify(traineeRepository).findByUser_Username("johndoe");
         verify(trainingTypeRepository).findByTrainingTypeName(TrainingTypeName.SELF_PLACING);
         verify(trainingRepository).save(any(Training.class));
     }

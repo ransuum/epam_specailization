@@ -22,7 +22,7 @@ public class Trainee {
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "id", referencedColumnName = "id")
     private User user;
 
     @Column(nullable = false, name = "date_of_birth")
@@ -33,8 +33,8 @@ public class Trainee {
     @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Training> trainings;
 
-    public Trainee(User user, LocalDate dateOfBirth, String address) {
-        this.user = user;
+    public Trainee(User users, LocalDate dateOfBirth, String address) {
+        this.user = users;
         this.dateOfBirth = dateOfBirth;
         this.address = address;
     }

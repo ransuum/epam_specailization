@@ -1,5 +1,5 @@
 package org.epam.models.enums;
 
 public enum UserType {
-    TRAINEE, TRAINER, NOT_AUTHORIZE
+    TRAINEE, TRAINER, ADMIN, NOT_AUTHORIZE
 }

@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/user")
-@Tag(name = "User Management", description = "APIs for managing user operations")
+@Tag(name = "User Management", description = "APIs for managing users operations")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
@@ -25,8 +25,8 @@ public class UserController {
         return ResponseEntity.ok(userService.findById(id));
     }
 
-    @GetMapping("/all")
-    @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
+    @GetMapping
+    @RequiredRole({UserType.TRAINEE, UserType.TRAINER, UserType.ADMIN})
     public ResponseEntity<List<UserDto>> findAll() {
        return ResponseEntity.ok(userService.findAll());
     }

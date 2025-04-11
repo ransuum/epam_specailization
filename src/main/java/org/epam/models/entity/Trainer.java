@@ -21,7 +21,7 @@ public class Trainer {
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "id", referencedColumnName = "id")
     private User user;
 
     @ManyToOne

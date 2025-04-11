@@ -19,8 +19,8 @@ import java.util.List;
 public interface TraineeMapper {
     TraineeMapper INSTANCE = Mappers.getMapper(TraineeMapper.class);
 
-    @Mapping(target = "user.password", ignore = true)
     @Mapping(source = "user", target = "user")
+    @Mapping(target = "user.password", ignore = true)
     @Mapping(source = "trainings", target = "trainers", qualifiedByName = "mapTrainersForTrainee")
     TraineeDto toDto(Trainee trainee);
 

@@ -20,6 +20,7 @@ import java.util.List;
 public interface TrainerMapper {
     TrainerMapper INSTANCE = Mappers.getMapper(TrainerMapper.class);
 
+    @Mapping(source = "user", target = "user")
     @Mapping(target = "user.password", ignore = true)
     @Mapping(target = "specialization", expression = "java(trainer.getSpecialization().getTrainingTypeName().getVal())")
     @Mapping(target = "trainees", source = "trainings", qualifiedByName = "mapTraineesForTrainer")

@@ -150,7 +150,7 @@ class TrainerServiceTest {
 
         when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
         when(trainingTypeRepository.findById("newSpecializationId")).thenReturn(Optional.of(newSpecialization));
-        when(trainerRepository.update(eq("trainerId"), any(Trainer.class))).thenReturn(updatedTrainer);
+        when(trainerRepository.save(any(Trainer.class))).thenReturn(updatedTrainer);
 
         var result = trainerService.update("trainerId", request);
 
@@ -160,7 +160,7 @@ class TrainerServiceTest {
 
         verify(trainerRepository).findById("trainerId");
         verify(trainingTypeRepository).findById("newSpecializationId");
-        verify(trainerRepository).update(eq("trainerId"), any(Trainer.class));
+        verify(trainerRepository).save(any(Trainer.class));
     }
 
     @Test
@@ -183,17 +183,17 @@ class TrainerServiceTest {
                 .trainings(new ArrayList<>())
                 .build();
 
-        when(trainerRepository.update(eq(trainerId), any(Trainer.class))).thenReturn(updatedTrainer);
+        when(trainerRepository.save(any(Trainer.class))).thenReturn(updatedTrainer);
 
         var result = trainerService.changePassword(trainerId, oldPassword, newPassword);
 
         assertNotNull(result);
 
         verify(trainerRepository).findById(trainerId);
-        verify(trainerRepository).update(eq(trainerId), any(Trainer.class));
+        verify(trainerRepository).save(any(Trainer.class));
 
         ArgumentCaptor<Trainer> trainerCaptor = ArgumentCaptor.forClass(Trainer.class);
-        verify(trainerRepository).update(eq(trainerId), trainerCaptor.capture());
+        verify(trainerRepository).save(trainerCaptor.capture());
         assertEquals(newPassword, trainerCaptor.getValue().getUser().getPassword());
     }
 
@@ -270,19 +270,19 @@ class TrainerServiceTest {
                 .trainings(new ArrayList<>())
                 .build();
 
-        when(trainerRepository.findByUsername("testUser")).thenReturn(Optional.of(inactiveTrainer));
-        when(trainerRepository.update(eq("trainerId"), any(Trainer.class))).thenReturn(activatedTrainer);
+        when(trainerRepository.findByUser_Username("testUser")).thenReturn(Optional.of(inactiveTrainer));
+        when(trainerRepository.save(any(Trainer.class))).thenReturn(activatedTrainer);
 
         var result = trainerService.changeStatus("testUser");
 
         assertNotNull(result);
         assertTrue(result.user().isActive());
 
-        verify(trainerRepository).findByUsername("testUser");
-        verify(trainerRepository).update(eq("trainerId"), any(Trainer.class));
+        verify(trainerRepository).findByUser_Username("testUser");
+        verify(trainerRepository).save(any(Trainer.class));
 
         ArgumentCaptor<Trainer> trainerCaptor = ArgumentCaptor.forClass(Trainer.class);
-        verify(trainerRepository).update(eq("trainerId"), trainerCaptor.capture());
+        verify(trainerRepository).save(trainerCaptor.capture());
         assertTrue(trainerCaptor.getValue().getUser().getIsActive());
     }
 
@@ -300,34 +300,35 @@ class TrainerServiceTest {
                 .trainings(new ArrayList<>())
                 .build();
 
-        when(trainerRepository.findByUsername("testUser")).thenReturn(Optional.of(testTrainer));
-        when(trainerRepository.update(eq("trainerId"), any(Trainer.class))).thenReturn(deactivatedTrainer);
+        when(trainerRepository.findByUser_Username("testUser")).thenReturn(Optional.of(testTrainer));
+        when(trainerRepository.save(any(Trainer.class))).thenReturn(deactivatedTrainer);
 
         var result = trainerService.changeStatus("testUser");
 
         assertNotNull(result);
         assertFalse(result.user().isActive());
 
-        verify(trainerRepository).findByUsername("testUser");
-        verify(trainerRepository).update(eq("trainerId"), any(Trainer.class));
+        verify(trainerRepository).findByUser_Username("testUser");
+        verify(trainerRepository).save(any(Trainer.class));
 
         ArgumentCaptor<Trainer> trainerCaptor = ArgumentCaptor.forClass(Trainer.class);
-        verify(trainerRepository).update(eq("trainerId"), trainerCaptor.capture());
+        verify(trainerRepository).save(trainerCaptor.capture());
         assertFalse(trainerCaptor.getValue().getUser().getIsActive());
     }
 
     @Test
     void delete_shouldDeleteTrainer() throws NotFoundException {
-        doNothing().when(trainerRepository).delete("trainerId");
+        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
+        doNothing().when(trainerRepository).delete(testTrainer);
 
         trainerService.delete("trainerId");
 
-        verify(trainerRepository).delete("trainerId");
+        verify(trainerRepository).delete(testTrainer);
     }
 
     @Test
     void findByUsername_shouldReturnTrainerWhenFound() throws NotFoundException {
-        when(trainerRepository.findByUsername("testUser")).thenReturn(Optional.of(testTrainer));
+        when(trainerRepository.findByUser_Username("testUser")).thenReturn(Optional.of(testTrainer));
 
         var result = trainerService.findByUsername("testUser");
 
@@ -335,16 +336,16 @@ class TrainerServiceTest {
         assertEquals("trainerId", result.id());
         assertEquals("testUser", result.user().username());
 
-        verify(trainerRepository).findByUsername("testUser");
+        verify(trainerRepository).findByUser_Username("testUser");
     }
 
     @Test
     void findByUsername_shouldReturnNullWhenNotFound() {
-        when(trainerRepository.findByUsername("nonExistentUser")).thenReturn(Optional.empty());
+        when(trainerRepository.findByUser_Username("nonExistentUser")).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> trainerService.findByUsername("nonExistentUser"));
 
-        verify(trainerRepository).findByUsername("nonExistentUser");
+        verify(trainerRepository).findByUser_Username("nonExistentUser");
     }
 
     @Test
@@ -385,7 +386,7 @@ class TrainerServiceTest {
 
         trainee.getTrainings().add(assignedTraining);
 
-        when(traineeRepository.findByUsername("testTrainee")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.findByUser_Username("testTrainee")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findAll()).thenReturn(List.of(assignedTrainer, unassignedTrainer));
 
         var result = trainerService.getUnassignedTrainers("testTrainee");
@@ -394,7 +395,7 @@ class TrainerServiceTest {
         assertEquals(1, result.size());
         assertEquals("unassignedTrainerId", result.getFirst().id());
 
-        verify(traineeRepository).findByUsername("testTrainee");
+        verify(traineeRepository).findByUser_Username("testTrainee");
         verify(trainerRepository).findAll();
     }
 
