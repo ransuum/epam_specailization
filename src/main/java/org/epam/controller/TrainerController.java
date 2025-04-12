@@ -27,26 +27,26 @@ public class TrainerController {
     private final TrainerService trainerService;
 
     @GetMapping("/profile")
-    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINER_PROFILE')")
+    @PreAuthorize("hasAuthority('TRAINER_PROFILE')")
     public ResponseEntity<TrainerDto> profile() {
         return new ResponseEntity<>(trainerService.profile(), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_FULL_ACCESS')")
+    @PreAuthorize("hasAuthority('FULL_ACCESS')")
     public ResponseEntity<String> deleteById(@PathVariable String id) {
         trainerService.delete(id);
         return ResponseEntity.ok("DELETED");
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINER_PROFILE')")
+    @PreAuthorize("hasAuthority('TRAINER_PROFILE')")
     public ResponseEntity<TrainerDto> updateTrainer(@RequestBody @Valid TrainerUpdateDto requestUpdate) {
         return ResponseEntity.ok(trainerService.update(requestUpdate));
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAuthority('SCOPE_SEARCH_TRAINERS')")
+    @PreAuthorize("hasAuthority('READ_TRAINERS')")
     public ResponseEntity<PagedModel<EntityModel<TrainerDto>>> findAll(
             @ParameterObject @PageableDefault(sort = "firstName,asc") Pageable pageable,
             PagedResourcesAssembler<TrainerDto> assembler) {
@@ -55,27 +55,27 @@ public class TrainerController {
     }
 
     @PutMapping("/change-password")
-    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINER_PROFILE')")
+    @PreAuthorize("hasAuthority('TRAINER_PROFILE')")
     public ResponseEntity<TrainerDto> changePassword(@RequestParam String oldPassword,
                                                      @RequestParam String newPassword) {
         return ResponseEntity.ok(trainerService.changePassword(oldPassword, newPassword));
     }
 
     @GetMapping("/username/{username}")
-    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINER_PROFILE')")
+    @PreAuthorize("hasAuthority('READ_TRAINERS')")
     public ResponseEntity<TrainerDto> findByUsername(@PathVariable String username) {
         return ResponseEntity.ok(trainerService.findByUsername(username));
     }
 
     @PatchMapping("/change-status/{trainerUsername}")
-    @PreAuthorize("hasAuthority('SCOPE_CHANGE_STATUS')")
+    @PreAuthorize("hasAuthority('TRAINER_PROFILE')")
     public ResponseEntity<String> changeStatus(@PathVariable String trainerUsername) {
         trainerService.changeStatus(trainerUsername);
         return ResponseEntity.ok("Status changed");
     }
 
     @GetMapping("/unassigned/{traineeUsername}")
-    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINER_PROFILE')")
+    @PreAuthorize("hasAuthority('READ_TRAINERS')")
     public List<TrainerDto> getUnassignedTrainers(@PathVariable String traineeUsername) {
         return trainerService.getUnassignedTrainers(traineeUsername);
     }

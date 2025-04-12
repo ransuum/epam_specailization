@@ -11,23 +11,23 @@ import java.util.Collection;
 
 @RequiredArgsConstructor
 public class UserConfig implements UserDetails {
-    private final User users;
+    private final User user;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Arrays.stream(users.getRoles().split(","))
+        return Arrays.stream(user.getRoles().split(","))
                 .map(SimpleGrantedAuthority::new)
                 .toList();
     }
 
     @Override
     public String getPassword() {
-        return users.getPassword();
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return users.getUsername();
+        return user.getUsername();
     }
 
     @Override

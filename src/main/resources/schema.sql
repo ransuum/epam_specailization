@@ -97,7 +97,7 @@ VALUES ('uuid1', 'John', 'Doe', 'johndoe', 'password123', TRUE, 'ROLE_TRAINEE'),
        ('uuid2', 'Jane', 'Smith', 'janesmith', 'password456', TRUE, 'ROLE_TRAINEE'),
        ('uuid3', 'Mike', 'Johnson', 'mikejohnson', 'password789', TRUE, 'ROLE_TRAINER'),
        ('uuid4', 'Emily', 'Davis', 'emilydavis', 'password987', TRUE, 'ROLE_TRAINER'),
-       ('uuid5', 'Admin', 'Admin', 'admin', 'admin', TRUE, 'ROLE_ADMIN');
+       ('uuid5', 'Admin', 'Admin', 'admin', 'admin123', TRUE, 'ROLE_ADMIN');
 
 INSERT INTO trainee (id, address, date_of_birth)
 VALUES ('uuid1', '123 Elm Street', '1990-01-01'),

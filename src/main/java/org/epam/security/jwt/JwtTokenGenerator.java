@@ -50,11 +50,11 @@ public class JwtTokenGenerator {
         String permissions = getPermissionsFromRoles(roles);
 
         var claims = JwtClaimsSet.builder()
-                .issuer("chat-engly")
+                .issuer("epam")
                 .issuedAt(Instant.now())
                 .expiresAt(Instant.now().plus(30, ChronoUnit.MINUTES))
                 .subject(authentication.getName())
-                .claim("scope", permissions)
+                .claim("ep", permissions)
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
@@ -78,7 +78,7 @@ public class JwtTokenGenerator {
                 .issuedAt(Instant.now())
                 .expiresAt(Instant.now().plus(25, ChronoUnit.DAYS))
                 .subject(authentication.getName())
-                .claim("scope", "REFRESH_TOKEN")
+                .claim("ep", "REFRESH_TOKEN")
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();

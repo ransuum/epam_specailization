@@ -35,7 +35,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public AuthResponseDto getJwtTokensAfterAuthentication(Authentication authentication, HttpServletResponse response) {
         try {
-            var user = userService.findByUsername(authentication.getName());
+            final var user = userService.findByUsername(authentication.getName());
             final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
             final String refreshToken = jwtTokenGenerator.generateRefreshToken(authentication);
 
@@ -69,14 +69,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token format");
         final String refreshToken = authorizationHeader.substring(7);
 
-        var refreshTokenEntity = refreshTokenRepository.findByToken(refreshToken)
+        final var refreshTokenEntity = refreshTokenRepository.findByToken(refreshToken)
                 .filter(tokens -> !tokens.isRevoked())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Refresh token revoked"));
         var users = refreshTokenEntity.getUser();
         refreshTokenEntity.setRevoked(true);
-        refreshTokenRepository.save(refreshTokenEntity);
+        refreshTokenRepository.delete(refreshTokenEntity);
 
-        var authentication = jwtTokenGenerator.createAuthenticationObject(users);
+        final var authentication = jwtTokenGenerator.createAuthenticationObject(users);
         final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
 
         return AuthResponseDto.builder()
@@ -91,8 +91,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthResponseDto registerTrainee(TraineeCreateDto traineeCreateDto, HttpServletResponse httpServletResponse) {
-        var userTrainee = traineeService.save(traineeCreateDto).getUser();
-        var authentication = jwtTokenGenerator.createAuthenticationObject(userTrainee);
+        final var userTrainee = traineeService.save(traineeCreateDto).getUser();
+        final var authentication = jwtTokenGenerator.createAuthenticationObject(userTrainee);
 
         final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
         final String refreshToken = jwtTokenGenerator.generateRefreshToken(authentication);
@@ -115,8 +115,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthResponseDto registerTrainer(TrainerCreateDto trainerCreateDto, HttpServletResponse httpServletResponse) {
-        var userTrainer = trainerService.save(trainerCreateDto).getUser();
-        var authentication = jwtTokenGenerator.createAuthenticationObject(userTrainer);
+        final var userTrainer = trainerService.save(trainerCreateDto).getUser();
+        final var authentication = jwtTokenGenerator.createAuthenticationObject(userTrainer);
 
         final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
         final String refreshToken = jwtTokenGenerator.generateRefreshToken(authentication);

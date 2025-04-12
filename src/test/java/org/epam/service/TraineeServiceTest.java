@@ -7,7 +7,9 @@ import org.epam.models.entity.User;
 import org.epam.models.dto.update.TraineeRequestDto;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.UserRepository;
+import org.epam.security.config.SecurityService;
 import org.epam.service.impl.TraineeServiceImpl;
+import org.epam.utils.CredentialsGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +23,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -35,6 +36,12 @@ class TraineeServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private CredentialsGenerator credentialsGenerator;
+
+    @Mock
+    private SecurityService securityService;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
@@ -78,6 +85,7 @@ class TraineeServiceTest {
 
     @Test
     void update_shouldUpdateExistingTrainee() throws NotFoundException {
+        when(securityService.getCurrentUsername()).thenReturn(testUsername);
         when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.of(testTrainee));
         when(traineeRepository.save(any(Trainee.class))).thenReturn(testTrainee);
 
@@ -91,6 +99,7 @@ class TraineeServiceTest {
 
     @Test
     void update_shouldReturnNullWhenTraineeNotFound() {
+        when(securityService.getCurrentUsername()).thenReturn(testUsername);
         when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.empty());
 
         var exception = assertThrows(NotFoundException.class,
@@ -133,6 +142,7 @@ class TraineeServiceTest {
 
     @Test
     void changePassword_shouldUpdatePasswordSuccessfully() throws NotFoundException, CredentialException {
+        when(securityService.getCurrentUsername()).thenReturn(testUsername);
         when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.of(testTrainee));
         when(traineeRepository.save(any(Trainee.class))).thenReturn(testTrainee);
 
@@ -146,6 +156,7 @@ class TraineeServiceTest {
 
     @Test
     void changePassword_shouldReturnNullWhenTraineeNotFound() {
+        when(securityService.getCurrentUsername()).thenReturn(testUsername);
         when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.empty());
 
         var exception = assertThrows(NotFoundException.class,
@@ -157,6 +168,7 @@ class TraineeServiceTest {
 
     @Test
     void changePassword_shouldReturnNullWhenOldPasswordDoesNotMatch() {
+        when(securityService.getCurrentUsername()).thenReturn(testUsername);
         when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.of(testTrainee));
 
         var exception = assertThrows(CredentialException.class,
@@ -197,6 +209,7 @@ class TraineeServiceTest {
 
     @Test
     void activateAction_shouldActivateTraineeUser() throws NotFoundException {
+        when(securityService.getCurrentUsername()).thenReturn(testUsername);
         testUsers.setIsActive(false);
         when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.of(testTrainee));
         when(traineeRepository.save(any(Trainee.class))).thenAnswer(invocation -> {
@@ -215,6 +228,7 @@ class TraineeServiceTest {
 
     @Test
     void deactivateAction_shouldDeactivateTraineeUser() throws NotFoundException {
+        when(securityService.getCurrentUsername()).thenReturn(testUsername);
         testUsers.setIsActive(true);
         when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.of(testTrainee));
         when(traineeRepository.save(any(Trainee.class))).thenAnswer(invocation -> {

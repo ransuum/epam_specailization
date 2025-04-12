@@ -30,14 +30,14 @@ public class TrainingController {
     private final TrainingService trainingService;
 
     @PostMapping("/create")
-    @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<String> create(@RequestBody @Valid TrainingCreateDto trainingCreateDto) {
         trainingService.save(trainingCreateDto);
         return ResponseEntity.ok("Training request created successfully");
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAuthority('SCOPE_FULL_ACCESS')")
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<PagedModel<EntityModel<TrainingListDto>>> findAll(
             @ParameterObject @PageableDefault(sort = "traineeName,asc") Pageable pageable,
             PagedResourcesAssembler<TrainingListDto> assembler) {
@@ -46,13 +46,13 @@ public class TrainingController {
     }
 
     @GetMapping("/{trainingId}")
-    @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<TrainingDto> findById(@PathVariable String trainingId) {
         return ResponseEntity.ok(trainingService.findById(trainingId));
     }
 
     @GetMapping("/by-trainee/{username}")
-    @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<PagedModel<EntityModel<TrainingListDto.TrainingListDtoForUser>>> getTraineeTrainings(
             @PathVariable String username, @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate, @RequestParam(required = false) String trainerName,
@@ -65,7 +65,7 @@ public class TrainingController {
     }
 
     @GetMapping("/by-trainer/{username}")
-    @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<PagedModel<EntityModel<TrainingListDto.TrainingListDtoForUser>>> getTrainerTrainings(
             @PathVariable String username, @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate, @RequestParam(required = false) String traineeName,
@@ -78,14 +78,14 @@ public class TrainingController {
     }
 
     @PutMapping("/add-to-trainee/{traineeUsername}")
-    @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<List<TrainingDto>> updateTrainingsOfTrainee(@PathVariable String traineeUsername,
                                                                       @RequestBody List<TraineeTrainingUpdateDto> trainingCreationData) {
         return ResponseEntity.ok(trainingService.updateTrainingsOfTrainee(traineeUsername, trainingCreationData));
     }
 
     @PutMapping("/add-to-trainer/{trainerUsername}")
-    @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<List<TrainingDto>> updateTrainingsOfTrainer(@PathVariable String trainerUsername,
                                                                       @RequestBody List<TrainerTrainingUpdateDto> trainingCreationData) {
         return ResponseEntity.ok(trainingService.updateTrainingsOfTrainer(trainerUsername, trainingCreationData));

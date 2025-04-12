@@ -15,20 +15,20 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @Tag(name = "User Management", description = "APIs for managing user operations")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<UserDto> getUser(@PathVariable String id) {
         return ResponseEntity.ok(userService.findById(id));
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAuthority('SCOPE_FULL_ACCESS')")
+    @PreAuthorize("hasAuthority('FULL_ACCESS')")
     public ResponseEntity<PagedModel<EntityModel<UserDto>>> findAll(
             @ParameterObject @PageableDefault(sort = "firstName,asc") Pageable pageable,
             PagedResourcesAssembler<UserDto> assembler) {

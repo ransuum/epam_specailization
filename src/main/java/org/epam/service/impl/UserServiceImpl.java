@@ -41,14 +41,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto update(String id, User request) throws NotFoundException {
-        var user = userRepository.findById(id)
+        final var user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.USERS.getVal()));
 
         if (check(request.getFirstName())) user.setFirstName(request.getFirstName());
         if (check(request.getLastName())) user.setLastName(request.getLastName());
         if (check(request.getIsActive())) user.setIsActive(request.getIsActive());
-        String username = credentialsGenerator.generateUsername(request.getFirstName(), request.getLastName());
-        String password = credentialsGenerator.generatePassword(username);
+        final var username = credentialsGenerator.generateUsername(request.getFirstName(), request.getLastName());
+        final var password = credentialsGenerator.generatePassword(username);
         user.setPassword(password);
         user.setUsername(username);
         return UserMapper.INSTANCE.toDto(userRepository.save(user));
@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(String id) {
-        var user = userRepository.findById(id).orElseThrow(()
+        final var user = userRepository.findById(id).orElseThrow(()
                 -> new NotFoundException(NotFoundMessages.USERS.getVal()));
         userRepository.delete(user);
     }

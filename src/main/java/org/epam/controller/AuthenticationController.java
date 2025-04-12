@@ -32,20 +32,19 @@ public class AuthenticationController {
         return new ResponseEntity<>(authenticationService.getJwtTokensAfterAuthentication(authentication, response), HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_REFRESH_TOKEN')")
+    @PreAuthorize("hasAuthority('REFRESH_TOKEN')")
     @PostMapping("/refresh-token")
     public ResponseEntity<Object> getAccessToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         return ResponseEntity.ok(authenticationService.getAccessTokenUsingRefreshToken(authorizationHeader));
     }
 
     @PostMapping("/sign-up/trainee")
-    public ResponseEntity<?> registerTrainee(@Valid @RequestBody TraineeCreateDto traineeCreateDto,
+    public ResponseEntity<Object> registerTrainee(@Valid @RequestBody TraineeCreateDto traineeCreateDto,
                                           BindingResult bindingResult, HttpServletResponse httpServletResponse) {
-
         log.info("[AuthController:registerUser]Signup Process Started for Trainee:{}",
                 traineeCreateDto.firstname() + " " + traineeCreateDto.lastname());
         if (bindingResult.hasErrors()) {
-            List<String> errorMessage = bindingResult.getAllErrors().stream()
+            final List<String> errorMessage = bindingResult.getAllErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .toList();
             log.error("[AuthController:registerTrainee]Errors in user:{}", errorMessage);
@@ -55,13 +54,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/sign-up/trainer")
-    public ResponseEntity<?> registerTrainer(@Valid @RequestBody TrainerCreateDto trainerCreateDto,
+    public ResponseEntity<Object> registerTrainer(@Valid @RequestBody TrainerCreateDto trainerCreateDto,
                                              BindingResult bindingResult, HttpServletResponse httpServletResponse) {
-
         log.info("[AuthController:registerUser]Signup Process Started for Trainer:{}",
                 trainerCreateDto.firstname() + " " + trainerCreateDto.lastname());
         if (bindingResult.hasErrors()) {
-            List<String> errorMessage = bindingResult.getAllErrors().stream()
+            final List<String> errorMessage = bindingResult.getAllErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .toList();
             log.error("[AuthController:registerTrainer]Errors in user:{}", errorMessage);
