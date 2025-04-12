@@ -16,13 +16,13 @@ public class TrainingTypeController {
     private final TrainingTypeService trainingTypeService;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<TrainingTypeDto> findById(@PathVariable String id) {
         return ResponseEntity.ok(trainingTypeService.findById(id));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_FULL_ACCESS')")
+    @PreAuthorize("hasAuthority('FULL_ACCESS')")
     public ResponseEntity<String> delete(@PathVariable String id) {
         trainingTypeService.delete(id);
         return ResponseEntity.ok("DELETED");

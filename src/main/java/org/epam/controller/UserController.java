@@ -22,13 +22,13 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_AUTHORIZED')")
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<UserDto> getUser(@PathVariable String id) {
         return ResponseEntity.ok(userService.findById(id));
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAuthority('SCOPE_FULL_ACCESS')")
+    @PreAuthorize("hasAuthority('FULL_ACCESS')")
     public ResponseEntity<PagedModel<EntityModel<UserDto>>> findAll(
             @ParameterObject @PageableDefault(sort = "firstName,asc") Pageable pageable,
             PagedResourcesAssembler<UserDto> assembler) {

@@ -16,6 +16,7 @@ import org.epam.utils.CredentialsGenerator;
 import org.epam.utils.mappers.TraineeMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ public class TraineeServiceImpl implements TraineeService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private final CredentialsGenerator credentialsGenerator;
     private final SecurityService securityService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -102,8 +104,8 @@ public class TraineeServiceImpl implements TraineeService {
         final var trainee = traineeRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found with authUsername " + authUsername));
 
-        if (!trainee.getUser().getPassword().equals(oldPassword))
-            throw new CredentialException("Old password do not match");
+        if (!passwordEncoder.matches(oldPassword, trainee.getUser().getPassword()))
+            throw new CredentialException("Old password does not match");
         trainee.getUser().setPassword(newPassword);
         return TraineeMapper.INSTANCE.toDto(traineeRepository.save(trainee));
     }
@@ -117,7 +119,9 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional
     public String deleteByUsername(String username) throws NotFoundException {
-        traineeRepository.deleteByUser_Username(username);
+        final var trainee = traineeRepository.findByUser_Username(username)
+                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal()));
+        traineeRepository.delete(trainee);
         return username;
     }
 

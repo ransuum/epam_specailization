@@ -20,6 +20,7 @@ import org.epam.utils.CredentialsGenerator;
 import org.epam.utils.mappers.TrainerMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +36,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final TraineeRepository traineeRepository;
     private final CredentialsGenerator credentialsGenerator;
     private final SecurityService securityService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -110,9 +112,8 @@ public class TrainerServiceImpl implements TrainerService {
         final var trainer = trainerRepository.findByUser_Username(authUsername)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
 
-        if (!trainer.getUser().getPassword().equals(oldPassword))
-            throw new CredentialException("Old password do not match");
-
+        if (!passwordEncoder.matches(oldPassword, trainer.getUser().getPassword()))
+            throw new CredentialException("Old password does not match");
         trainer.getUser().setPassword(newPassword);
         return TrainerMapper.INSTANCE.toDto(trainerRepository.save(trainer));
     }

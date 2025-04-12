@@ -74,7 +74,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Refresh token revoked"));
         var users = refreshTokenEntity.getUser();
         refreshTokenEntity.setRevoked(true);
-        refreshTokenRepository.save(refreshTokenEntity);
+        refreshTokenRepository.delete(refreshTokenEntity);
 
         final var authentication = jwtTokenGenerator.createAuthenticationObject(users);
         final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);

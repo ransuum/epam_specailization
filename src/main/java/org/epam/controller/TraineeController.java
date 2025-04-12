@@ -25,32 +25,32 @@ public class TraineeController {
     private final TraineeService traineeService;
 
     @GetMapping("/id/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_SEARCH_TRAINEES')")
+    @PreAuthorize("hasAuthority('READ_TRAINEES')")
     public ResponseEntity<TraineeDto> findById(@PathVariable String id) {
         return new ResponseEntity<>(traineeService.findById(id), HttpStatus.OK);
     }
 
     @GetMapping("/profile")
-    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINEE_PROFILE')")
+    @PreAuthorize("hasAuthority('TRAINEE_PROFILE')")
     public ResponseEntity<TraineeDto> profile() {
         return new ResponseEntity<>(traineeService.profile(), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_FULL_ACCESS')")
+    @PreAuthorize("hasAuthority('FULL_ACCESS')")
     public ResponseEntity<String> deleteById(@PathVariable String id) {
         traineeService.delete(id);
         return ResponseEntity.ok("Deleted successfully!");
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINEE_PROFILE')")
+    @PreAuthorize("hasAuthority('TRAINEE_PROFILE')")
     public ResponseEntity<TraineeDto> updateTrainee(@RequestBody @Valid TraineeRequestDto traineeRequestDto) {
         return ResponseEntity.ok(traineeService.update(traineeRequestDto));
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('SCOPE_SEARCH_TRAINEES')")
+    @PreAuthorize("hasAuthority('READ_TRAINEES')")
     public ResponseEntity<PagedModel<EntityModel<TraineeDto>>> findAll(
             @ParameterObject @PageableDefault(sort = "firstName,asc") Pageable pageable,
             PagedResourcesAssembler<TraineeDto> assembler) {
@@ -59,7 +59,7 @@ public class TraineeController {
     }
 
     @PutMapping("/change-password")
-    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINEE_PROFILE')")
+    @PreAuthorize("hasAuthority('TRAINEE_PROFILE')")
     public ResponseEntity<String> changePassword(@RequestParam String oldPassword,
                                                  @RequestParam String newPassword) {
         traineeService.changePassword(oldPassword, newPassword);
@@ -67,19 +67,19 @@ public class TraineeController {
     }
 
     @GetMapping("/username/{username}")
-    @PreAuthorize("hasAuthority('SCOPE_SEARCH_TRAINEES')")
+    @PreAuthorize("hasAuthority('READ_TRAINEES')")
     public ResponseEntity<TraineeDto> findByUsername(@PathVariable String username) {
         return ResponseEntity.ok(traineeService.findByUsername(username));
     }
 
     @DeleteMapping("/username/{username}")
-    @PreAuthorize("hasAuthority('SCOPE_FULL_ACCESS')")
+    @PreAuthorize("hasAuthority('FULL_ACCESS')")
     public ResponseEntity<String> deleteTraineeByUsername(@PathVariable String username) {
         return ResponseEntity.ok(traineeService.deleteByUsername(username));
     }
 
     @PatchMapping("/change-status")
-    @PreAuthorize("hasAuthority('SCOPE_VIEW_TRAINEE_PROFILE')")
+    @PreAuthorize("hasAuthority('TRAINEE_PROFILE')")
     public ResponseEntity<String> changeStatus() {
         traineeService.changeStatus();
         return ResponseEntity.ok("Changed status successfully");
