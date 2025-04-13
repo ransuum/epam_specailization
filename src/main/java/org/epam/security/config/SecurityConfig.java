@@ -149,11 +149,13 @@ public class SecurityConfig {
     public SecurityFilterChain registerSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .securityMatcher(new OrRequestMatcher(
-                        new AntPathRequestMatcher("/sign-up/**"), new AntPathRequestMatcher("/public/**")))
+                        new AntPathRequestMatcher("/sign-up/**"),
+                        new AntPathRequestMatcher("/public/**")))
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth ->
-                        auth.anyRequest().permitAll())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/sign-up/trainee", "/sign-up/trainer").hasRole("ADMIN")
+                        .anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
     }
