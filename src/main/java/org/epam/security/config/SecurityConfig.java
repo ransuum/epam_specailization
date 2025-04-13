@@ -9,10 +9,12 @@ import com.nimbusds.jose.proc.SecurityContext;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.epam.security.limit.RateLimitFilter;
 import org.epam.repository.RefreshTokenRepository;
 import org.epam.security.jwt.JwtAccessTokenFilter;
 import org.epam.security.jwt.JwtRefreshTokenFilter;
 import org.epam.security.jwt.JwtTokenUtils;
+import org.epam.security.limit.config.RateLimitConfig;
 import org.epam.security.rsa.RSAKeyRecord;
 import org.epam.security.userconfiguration.UserManagerConfig;
 import org.epam.service.LogoutHandlerService;
@@ -35,6 +37,7 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
@@ -56,6 +59,7 @@ public class SecurityConfig {
     private final JwtTokenUtils jwtTokenUtils;
     private final RefreshTokenRepository refreshTokenRepository;
     private final LogoutHandlerService logoutHandlerService;
+    private final RateLimitConfig rateLimitConfig;
 
     @Order(1)
     @Bean
@@ -65,6 +69,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .addFilterBefore(new RateLimitFilter(rateLimitConfig), BasicAuthenticationFilter.class)
                 .userDetailsService(userManagerConfig)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex ->

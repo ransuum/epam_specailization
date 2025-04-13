@@ -7,7 +7,6 @@ import lombok.extern.log4j.Log4j2;
 import org.epam.models.dto.create.TraineeCreateDto;
 import org.epam.models.dto.create.TrainerCreateDto;
 import org.epam.service.AuthenticationService;
-import org.epam.service.LogoutHandlerService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,8 +23,6 @@ import java.util.List;
 @Log4j2
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
-    private final LogoutHandlerService logoutHandlerService;
-
 
     @PostMapping("/sign-in")
     public ResponseEntity<Object> authenticateUser(Authentication authentication, HttpServletResponse response) {

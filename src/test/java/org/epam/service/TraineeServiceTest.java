@@ -21,6 +21,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -39,6 +40,9 @@ class TraineeServiceTest {
 
     @Mock
     private CredentialsGenerator credentialsGenerator;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Mock
     private SecurityService securityService;
@@ -145,6 +149,7 @@ class TraineeServiceTest {
         when(securityService.getCurrentUsername()).thenReturn(testUsername);
         when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.of(testTrainee));
         when(traineeRepository.save(any(Trainee.class))).thenReturn(testTrainee);
+        when(passwordEncoder.matches(testTrainee.getUser().getPassword(), testPassword)).thenReturn(true);
 
         var result = traineeService.changePassword(testPassword, testNewPassword);
 
@@ -170,10 +175,12 @@ class TraineeServiceTest {
     void changePassword_shouldReturnNullWhenOldPasswordDoesNotMatch() {
         when(securityService.getCurrentUsername()).thenReturn(testUsername);
         when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.of(testTrainee));
+        when(passwordEncoder.matches(testTrainee.getUser().getPassword(), "fsdfsdfsd")).thenReturn(false);
 
         var exception = assertThrows(CredentialException.class,
                 () -> traineeService.changePassword("wrongPassword", testNewPassword));
-        assertEquals("Old password do not match", exception.getMessage());
+
+        assertEquals("Old password does not match", exception.getMessage());
         verify(traineeRepository).findByUser_Username(testUsername);
         verify(userRepository, never()).save(any(User.class));
     }
@@ -181,7 +188,6 @@ class TraineeServiceTest {
     @Test
     void findByUsername_shouldReturnTraineeWhenFound() throws NotFoundException {
         when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.of(testTrainee));
-
         var result = traineeService.findByUsername(testUsername);
 
         assertNotNull(result);
@@ -200,11 +206,14 @@ class TraineeServiceTest {
     }
 
     @Test
-    void deleteByUsername_shouldReturnId() throws NotFoundException {
+    void deleteByUsername_shouldReturnUsername() throws NotFoundException {
+        when(traineeRepository.findByUser_Username(testUsername)).thenReturn(Optional.of(testTrainee));
+        doNothing().when(traineeRepository).delete(testTrainee);
+
         var result = traineeService.deleteByUsername(testUsername);
 
         assertEquals(testUsername, result);
-        verify(traineeRepository).deleteByUser_Username(testUsername);
+        verify(traineeRepository).delete(testTrainee);
     }
 
     @Test

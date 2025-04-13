@@ -39,6 +39,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Authentication failed", ex);
     }
 
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiError> handleRateLimitExceededException(RateLimitExceededException ex) {
+        return buildResponse(HttpStatus.TOO_MANY_REQUESTS, "Too many requests for this time", ex);
+    }
+
     @ExceptionHandler(CredentialException.class)
     public ResponseEntity<ApiError> handleBadCredentialsException(CredentialException ex) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Authentication failed", ex);

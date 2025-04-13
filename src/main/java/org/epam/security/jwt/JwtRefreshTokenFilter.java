@@ -51,11 +51,11 @@ public class JwtRefreshTokenFilter extends OncePerRequestFilter {
             final String userName = jwtTokenUtils.getUserName(jwtRefreshToken);
 
             if (!userName.isEmpty() && SecurityContextHolder.getContext().getAuthentication() == null) {
-                var isRefreshTokenValidInDatabase = refreshTokenRepo.findByToken(jwtRefreshToken.getTokenValue())
+                final var isRefreshTokenValidInDatabase = refreshTokenRepo.findByToken(jwtRefreshToken.getTokenValue())
                         .map(refreshTokenEntity -> !refreshTokenEntity.isRevoked())
                         .orElse(false);
                 UserDetails userDetails = jwtTokenUtils.userDetails(userName);
-                if (jwtTokenUtils.isTokenValid(jwtRefreshToken, userDetails) && isRefreshTokenValidInDatabase) {
+                if (jwtTokenUtils.isTokenValid(jwtRefreshToken, userDetails) && Boolean.TRUE.equals(isRefreshTokenValidInDatabase)) {
                     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
                     UsernamePasswordAuthenticationToken createdToken = new UsernamePasswordAuthenticationToken(
