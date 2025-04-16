@@ -52,7 +52,7 @@ public class TraineeController {
     @GetMapping
     @PreAuthorize("hasAuthority('READ_TRAINEES')")
     public ResponseEntity<PagedModel<EntityModel<TraineeDto>>> findAll(
-            @ParameterObject @PageableDefault(sort = "firstName,asc") Pageable pageable,
+            @ParameterObject @PageableDefault(sort = "user.firstName,asc") Pageable pageable,
             PagedResourcesAssembler<TraineeDto> assembler) {
         final var traineePages = traineeService.findAll(pageable);
         return new ResponseEntity<>(assembler.toModel(traineePages), HttpStatus.OK);

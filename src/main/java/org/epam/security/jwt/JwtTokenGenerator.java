@@ -2,6 +2,7 @@ package org.epam.security.jwt;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.epam.models.entity.RefreshToken;
 import org.epam.models.entity.User;
@@ -21,12 +22,9 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class JwtTokenGenerator {
     private final JwtEncoder jwtEncoder;
-
-    public JwtTokenGenerator(JwtEncoder jwtEncoder) {
-        this.jwtEncoder = jwtEncoder;
-    }
 
     public Authentication createAuthenticationObject(User users) {
         String username = users.getUsername();
@@ -40,6 +38,7 @@ public class JwtTokenGenerator {
 
         return new UsernamePasswordAuthenticationToken(username, password, Arrays.asList(authorities));
     }
+
 
     public String generateAccessToken(Authentication authentication) {
 

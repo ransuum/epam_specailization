@@ -2,11 +2,9 @@ package org.epam.security.limit.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.epam.security.limit.Attempts;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -15,9 +13,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-@Component
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class RateLimitConfigImpl implements RateLimitConfig {
+@Service
+public class RateLimitServiceImpl implements RateLimitConfig {
     private final ConcurrentHashMap<String, Attempts> attemptsMap = new ConcurrentHashMap<>();
 
     @Override

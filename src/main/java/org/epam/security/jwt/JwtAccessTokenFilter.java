@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.epam.models.enums.TokenType;
 import org.epam.security.rsa.RSAKeyRecord;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,6 +23,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+
+import static org.epam.utils.TokenType.BEARER;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -45,7 +46,7 @@ public class JwtAccessTokenFilter extends OncePerRequestFilter {
 
             JwtDecoder jwtDecoder =  NimbusJwtDecoder.withPublicKey(rsaKeyRecord.rsaPublicKey()).build();
 
-            if(!authHeader.startsWith(TokenType.Bearer.name())){
+            if(!authHeader.startsWith(BEARER)){
                 filterChain.doFilter(request,response);
                 return;
             }

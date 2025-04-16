@@ -63,24 +63,26 @@ public class TrainingServiceImpl implements TrainingService {
     @Override
     @Transactional
     public TrainingDto update(String id, TrainingUpdateDto trainingUpdateData) throws NotFoundException {
-        final var training = trainingRepository.findById(id)
+        return trainingRepository.findById(id)
+                .map(training -> {
+                    if (check(trainingUpdateData.traineeUsername()))
+                        training.setTrainee(traineeRepository.findByUser_Username(trainingUpdateData.traineeUsername())
+                                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal())));
+
+                    if (check(trainingUpdateData.trainerUsername()))
+                        training.setTrainer(trainerRepository.findByUser_Username(trainingUpdateData.trainerUsername())
+                                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal())));
+
+                    if (check(trainingUpdateData.trainingTypeId()))
+                        training.setTrainingType(trainingTypeRepository.findById(trainingUpdateData.trainingTypeId())
+                                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal())));
+
+                    if (check(trainingUpdateData.trainingName()))
+                        training.setTrainingName(trainingUpdateData.trainingName());
+                    if (check(trainingUpdateData.duration())) training.setDuration(trainingUpdateData.duration());
+                    return TrainingMapper.INSTANCE.toDto(trainingRepository.save(training));
+                })
                 .orElseThrow(() -> new NotFoundException("Training not found"));
-
-        if (check(trainingUpdateData.traineeUsername()))
-            training.setTrainee(traineeRepository.findByUser_Username(trainingUpdateData.traineeUsername())
-                    .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal())));
-
-        if (check(trainingUpdateData.trainerUsername()))
-            training.setTrainer(trainerRepository.findByUser_Username(trainingUpdateData.trainerUsername())
-                    .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal())));
-
-        if (check(trainingUpdateData.trainingTypeId()))
-            training.setTrainingType(trainingTypeRepository.findById(trainingUpdateData.trainingTypeId())
-                    .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal())));
-
-        if (check(trainingUpdateData.trainingName())) training.setTrainingName(trainingUpdateData.trainingName());
-        if (check(trainingUpdateData.duration())) training.setDuration(trainingUpdateData.duration());
-        return TrainingMapper.INSTANCE.toDto(trainingRepository.save(training));
     }
 
     @Override
@@ -109,11 +111,11 @@ public class TrainingServiceImpl implements TrainingService {
                                                                             TrainingTypeName trainingTypeName,
                                                                             Pageable pageable) {
         return trainingRepository.getTraineeTrainings(username,
-                        check(fromDate) ? LocalDate.parse(fromDate, FORMATTER) : null,
-                        check(toDate) ? LocalDate.parse(toDate, FORMATTER) : null,
-                        trainerName,
-                        trainingTypeName,
-                        pageable).map(TrainingMapper.INSTANCE::toListDtoForTrainee);
+                check(fromDate) ? LocalDate.parse(fromDate, FORMATTER) : null,
+                check(toDate) ? LocalDate.parse(toDate, FORMATTER) : null,
+                trainerName,
+                trainingTypeName,
+                pageable).map(TrainingMapper.INSTANCE::toListDtoForTrainee);
     }
 
     @Override
@@ -122,11 +124,11 @@ public class TrainingServiceImpl implements TrainingService {
                                                                             TrainingTypeName trainingTypeName,
                                                                             Pageable pageable) {
         return trainingRepository.getTrainerTrainings(username,
-                        check(fromDate) ? LocalDate.parse(fromDate, FORMATTER) : null,
-                        check(toDate) ? LocalDate.parse(toDate, FORMATTER) : null,
-                        traineeName,
-                        trainingTypeName,
-                        pageable).map(TrainingMapper.INSTANCE::toListDtoForTrainer);
+                check(fromDate) ? LocalDate.parse(fromDate, FORMATTER) : null,
+                check(toDate) ? LocalDate.parse(toDate, FORMATTER) : null,
+                traineeName,
+                trainingTypeName,
+                pageable).map(TrainingMapper.INSTANCE::toListDtoForTrainer);
     }
 
     @Override
@@ -147,8 +149,8 @@ public class TrainingServiceImpl implements TrainingService {
                                         .orElseThrow(() -> new NotFoundException("Training type not found")))
                                 .duration(traineeTrainingUpdateDto.duration())
                                 .startTime(LocalDate.parse(traineeTrainingUpdateDto.startTime(), FORMATTER))
-                                .build()))
-                ).toList();
+                                .build())))
+                .toList();
     }
 
     @Override
@@ -169,7 +171,7 @@ public class TrainingServiceImpl implements TrainingService {
                                         .orElseThrow(() -> new NotFoundException("Training type not found")))
                                 .duration(trainerTrainingUpdateDto.duration())
                                 .startTime(LocalDate.parse(trainerTrainingUpdateDto.startTime(), FORMATTER))
-                                .build()))
-                ).toList();
+                                .build())))
+                .toList();
     }
 }

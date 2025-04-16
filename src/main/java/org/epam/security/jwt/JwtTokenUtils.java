@@ -2,7 +2,7 @@ package org.epam.security.jwt;
 
 import lombok.RequiredArgsConstructor;
 import org.epam.repository.UserRepository;
-import org.epam.security.userconfiguration.UserConfig;
+import org.epam.security.userconfiguration.UserDetailsImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -33,7 +33,7 @@ public class JwtTokenUtils {
 
     public UserDetails userDetails(String username) {
         return userRepository.findByUsername(username)
-                .map(UserConfig::new)
+                .map(UserDetailsImpl::new)
                 .orElseThrow(() -> new UsernameNotFoundException("username: " + username + " does not exist"));
     }
 }

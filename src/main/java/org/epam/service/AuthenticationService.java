@@ -2,8 +2,6 @@ package org.epam.service;
 
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.epam.exception.CredentialException;
-import org.epam.exception.NotFoundException;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.create.TraineeCreateDto;
 import org.epam.models.dto.create.TrainerCreateDto;

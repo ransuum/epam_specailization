@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public enum Roles {
     ROLE_TRAINEE(Set.of("TRAINEE_PROFILE", "READ_TRAINEES", "AUTHORIZED")),
     ROLE_TRAINER(Set.of("TRAINER_PROFILE", "READ_TRAINERS", "AUTHORIZED")),
-    ROLE_ADMIN(Set.of("DELETE", "FULL_ACCESS"));
+    ROLE_ADMIN(Set.of("DELETE", "FULL_ACCESS", "TRAINER_PROFILE", "TRAINEE_PROFILE", "READ_TRAINERS", "AUTHORIZED", "READ_TRAINEES"));
 
     private final Set<String> permissions;
 

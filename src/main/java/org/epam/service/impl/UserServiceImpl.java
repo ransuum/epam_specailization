@@ -41,17 +41,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto update(String id, User request) throws NotFoundException {
-        final var user = userRepository.findById(id)
+        return userRepository.findById(id)
+                .map(user -> {
+                    if (check(request.getFirstName())) user.setFirstName(request.getFirstName());
+                    if (check(request.getLastName())) user.setLastName(request.getLastName());
+                    if (check(request.getIsActive())) user.setIsActive(request.getIsActive());
+                    final var username = credentialsGenerator.generateUsername(request.getFirstName(), request.getLastName());
+                    final var password = credentialsGenerator.generatePassword(username);
+                    user.setPassword(password);
+                    user.setUsername(username);
+                    return UserMapper.INSTANCE.toDto(userRepository.save(user));
+                })
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.USERS.getVal()));
-
-        if (check(request.getFirstName())) user.setFirstName(request.getFirstName());
-        if (check(request.getLastName())) user.setLastName(request.getLastName());
-        if (check(request.getIsActive())) user.setIsActive(request.getIsActive());
-        final var username = credentialsGenerator.generateUsername(request.getFirstName(), request.getLastName());
-        final var password = credentialsGenerator.generatePassword(username);
-        user.setPassword(password);
-        user.setUsername(username);
-        return UserMapper.INSTANCE.toDto(userRepository.save(user));
     }
 
     @Override

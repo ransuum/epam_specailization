@@ -16,8 +16,8 @@ import org.epam.security.jwt.JwtRefreshTokenFilter;
 import org.epam.security.jwt.JwtTokenUtils;
 import org.epam.security.limit.config.RateLimitConfig;
 import org.epam.security.rsa.RSAKeyRecord;
-import org.epam.security.userconfiguration.UserManagerConfig;
-import org.epam.service.LogoutHandlerService;
+import org.epam.security.userconfiguration.UserDetailsServiceImpl;
+import org.epam.service.impl.LogoutHandlerServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -36,6 +36,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -54,11 +55,11 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Slf4j
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final UserManagerConfig userManagerConfig;
+    private final UserDetailsServiceImpl userDetailsServiceImpl;
     private final RSAKeyRecord rsaKeyRecord;
     private final JwtTokenUtils jwtTokenUtils;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final LogoutHandlerService logoutHandlerService;
+    private final LogoutHandlerServiceImpl logoutHandlerServiceImpl;
     private final RateLimitConfig rateLimitConfig;
 
     @Order(1)
@@ -70,7 +71,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .addFilterBefore(new RateLimitFilter(rateLimitConfig), BasicAuthenticationFilter.class)
-                .userDetailsService(userManagerConfig)
+                .userDetailsService(userDetailsServiceImpl)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex ->
                         ex.authenticationEntryPoint((request, response, authException)
@@ -133,7 +134,7 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtAccessTokenFilter(rsaKeyRecord, jwtTokenUtils), UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .addLogoutHandler(logoutHandlerService)
+                        .addLogoutHandler(logoutHandlerServiceImpl)
                         .logoutSuccessHandler(((request, response, authentication) -> SecurityContextHolder.clearContext()))
                 )
                 .exceptionHandling(ex -> {
@@ -154,7 +155,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/sign-up/trainee", "/sign-up/trainer").hasRole("ADMIN")
+                        .requestMatchers("/sign-up/trainee", "/sign-up/trainer").access(
+                                new WebExpressionAuthorizationManager("hasRole('ADMIN') or isAnonymous()")
+                        )
                         .anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();

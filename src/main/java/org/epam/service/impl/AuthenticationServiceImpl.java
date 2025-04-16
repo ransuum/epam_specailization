@@ -7,7 +7,6 @@ import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.create.TraineeCreateDto;
 import org.epam.models.dto.create.TrainerCreateDto;
 import org.epam.models.entity.RefreshToken;
-import org.epam.models.enums.TokenType;
 import org.epam.repository.RefreshTokenRepository;
 import org.epam.security.jwt.JwtTokenGenerator;
 import org.epam.service.AuthenticationService;
@@ -21,6 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+
+import static org.epam.utils.TokenType.BEARER;
 
 @Service
 @RequiredArgsConstructor
@@ -54,7 +55,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .refreshToken(refreshToken)
                     .accessTokenExpiry(15 * 60)
                     .username(user.getUsername())
-                    .tokenType(TokenType.Bearer)
+                    .tokenType(BEARER)
                     .build();
 
         } catch (Exception e) {
@@ -65,27 +66,26 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public Object getAccessTokenUsingRefreshToken(String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.startsWith(TokenType.Bearer.name()))
+        if (authorizationHeader == null || !authorizationHeader.startsWith(BEARER))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token format");
         final String refreshToken = authorizationHeader.substring(7);
 
         final var refreshTokenEntity = refreshTokenRepository.findByToken(refreshToken)
                 .filter(tokens -> !tokens.isRevoked())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Refresh token revoked"));
-        var users = refreshTokenEntity.getUser();
-        refreshTokenEntity.setRevoked(true);
+        final var user = refreshTokenEntity.getUser();
         refreshTokenRepository.delete(refreshTokenEntity);
 
-        final var authentication = jwtTokenGenerator.createAuthenticationObject(users);
+        final var authentication = jwtTokenGenerator.createAuthenticationObject(user);
         final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
 
         return AuthResponseDto.builder()
                 .accessToken(accessToken)
                 .accessTokenExpiry(5 * 60)
-                .username(users.getUsername())
-                .tokenType(TokenType.Bearer)
+                .username(user.getUsername())
+                .tokenType(BEARER)
                 .refreshToken(refreshTokenRepository.save(jwtTokenGenerator
-                        .createRefreshToken(users, authentication)).getToken())
+                        .createRefreshToken(user, authentication)).getToken())
                 .build();
     }
 
@@ -109,7 +109,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .refreshToken(refreshToken)
                 .username(userTrainee.getUsername())
                 .accessTokenExpiry(5 * 60)
-                .tokenType(TokenType.Bearer)
+                .tokenType(BEARER)
                 .build();
     }
 
@@ -133,7 +133,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .refreshToken(refreshToken)
                 .username(userTrainer.getUsername())
                 .accessTokenExpiry(5 * 60)
-                .tokenType(TokenType.Bearer)
+                .tokenType(BEARER)
                 .build();
     }
 }
