@@ -1,5 +1,7 @@
 package org.epam.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +26,50 @@ import java.util.List;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
+    @Operation(
+            summary = "User Authentication",
+            description = """
+                     Use Basic Auth in Postman:
+                     1. Go to the Authorization tab and select `Basic Auth`
+                     2. Enter username and password
+                     3. Specify URL: `http://localhost:8000/sign-in`
+                     4. Select `POST` method and click `Send`
+                     5. Response: access token, refresh token and details
+                     6. Add access token to Bearer
+                    \s
+                     Use Basic Auth in Swagger:
+                     1. Go to the icon lock and use `Basic Auth`
+                     2. Enter username and password
+                     3. Select `POST` method and click `Send`
+                     4. Response: access token, refresh token and details
+                     5. Add access token to Bearer auth in swagger
+                \s""",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Successful authentication. Returns access and refresh tokens."),
+                    @ApiResponse(responseCode = "401", description = "Invalid credentials")
+            }
+    )
     @PostMapping("/sign-in")
     public ResponseEntity<Object> authenticateUser(Authentication authentication, HttpServletResponse response) {
         return new ResponseEntity<>(authenticationService.getJwtTokensAfterAuthentication(authentication, response), HttpStatus.CREATED);
     }
 
+    @Operation(
+            summary = "User Authentication",
+            description = """
+                     Use Basic Auth in Postman:
+                     1. Go to the Authorization tab and select `Bearer`
+                     2. Specify URL: `http://localhost:8000/refresh-token` POST
+                     3. Click execute
+                     4. Response: access token, refresh token and details
+                    \s
+                     Use Basic Auth in Swagger:
+                     1. Go to the icon lock and select `Bearer` -> put refresh token in there:
+                     2. Write in param refresh token too
+                     3. Click execute
+                     4. Response: access token, refresh token and details
+                \s"""
+    )
     @PreAuthorize("hasAuthority('REFRESH_TOKEN')")
     @PostMapping("/refresh-token")
     public ResponseEntity<Object> getAccessToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
