@@ -44,20 +44,19 @@ public class TrainingServiceImpl implements TrainingService {
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
         final var trainee = traineeRepository.findByUser_Username(trainingCreationData.traineeUsername())
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal()));
-        final var trainingType = trainingTypeRepository.findByTrainingTypeName(
+        return trainingTypeRepository.findByTrainingTypeName(
                         TrainingTypeName.getTrainingNameFromString(trainingCreationData.trainingTypeName()))
+                .map(trainingType -> TrainingMapper.INSTANCE.toDto(trainingRepository.save(
+                        Training.builder()
+                                .trainer(trainer)
+                                .trainee(trainee)
+                                .trainingType(trainingType)
+                                .trainingName(trainingCreationData.trainingName())
+                                .startTime(LocalDate.parse(trainingCreationData.startTime(), FORMATTER))
+                                .duration(trainingCreationData.duration())
+                                .build())
+                ))
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal()));
-
-        return TrainingMapper.INSTANCE.toDto(trainingRepository.save(
-                Training.builder()
-                        .trainer(trainer)
-                        .trainee(trainee)
-                        .trainingType(trainingType)
-                        .trainingName(trainingCreationData.trainingName())
-                        .startTime(LocalDate.parse(trainingCreationData.startTime(), FORMATTER))
-                        .duration(trainingCreationData.duration())
-                        .build())
-        );
     }
 
     @Override

@@ -55,15 +55,15 @@ public class AuthenticationController {
     }
 
     @Operation(
-            summary = "User Authentication",
+            summary = "refresh-token",
             description = """
-                     Use Basic Auth in Postman:
+                     Use refresh-token in Postman:
                      1. Go to the Authorization tab and select `Bearer`
                      2. Specify URL: `http://localhost:8000/refresh-token` POST
                      3. Click execute
                      4. Response: access token, refresh token and details
                     \s
-                     Use Basic Auth in Swagger:
+                     Use refresh-token in Swagger:
                      1. Go to the icon lock and select `Bearer` -> put refresh token in there:
                      2. Write in param refresh token too
                      3. Click execute
