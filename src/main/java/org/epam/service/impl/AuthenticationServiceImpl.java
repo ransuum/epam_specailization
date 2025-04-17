@@ -1,69 +1,143 @@
 package org.epam.service.impl;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.epam.exception.CredentialException;
-import org.epam.exception.NotFoundException;
-import org.epam.models.SecurityContextHolder;
-import org.epam.models.enums.UserType;
-import org.epam.repository.TraineeRepository;
-import org.epam.repository.TrainerRepository;
-import org.epam.repository.UserRepository;
+import org.epam.models.RegistrationResponseDto;
+import org.epam.models.dto.AuthResponseDto;
+import org.epam.models.dto.create.TraineeCreateDto;
+import org.epam.models.dto.create.TrainerCreateDto;
+import org.epam.models.entity.RefreshToken;
+import org.epam.repository.RefreshTokenRepository;
+import org.epam.security.jwt.JwtTokenGenerator;
 import org.epam.service.AuthenticationService;
+import org.epam.service.TraineeService;
+import org.epam.service.TrainerService;
+import org.epam.service.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
+import static org.epam.utils.TokenType.BEARER;
 
 @Service
 @RequiredArgsConstructor
 @Log4j2
 public class AuthenticationServiceImpl implements AuthenticationService {
-    private final UserRepository userRepository;
-    private final TraineeRepository traineeRepository;
-    private final TrainerRepository trainerRepository;
-    private final SecurityContextHolder securityContextHolder;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final JwtTokenGenerator jwtTokenGenerator;
+    private final TraineeService traineeService;
+    private final TrainerService trainerService;
+    private final UserService userService;
 
     @Override
-    public void authenticate(String username, String password) throws NotFoundException, CredentialException {
-        var user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new CredentialException("Username or password is incorrect"));
-
-        if (!user.getPassword().equals(password))
-            throw new CredentialException("Password or username doesn't match");
-
+    public AuthResponseDto getJwtTokensAfterAuthentication(Authentication authentication, HttpServletResponse response) {
         try {
-            var trainee = traineeRepository.findById(user.getId())
-                    .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));
-            if (trainee != null) {
-                securityContextHolder.initContext(new SecurityContextHolder(
-                        username, trainee.getId(),
-                        LocalDateTime.now(),
-                        LocalDateTime.now().plusDays(12),
-                        UserType.TRAINEE)
-                );
-                return;
-            }
+            final var user = userService.findByUsername(authentication.getName());
+            final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
+            final String refreshToken = jwtTokenGenerator.generateRefreshToken(authentication);
+
+            refreshTokenRepository.save(RefreshToken.builder()
+                    .user(user)
+                    .token(refreshToken)
+                    .revoked(false)
+                    .createdAt(Instant.now())
+                    .expiresAt(Instant.now().plus(25, ChronoUnit.DAYS))
+                    .build());
+
+            jwtTokenGenerator.creatRefreshTokenCookie(response, refreshToken);
+            log.info("[AuthService:userSignInAuth] Access token for user:{}, has been generated", user.getUsername());
+            return AuthResponseDto.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .accessTokenExpiry(15 * 60)
+                    .username(user.getUsername())
+                    .tokenType(BEARER)
+                    .build();
         } catch (Exception e) {
-            log.info("You are not trainee");
+            log.error("[AuthService:userSignInAuth]Exception while authenticating the user due to :{}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Please Try Again");
         }
-
-        var trainer = trainerRepository.findById(user.getId())
-                .orElseThrow(() -> new CredentialException("User doesn't exist or cannot authorize by this credentials"));
-        if (trainer != null) {
-            securityContextHolder.initContext(new SecurityContextHolder(
-                    username, trainer.getId(),
-                    LocalDateTime.now(),
-                    LocalDateTime.now().plusDays(12),
-                    UserType.TRAINER)
-            );
-            return;
-        }
-
-        throw new CredentialException("User role could not be determined");
     }
 
     @Override
-    public void logout() {
-        securityContextHolder.clearContext();
+    public Object getAccessTokenUsingRefreshToken(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith(BEARER))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token format");
+        final String refreshToken = authorizationHeader.substring(7);
+
+        final var refreshTokenEntity = refreshTokenRepository.findByToken(refreshToken)
+                .filter(tokens -> !tokens.isRevoked())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Refresh token revoked"));
+        final var user = refreshTokenEntity.getUser();
+        refreshTokenRepository.delete(refreshTokenEntity);
+
+        final var authentication = jwtTokenGenerator.createAuthenticationObject(user);
+        final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
+
+        return AuthResponseDto.builder()
+                .accessToken(accessToken)
+                .accessTokenExpiry(5 * 60)
+                .username(user.getUsername())
+                .tokenType(BEARER)
+                .refreshToken(refreshTokenRepository.save(jwtTokenGenerator
+                        .createRefreshToken(user, authentication)).getToken())
+                .build();
+    }
+
+    @Override
+    public RegistrationResponseDto registerTrainee(TraineeCreateDto traineeCreateDto, HttpServletResponse httpServletResponse) {
+        final var traineePair = traineeService.save(traineeCreateDto);
+        final var userTrainee = traineePair.getRight().getUser();
+        final var authentication = jwtTokenGenerator.createAuthenticationObject(userTrainee);
+
+        final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
+        final String refreshToken = jwtTokenGenerator.generateRefreshToken(authentication);
+        refreshTokenRepository.save(RefreshToken.builder()
+                .token(refreshToken)
+                .user(userTrainee)
+                .expiresAt(Instant.now().plus(25, ChronoUnit.DAYS))
+                .revoked(false)
+                .build());
+
+        log.info("[AuthService:registerUser] Trainee:{} Successfully registered", userTrainee.getUsername());
+        return RegistrationResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .username(userTrainee.getUsername())
+                .accessTokenExpiry(5 * 60)
+                .tokenType(BEARER)
+                .password(traineePair.getLeft())
+                .build();
+    }
+
+    @Override
+    public RegistrationResponseDto registerTrainer(TrainerCreateDto trainerCreateDto, HttpServletResponse httpServletResponse) {
+        final var trainerPair = trainerService.save(trainerCreateDto);
+        final var userTrainer = trainerPair.getRight().getUser();
+        final var authentication = jwtTokenGenerator.createAuthenticationObject(userTrainer);
+
+        final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
+        final String refreshToken = jwtTokenGenerator.generateRefreshToken(authentication);
+        refreshTokenRepository.save(RefreshToken.builder()
+                .token(refreshToken)
+                .user(userTrainer)
+                .expiresAt(Instant.now().plus(25, ChronoUnit.DAYS))
+                .revoked(false)
+                .build());
+
+        log.info("[AuthService:registerUser] Trainer:{} Successfully registered", userTrainer.getUsername());
+        return RegistrationResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .username(userTrainer.getUsername())
+                .accessTokenExpiry(5 * 60)
+                .tokenType(BEARER)
+                .password(trainerPair.getLeft())
+                .build();
     }
 }

@@ -20,7 +20,7 @@ public class Trainee {
     @Column(name = "id")
     private String id;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "id", referencedColumnName = "id")
     private User user;

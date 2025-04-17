@@ -17,6 +17,8 @@ import org.epam.repository.TrainingRepository;
 import org.epam.repository.TrainingTypeRepository;
 import org.epam.service.TrainingService;
 import org.epam.utils.mappers.TrainingMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,63 +40,61 @@ public class TrainingServiceImpl implements TrainingService {
     @Override
     @Transactional
     public TrainingDto save(TrainingCreateDto trainingCreationData) throws NotFoundException {
-        var trainer = trainerRepository.findByUser_Username(trainingCreationData.trainerUsername())
+        final var trainer = trainerRepository.findByUser_Username(trainingCreationData.trainerUsername())
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal()));
-        var trainee = traineeRepository.findByUser_Username(trainingCreationData.traineeUsername())
+        final var trainee = traineeRepository.findByUser_Username(trainingCreationData.traineeUsername())
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal()));
-        var trainingType = trainingTypeRepository.findByTrainingTypeName(
+        return trainingTypeRepository.findByTrainingTypeName(
                         TrainingTypeName.getTrainingNameFromString(trainingCreationData.trainingTypeName()))
+                .map(trainingType -> TrainingMapper.INSTANCE.toDto(trainingRepository.save(
+                        Training.builder()
+                                .trainer(trainer)
+                                .trainee(trainee)
+                                .trainingType(trainingType)
+                                .trainingName(trainingCreationData.trainingName())
+                                .startTime(LocalDate.parse(trainingCreationData.startTime(), FORMATTER))
+                                .duration(trainingCreationData.duration())
+                                .build())
+                ))
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal()));
-
-        return TrainingMapper.INSTANCE.toDto(trainingRepository.save(
-                Training.builder()
-                        .trainer(trainer)
-                        .trainee(trainee)
-                        .trainingType(trainingType)
-                        .trainingName(trainingCreationData.trainingName())
-                        .startTime(LocalDate.parse(trainingCreationData.startTime(), FORMATTER))
-                        .duration(trainingCreationData.duration())
-                        .build())
-        );
     }
 
     @Override
     @Transactional
     public TrainingDto update(String id, TrainingUpdateDto trainingUpdateData) throws NotFoundException {
-        var training = trainingRepository.findById(id)
+        return trainingRepository.findById(id)
+                .map(training -> {
+                    if (check(trainingUpdateData.traineeUsername()))
+                        training.setTrainee(traineeRepository.findByUser_Username(trainingUpdateData.traineeUsername())
+                                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal())));
+
+                    if (check(trainingUpdateData.trainerUsername()))
+                        training.setTrainer(trainerRepository.findByUser_Username(trainingUpdateData.trainerUsername())
+                                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal())));
+
+                    if (check(trainingUpdateData.trainingTypeId()))
+                        training.setTrainingType(trainingTypeRepository.findById(trainingUpdateData.trainingTypeId())
+                                .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal())));
+
+                    if (check(trainingUpdateData.trainingName()))
+                        training.setTrainingName(trainingUpdateData.trainingName());
+                    if (check(trainingUpdateData.duration())) training.setDuration(trainingUpdateData.duration());
+                    return TrainingMapper.INSTANCE.toDto(trainingRepository.save(training));
+                })
                 .orElseThrow(() -> new NotFoundException("Training not found"));
-
-        if (check(trainingUpdateData.traineeUsername()))
-            training.setTrainee(traineeRepository.findByUser_Username(trainingUpdateData.traineeUsername())
-                    .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINEE.getVal())));
-
-        if (check(trainingUpdateData.trainerUsername()))
-            training.setTrainer(trainerRepository.findByUser_Username(trainingUpdateData.trainerUsername())
-                    .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINER.getVal())));
-
-        if (check(trainingUpdateData.trainingTypeId()))
-            training.setTrainingType(trainingTypeRepository.findById(trainingUpdateData.trainingTypeId())
-                    .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal())));
-
-        if (check(trainingUpdateData.trainingName())) training.setTrainingName(trainingUpdateData.trainingName());
-        if (check(trainingUpdateData.duration())) training.setDuration(trainingUpdateData.duration());
-        return TrainingMapper.INSTANCE.toDto(trainingRepository.save(training));
     }
 
     @Override
     @Transactional
     public void delete(String id) throws NotFoundException {
-        var training = trainingRepository.findById(id)
+        final var training = trainingRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING.getVal()));
         trainingRepository.delete(training);
     }
 
     @Override
-    public List<TrainingListDto> findAll() {
-        return trainingRepository.findAll()
-                .stream()
-                .map(TrainingMapper.INSTANCE::toListDto)
-                .toList();
+    public Page<TrainingListDto> findAll(Pageable pageable) {
+        return trainingRepository.findAll(pageable).map(TrainingMapper.INSTANCE::toListDto);
     }
 
     @Override
@@ -105,36 +105,34 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public List<TrainingListDto.TrainingListDtoForUser> getTraineeTrainings(String username, String fromDate,
+    public Page<TrainingListDto.TrainingListDtoForUser> getTraineeTrainings(String username, String fromDate,
                                                                             String toDate, String trainerName,
-                                                                            TrainingTypeName trainingTypeName) {
+                                                                            TrainingTypeName trainingTypeName,
+                                                                            Pageable pageable) {
         return trainingRepository.getTraineeTrainings(username,
-                        check(fromDate) ? LocalDate.parse(fromDate, FORMATTER) : null,
-                        check(toDate) ? LocalDate.parse(toDate, FORMATTER) : null,
-                        trainerName,
-                        trainingTypeName)
-                .stream()
-                .map(TrainingMapper.INSTANCE::toListDtoForTrainee)
-                .toList();
+                check(fromDate) ? LocalDate.parse(fromDate, FORMATTER) : null,
+                check(toDate) ? LocalDate.parse(toDate, FORMATTER) : null,
+                trainerName,
+                trainingTypeName,
+                pageable).map(TrainingMapper.INSTANCE::toListDtoForTrainee);
     }
 
     @Override
-    public List<TrainingListDto.TrainingListDtoForUser> getTrainerTrainings(String username, String fromDate,
+    public Page<TrainingListDto.TrainingListDtoForUser> getTrainerTrainings(String username, String fromDate,
                                                                             String toDate, String traineeName,
-                                                                            TrainingTypeName trainingTypeName) {
+                                                                            TrainingTypeName trainingTypeName,
+                                                                            Pageable pageable) {
         return trainingRepository.getTrainerTrainings(username,
-                        check(fromDate) ? LocalDate.parse(fromDate, FORMATTER) : null,
-                        check(toDate) ? LocalDate.parse(toDate, FORMATTER) : null,
-                        traineeName,
-                        trainingTypeName)
-                .stream()
-                .map(TrainingMapper.INSTANCE::toListDtoForTrainer)
-                .toList();
+                check(fromDate) ? LocalDate.parse(fromDate, FORMATTER) : null,
+                check(toDate) ? LocalDate.parse(toDate, FORMATTER) : null,
+                traineeName,
+                trainingTypeName,
+                pageable).map(TrainingMapper.INSTANCE::toListDtoForTrainer);
     }
 
     @Override
     public List<TrainingDto> updateTrainingsOfTrainee(String traineeUsername, List<TraineeTrainingUpdateDto> trainingUpdateData) throws NotFoundException {
-        var trainee = traineeRepository.findByUser_Username(traineeUsername)
+        final var trainee = traineeRepository.findByUser_Username(traineeUsername)
                 .orElseThrow(() -> new NotFoundException("Trainee not found"));
 
         return trainingUpdateData.stream()
@@ -150,13 +148,13 @@ public class TrainingServiceImpl implements TrainingService {
                                         .orElseThrow(() -> new NotFoundException("Training type not found")))
                                 .duration(traineeTrainingUpdateDto.duration())
                                 .startTime(LocalDate.parse(traineeTrainingUpdateDto.startTime(), FORMATTER))
-                                .build()))
-                ).toList();
+                                .build())))
+                .toList();
     }
 
     @Override
     public List<TrainingDto> updateTrainingsOfTrainer(String trainerUsername, List<TrainerTrainingUpdateDto> trainingUpdateData) throws NotFoundException {
-        var trainer = trainerRepository.findByUser_Username(trainerUsername)
+        final var trainer = trainerRepository.findByUser_Username(trainerUsername)
                 .orElseThrow(() -> new NotFoundException("Trainer not found"));
 
         return trainingUpdateData.stream()
@@ -172,7 +170,7 @@ public class TrainingServiceImpl implements TrainingService {
                                         .orElseThrow(() -> new NotFoundException("Training type not found")))
                                 .duration(trainerTrainingUpdateDto.duration())
                                 .startTime(LocalDate.parse(trainerTrainingUpdateDto.startTime(), FORMATTER))
-                                .build()))
-                ).toList();
+                                .build())))
+                .toList();
     }
 }

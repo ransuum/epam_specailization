@@ -3,31 +3,36 @@ package org.epam.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.epam.models.dto.UserDto;
-import org.epam.models.enums.UserType;
 import org.epam.service.UserService;
-import org.epam.security.RequiredRole;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-
 @RestController
-@RequestMapping("/user")
-@Tag(name = "User Management", description = "APIs for managing users operations")
+@RequestMapping("/api/user")
+@Tag(name = "User Management", description = "APIs for managing user operations")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
 
     @GetMapping("/{id}")
-    @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<UserDto> getUser(@PathVariable String id) {
         return ResponseEntity.ok(userService.findById(id));
     }
 
-    @GetMapping
-    @RequiredRole({UserType.TRAINEE, UserType.TRAINER, UserType.ADMIN})
-    public ResponseEntity<List<UserDto>> findAll() {
-       return ResponseEntity.ok(userService.findAll());
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('FULL_ACCESS')")
+    public ResponseEntity<PagedModel<EntityModel<UserDto>>> findAll(
+            @ParameterObject @PageableDefault(sort = "firstName,asc") Pageable pageable,
+            PagedResourcesAssembler<UserDto> assembler) {
+        final var userPages = userService.findAll(pageable);
+        return ResponseEntity.ok(assembler.toModel(userPages));
     }
 }

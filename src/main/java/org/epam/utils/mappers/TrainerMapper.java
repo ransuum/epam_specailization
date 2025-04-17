@@ -1,6 +1,5 @@
 package org.epam.utils.mappers;
 
-import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.TraineeDto;
 import org.epam.models.dto.TrainerDto;
 import org.epam.models.dto.UserDto;
@@ -20,7 +19,6 @@ import java.util.List;
 public interface TrainerMapper {
     TrainerMapper INSTANCE = Mappers.getMapper(TrainerMapper.class);
 
-    @Mapping(source = "user", target = "user")
     @Mapping(target = "user.password", ignore = true)
     @Mapping(target = "specialization", expression = "java(trainer.getSpecialization().getTrainingTypeName().getVal())")
     @Mapping(target = "trainees", source = "trainings", qualifiedByName = "mapTraineesForTrainer")
@@ -28,9 +26,7 @@ public interface TrainerMapper {
 
     @Named("mapTraineesForTrainer")
     default List<TraineeDto> mapTraineesForTrainer(List<Training> trainings) {
-        if (trainings == null) {
-            return Collections.emptyList();
-        }
+        if (trainings == null) return Collections.emptyList();
         return trainings.stream()
                 .map(Training::getTrainee)
                 .distinct()
@@ -43,18 +39,14 @@ public interface TrainerMapper {
                 ).toList();
     }
 
-    default UserDto createUserDto(User user) {
+    default UserDto createUserDto(User users) {
         return new UserDto(
-                user.getId(),
-                user.getUsername(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getIsActive(),
+                users.getId(),
+                users.getUsername(),
+                users.getFirstName(),
+                users.getLastName(),
+                users.getIsActive(),
                 null
         );
     }
-
-    @Mapping(target = "username", expression = "java(trainer.getUser().getUsername())")
-    @Mapping(target = "password", expression = "java(trainer.getUser().getPassword())")
-    AuthResponseDto toAuthResponseDto(Trainer trainer);
 }

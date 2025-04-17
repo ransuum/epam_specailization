@@ -10,10 +10,10 @@ import org.epam.models.enums.TrainingTypeName;
 import org.epam.repository.TrainingTypeRepository;
 import org.epam.service.TrainingTypeService;
 import org.epam.utils.mappers.TrainingTypeMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import static org.epam.utils.FieldValidator.check;
 
@@ -35,11 +35,12 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     @Override
     @Transactional
     public TrainingTypeDto update(String id, TrainingTypeName trainingTypeName) throws NotFoundException {
-        var trainingView = trainingTypeRepository.findById(id)
+        return trainingTypeRepository.findById(id)
+                .map(trainingType -> {
+                    if (check(trainingTypeName)) trainingType.setTrainingTypeName(trainingTypeName);
+                    return TrainingTypeMapper.INSTANCE.toDto(trainingTypeRepository.save(trainingType));
+                })
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal()));
-
-        if (check(trainingTypeName)) trainingView.setTrainingTypeName(trainingTypeName);
-        return TrainingTypeMapper.INSTANCE.toDto(trainingTypeRepository.save(trainingView));
     }
 
     @Override
@@ -49,11 +50,8 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     }
 
     @Override
-    public List<TrainingTypeDto> findAll() throws NotFoundException {
-        return trainingTypeRepository.findAll()
-                .stream()
-                .map(TrainingTypeMapper.INSTANCE::toDto)
-                .toList();
+    public Page<TrainingTypeDto> findAll(Pageable pageable) throws NotFoundException {
+        return trainingTypeRepository.findAll(pageable).map(TrainingTypeMapper.INSTANCE::toDto);
     }
 
     @Override

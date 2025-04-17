@@ -3,37 +3,28 @@ package org.epam.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.epam.models.dto.TrainingTypeDto;
-import org.epam.models.enums.UserType;
 import org.epam.service.TrainingTypeService;
-import org.epam.security.RequiredRole;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/training-type")
+@RequestMapping("/api/training-type")
 @RequiredArgsConstructor
 @Tag(name = "TrainingType Management", description = "APIs for managing trainingType operations")
 public class TrainingTypeController {
     private final TrainingTypeService trainingTypeService;
 
     @GetMapping("/{id}")
-    @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
+    @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<TrainingTypeDto> findById(@PathVariable String id) {
         return ResponseEntity.ok(trainingTypeService.findById(id));
     }
 
     @DeleteMapping("/{id}")
-    @RequiredRole({UserType.TRAINEE, UserType.TRAINER})
+    @PreAuthorize("hasAuthority('FULL_ACCESS')")
     public ResponseEntity<String> delete(@PathVariable String id) {
         trainingTypeService.delete(id);
         return ResponseEntity.ok("DELETED");
-    }
-
-    @GetMapping
-    @RequiredRole({UserType.TRAINEE, UserType.TRAINER, UserType.ADMIN})
-    public ResponseEntity<List<TrainingTypeDto>> findAll() {
-        return ResponseEntity.ok(trainingTypeService.findAll());
     }
 }

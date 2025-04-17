@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.minidev.json.annotate.JsonIgnore;
+
+import java.io.Serializable;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -12,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "users")
 @Entity
 @Builder
-public class User {
+public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false)
@@ -32,6 +36,12 @@ public class User {
 
     @Column(nullable = false, name = "is_active")
     private Boolean isActive;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<RefreshToken> refreshTokens;
+
+    @Column(nullable = false, name = "roles")
+    private String roles;
 
     public User(String firstName, String lastName, Boolean isActive) {
         this.firstName = firstName;

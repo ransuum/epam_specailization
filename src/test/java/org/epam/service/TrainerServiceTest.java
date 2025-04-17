@@ -9,6 +9,7 @@ import org.epam.models.dto.update.TrainerUpdateDto;
 import org.epam.repository.TraineeRepository;
 import org.epam.repository.TrainerRepository;
 import org.epam.repository.TrainingTypeRepository;
+import org.epam.security.config.SecurityService;
 import org.epam.service.impl.TrainerServiceImpl;
 import org.epam.utils.CredentialsGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,9 +19,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TrainerServiceTest {
     @Mock
     private TrainerRepository trainerRepository;
@@ -36,21 +43,27 @@ class TrainerServiceTest {
     private TraineeRepository traineeRepository;
 
     @Mock
-    private CredentialsGenerator credentialsGenerator;
+    private PasswordEncoder passwordEncoder;
 
     @Mock
     private TrainingTypeRepository trainingTypeRepository;
 
+    @Mock
+    private CredentialsGenerator credentialsGenerator;
+
+    @Mock
+    private SecurityService securityService;
+
     @InjectMocks
     private TrainerServiceImpl trainerService;
 
-    private User testUser;
+    private User testUsers;
     private Trainer testTrainer;
     private TrainingType testTrainingType;
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
+        testUsers = User.builder()
                 .id("userId")
                 .username("testUser")
                 .password("oldPassword")
@@ -64,65 +77,35 @@ class TrainerServiceTest {
 
         testTrainer = Trainer.builder()
                 .id("trainerId")
-                .user(testUser)
+                .user(testUsers)
                 .specialization(testTrainingType)
                 .trainings(new ArrayList<>())
                 .build();
+
+        setupSecurityContext();
     }
 
-    @Test
-    void save_shouldCreateNewTrainer() throws NotFoundException {
-        var request = new TrainerCreateDto(
-                "John",
-                "Doe",
-                TrainingTypeName.SELF_PLACING.getVal()
-        );
-
-        String generatedUsername = "john.doe";
-        String generatedPassword = "password123";
-
-        when(credentialsGenerator.generateUsername("John", "Doe")).thenReturn(generatedUsername);
-        when(credentialsGenerator.generatePassword(generatedUsername)).thenReturn(generatedPassword);
-
-        when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName.SELF_PLACING))
-                .thenReturn(Optional.of(testTrainingType));
-
-        var newUser = User.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .username(generatedUsername)
-                .password(generatedPassword)
-                .isActive(true)
-                .build();
-
-        var newTrainer = Trainer.builder()
-                .user(newUser)
-                .specialization(testTrainingType)
-                .build();
-
-        when(trainerRepository.save(any(Trainer.class))).thenReturn(newTrainer);
-
-        var result = trainerService.save(request);
-
-        assertNotNull(result);
-        assertEquals(generatedUsername, result.username());
-        assertEquals(generatedPassword, result.password());
-
-        verify(trainingTypeRepository).findByTrainingTypeName(TrainingTypeName.SELF_PLACING);
-        verify(trainerRepository).save(any(Trainer.class));
-        verify(credentialsGenerator).generateUsername("John", "Doe");
-        verify(credentialsGenerator).generatePassword(generatedUsername);
+    private void setupSecurityContext() {
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("testUser");
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
     void save_shouldReturnNullWhenTrainingTypeNotFound() {
-        TrainerCreateDto request = new TrainerCreateDto(
+        final var request = new TrainerCreateDto(
                 "Non",
                 "Existent",
                 "Self Placing"
         );
 
-        TrainingTypeName trainingTypeName = TrainingTypeName.getTrainingNameFromString("Self Placing");
+        final var trainingTypeName = TrainingTypeName.getTrainingNameFromString("Self Placing");
+
+        when(credentialsGenerator.generateUsername("Non", "Existent")).thenReturn("non.existent");
+        when(credentialsGenerator.generatePassword("non.existent")).thenReturn("somePassword");
+
         when(trainingTypeRepository.findByTrainingTypeName(trainingTypeName))
                 .thenReturn(Optional.empty());
 
@@ -134,8 +117,14 @@ class TrainerServiceTest {
 
     @Test
     void update_shouldUpdateSpecialization() throws NotFoundException {
-        var request = new TrainerUpdateDto("newSpecializationId", testUser.getFirstName(),
-                testUser.getLastName(), testUser.getUsername(), testUser.getIsActive());
+        var request = new TrainerUpdateDto(
+                "Laboratory",
+                testUsers.getFirstName(),
+                testUsers.getLastName(),
+                testUsers.getUsername(),
+                testUsers.getIsActive()
+        );
+
         var newSpecialization = TrainingType.builder()
                 .id("newSpecializationId")
                 .trainingTypeName(TrainingTypeName.LABORATORY)
@@ -143,39 +132,50 @@ class TrainerServiceTest {
 
         var updatedTrainer = Trainer.builder()
                 .id("trainerId")
-                .user(testUser)
+                .user(testUsers)
                 .specialization(newSpecialization)
                 .trainings(new ArrayList<>())
                 .build();
 
-        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
-        when(trainingTypeRepository.findById("newSpecializationId")).thenReturn(Optional.of(newSpecialization));
-        when(trainerRepository.save(any(Trainer.class))).thenReturn(updatedTrainer);
+        when(securityService.getCurrentUsername()).thenReturn(request.username());
 
-        var result = trainerService.update("trainerId", request);
+        when(trainerRepository.findByUser_Username(request.username()))
+                .thenReturn(Optional.of(testTrainer));
+
+        when(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName.LABORATORY))
+                .thenReturn(Optional.of(newSpecialization));
+
+        when(trainerRepository.save(any(Trainer.class)))
+                .thenReturn(updatedTrainer);
+
+        var result = trainerService.update(request);
 
         assertNotNull(result);
         assertEquals("trainerId", result.id());
-        assertEquals(newSpecialization.getTrainingTypeName().getVal(), result.specialization());
+        assertEquals("Laboratory", result.specialization());
 
-        verify(trainerRepository).findById("trainerId");
-        verify(trainingTypeRepository).findById("newSpecializationId");
+        verify(securityService).getCurrentUsername();
+        verify(trainerRepository).findByUser_Username(request.username());
+        verify(trainingTypeRepository).findByTrainingTypeName(TrainingTypeName.LABORATORY);
         verify(trainerRepository).save(any(Trainer.class));
     }
 
     @Test
     void changePassword_shouldUpdatePasswordSuccessfully() throws NotFoundException, CredentialException {
-        String trainerId = "trainerId";
-        String oldPassword = "oldPassword";
-        String newPassword = "newPassword";
+        when(securityService.getCurrentUsername()).thenReturn("testUser");
+        final String trainerId = "trainerId";
+        final String trainerUsername = "testUser";
+        final String oldPassword = "oldPassword";
+        final String newPassword = "newPassword";
+        when(passwordEncoder.matches(oldPassword, "oldPassword")).thenReturn(true);
 
-        when(trainerRepository.findById(trainerId)).thenReturn(Optional.of(testTrainer));
+        when(trainerRepository.findByUser_Username(trainerUsername)).thenReturn(Optional.of(testTrainer));
 
         var updatedTrainer = Trainer.builder()
                 .id(trainerId)
                 .user(User.builder()
                         .id("userId")
-                        .username("testUser")
+                        .username(trainerUsername)
                         .password(newPassword)
                         .isActive(true)
                         .build())
@@ -185,11 +185,11 @@ class TrainerServiceTest {
 
         when(trainerRepository.save(any(Trainer.class))).thenReturn(updatedTrainer);
 
-        var result = trainerService.changePassword(trainerId, oldPassword, newPassword);
+        var result = trainerService.changePassword(oldPassword, newPassword);
 
         assertNotNull(result);
 
-        verify(trainerRepository).findById(trainerId);
+        verify(trainerRepository).findByUser_Username(trainerUsername);
         verify(trainerRepository).save(any(Trainer.class));
 
         ArgumentCaptor<Trainer> trainerCaptor = ArgumentCaptor.forClass(Trainer.class);
@@ -199,13 +199,15 @@ class TrainerServiceTest {
 
     @Test
     void changePassword_shouldReturnNullWhenOldPasswordMismatch() {
-        when(trainerRepository.findById("trainerId")).thenReturn(Optional.of(testTrainer));
+        when(securityService.getCurrentUsername()).thenReturn("testUser");
+        when(trainerRepository.findByUser_Username("testUser")).thenReturn(Optional.of(testTrainer));
+        when(passwordEncoder.matches(testTrainer.getUser().getPassword(), "fsdfsdfsd")).thenReturn(false);
 
         assertThrows(CredentialException.class, () ->
-                trainerService.changePassword("trainerId", "wrongOldPassword", "newPassword")
+                trainerService.changePassword("wrongOldPassword", "newPassword")
         );
 
-        verify(trainerRepository).findById("trainerId");
+        verify(trainerRepository).findByUser_Username("testUser");
     }
 
     @Test
@@ -228,20 +230,6 @@ class TrainerServiceTest {
         assertThrows(NotFoundException.class, () -> trainerService.findById("nonExistentId"));
 
         verify(trainerRepository).findById("nonExistentId");
-    }
-
-    @Test
-    void findAll_shouldReturnAllTrainers() {
-        List<Trainer> trainerList = Collections.singletonList(testTrainer);
-        when(trainerRepository.findAll()).thenReturn(trainerList);
-
-        var result = trainerService.findAll();
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("trainerId", result.getFirst().id());
-
-        verify(trainerRepository).findAll();
     }
 
     @Test

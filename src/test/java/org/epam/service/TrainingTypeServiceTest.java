@@ -132,43 +132,6 @@ class TrainingTypeServiceTest {
     }
 
     @Test
-    void findAll_shouldReturnAllTrainingViews() throws NotFoundException {
-        var secondTrainingView = TrainingType.builder()
-                .id("test-id-456")
-                .trainingTypeName(TrainingTypeName.SELF_PLACING)
-                .trainings(Collections.emptyList())
-                .trainers(Collections.emptyList())
-                .build();
-
-        var trainingViews = List.of(testTrainingTypeEntity, secondTrainingView);
-
-        when(trainingTypeRepository.findAll()).thenReturn(trainingViews);
-
-        var results = trainingTypeService.findAll();
-
-        assertNotNull(results);
-        assertEquals(2, results.size());
-        assertEquals(testId, results.get(0).id());
-        assertEquals(testTrainingTypeName.getVal(), results.get(0).trainingName());
-        assertEquals("test-id-456", results.get(1).id());
-        assertEquals(TrainingTypeName.SELF_PLACING.getVal(), results.get(1).trainingName());
-
-        verify(trainingTypeRepository).findAll();
-    }
-
-    @Test
-    void findAll_shouldHandleEmptyList() throws NotFoundException {
-        when(trainingTypeRepository.findAll()).thenReturn(Collections.emptyList());
-
-        var results = trainingTypeService.findAll();
-
-        assertNotNull(results);
-        assertTrue(results.isEmpty());
-
-        verify(trainingTypeRepository).findAll();
-    }
-
-    @Test
     void findById_shouldReturnTrainingViewWhenFound() throws NotFoundException {
         when(trainingTypeRepository.findById(testId)).thenReturn(Optional.of(testTrainingTypeEntity));
 

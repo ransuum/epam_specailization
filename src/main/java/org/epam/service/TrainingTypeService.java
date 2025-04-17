@@ -1,11 +1,10 @@
 package org.epam.service;
 
-
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainingTypeDto;
 import org.epam.models.enums.TrainingTypeName;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface TrainingTypeService {
     TrainingTypeDto save(TrainingTypeName trainingTypeName) ;
@@ -14,7 +13,7 @@ public interface TrainingTypeService {
 
     void delete(String id) throws NotFoundException;
 
-    List<TrainingTypeDto> findAll();
+    Page<TrainingTypeDto> findAll(Pageable pageable);
 
     TrainingTypeDto findById(String id) throws NotFoundException;
 }

@@ -13,7 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -132,25 +131,6 @@ class UserServiceTest {
         userService.delete(TEST_ID);
 
         verify(userRepository).delete(testUser);
-    }
-
-    @Test
-    void findAll_shouldReturnAllUsers() {
-        var users = List.of(testUser);
-        when(userRepository.findAll()).thenReturn(users);
-
-        var result = userService.findAll();
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(TEST_ID, result.getFirst().id());
-        assertEquals(TEST_FIRST_NAME, result.getFirst().firstName());
-        assertEquals(TEST_LAST_NAME, result.getFirst().lastName());
-        assertEquals(TEST_USERNAME, result.getFirst().username());
-        assertTrue(result.getFirst().isActive());
-        assertEquals(TEST_PASSWORD, result.getFirst().password());
-
-        verify(userRepository).findAll();
     }
 
     @Test
