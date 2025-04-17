@@ -3,6 +3,7 @@ package org.epam.service.impl;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.epam.models.RegistrationResponseDto;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.create.TraineeCreateDto;
 import org.epam.models.dto.create.TrainerCreateDto;
@@ -57,7 +58,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .username(user.getUsername())
                     .tokenType(BEARER)
                     .build();
-
         } catch (Exception e) {
             log.error("[AuthService:userSignInAuth]Exception while authenticating the user due to :{}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Please Try Again");
@@ -90,8 +90,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public AuthResponseDto registerTrainee(TraineeCreateDto traineeCreateDto, HttpServletResponse httpServletResponse) {
-        final var userTrainee = traineeService.save(traineeCreateDto).getUser();
+    public RegistrationResponseDto registerTrainee(TraineeCreateDto traineeCreateDto, HttpServletResponse httpServletResponse) {
+        final var traineePair = traineeService.save(traineeCreateDto);
+        final var userTrainee = traineePair.getRight().getUser();
         final var authentication = jwtTokenGenerator.createAuthenticationObject(userTrainee);
 
         final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
@@ -104,18 +105,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .build());
 
         log.info("[AuthService:registerUser] Trainee:{} Successfully registered", userTrainee.getUsername());
-        return AuthResponseDto.builder()
+        return RegistrationResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .username(userTrainee.getUsername())
                 .accessTokenExpiry(5 * 60)
                 .tokenType(BEARER)
+                .password(traineePair.getLeft())
                 .build();
     }
 
     @Override
-    public AuthResponseDto registerTrainer(TrainerCreateDto trainerCreateDto, HttpServletResponse httpServletResponse) {
-        final var userTrainer = trainerService.save(trainerCreateDto).getUser();
+    public RegistrationResponseDto registerTrainer(TrainerCreateDto trainerCreateDto, HttpServletResponse httpServletResponse) {
+        final var trainerPair = trainerService.save(trainerCreateDto);
+        final var userTrainer = trainerPair.getRight().getUser();
         final var authentication = jwtTokenGenerator.createAuthenticationObject(userTrainer);
 
         final String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
@@ -128,12 +131,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .build());
 
         log.info("[AuthService:registerUser] Trainer:{} Successfully registered", userTrainer.getUsername());
-        return AuthResponseDto.builder()
+        return RegistrationResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .username(userTrainer.getUsername())
                 .accessTokenExpiry(5 * 60)
                 .tokenType(BEARER)
+                .password(trainerPair.getLeft())
                 .build();
     }
 }

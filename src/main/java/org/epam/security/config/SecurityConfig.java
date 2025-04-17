@@ -156,7 +156,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/sign-up/trainee", "/sign-up/trainer").access(
-                                new WebExpressionAuthorizationManager("hasRole('ADMIN') or isAnonymous()")
+                                new WebExpressionAuthorizationManager("hasAuthority('FULL_ACCESS') or isAnonymous()")
                         )
                         .anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -181,6 +181,29 @@ public class SecurityConfig {
                         auth.anyRequest().permitAll())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .build();
+    }
+
+    @Order(7)
+    @Bean
+    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        return httpSecurity
+                .securityMatcher(new AntPathRequestMatcher("/actuator/**"))
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/prometheus").hasAuthority("FULL_ACCESS")
+                        .anyRequest().hasAuthority("FULL_ACCESS"))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(withDefaults())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
+                .addFilterBefore(new JwtAccessTokenFilter(rsaKeyRecord, jwtTokenUtils), UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> {
+                    log.error("[SecurityConfig:actuatorSecurityFilterChain] Exception due to :{}", ex);
+                    ex.authenticationEntryPoint((request, response, authException) ->
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage()));
+                })
                 .build();
     }
 

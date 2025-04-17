@@ -1,6 +1,7 @@
 package org.epam.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TraineeDto;
@@ -36,10 +37,9 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public Trainee save(TraineeCreateDto traineeCreationData) throws NotFoundException {
+    public Pair<String, Trainee> save(TraineeCreateDto traineeCreationData) throws NotFoundException {
         final var username = credentialsGenerator.generateUsername(traineeCreationData.firstname(), traineeCreationData.lastname());
         final var rawPassword = credentialsGenerator.generatePassword(username);
-        final var hashedPassword = passwordEncoder.encode(rawPassword);
 
         final var user = User.builder()
                 .firstName(traineeCreationData.firstname())
@@ -47,13 +47,13 @@ public class TraineeServiceImpl implements TraineeService {
                 .isActive(Boolean.TRUE)
                 .roles("ROLE_TRAINEE")
                 .username(username)
-                .password(hashedPassword)
+                .password(passwordEncoder.encode(rawPassword))
                 .build();
-        return traineeRepository.save(Trainee.builder()
+        return Pair.of(rawPassword, traineeRepository.save(Trainee.builder()
                 .address(traineeCreationData.address())
                 .dateOfBirth(LocalDate.parse(traineeCreationData.dateOfBirth(), FORMATTER))
                 .user(user)
-                .build());
+                .build()));
     }
 
     @Override

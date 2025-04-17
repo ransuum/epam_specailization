@@ -1,6 +1,7 @@
 package org.epam.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
@@ -40,23 +41,24 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional
-    public Trainer save(TrainerCreateDto trainerCreateData) throws NotFoundException {
+    public Pair<String, Trainer> save(TrainerCreateDto trainerCreateData) throws NotFoundException {
         final var username = credentialsGenerator.generateUsername(trainerCreateData.firstname(), trainerCreateData.lastname());
+        final var rawPassword = credentialsGenerator.generatePassword(username);
         final var user = User.builder()
                 .firstName(trainerCreateData.firstname())
                 .lastName(trainerCreateData.lastname())
                 .username(username)
                 .roles("ROLE_TRAINER")
-                .password(credentialsGenerator.generatePassword(username))
+                .password(passwordEncoder.encode(rawPassword))
                 .isActive(Boolean.TRUE)
                 .build();
-        return trainerRepository.save(
+        return Pair.of(rawPassword, trainerRepository.save(
                 Trainer.builder()
                         .user(user)
                         .specialization(trainingTypeRepository.findByTrainingTypeName(TrainingTypeName
                                         .getTrainingNameFromString(trainerCreateData.specialization()))
                                 .orElseThrow(() -> new NotFoundException("Specialization Not Found")))
-                        .build());
+                        .build()));
     }
 
     @Override
