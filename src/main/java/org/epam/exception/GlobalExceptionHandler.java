@@ -18,7 +18,7 @@ import java.util.List;
 public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneralExceptions(Exception ex) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred", ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", ex);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
