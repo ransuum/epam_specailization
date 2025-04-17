@@ -2,6 +2,7 @@ package org.epam.service;
 
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.epam.models.RegistrationResponseDto;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.create.TraineeCreateDto;
 import org.epam.models.dto.create.TrainerCreateDto;
@@ -12,7 +13,7 @@ public interface AuthenticationService {
 
     Object getAccessTokenUsingRefreshToken(String authorizationHeader);
 
-    AuthResponseDto registerTrainee(TraineeCreateDto traineeCreateDto, HttpServletResponse httpServletResponse);
+    RegistrationResponseDto registerTrainee(TraineeCreateDto traineeCreateDto, HttpServletResponse httpServletResponse);
 
-    AuthResponseDto registerTrainer(TrainerCreateDto traineeCreateDto, HttpServletResponse httpServletResponse);
+    RegistrationResponseDto registerTrainer(TrainerCreateDto traineeCreateDto, HttpServletResponse httpServletResponse);
 }

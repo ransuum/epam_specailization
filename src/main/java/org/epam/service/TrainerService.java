@@ -1,5 +1,6 @@
 package org.epam.service;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.epam.exception.CredentialException;
 import org.epam.exception.NotFoundException;
 import org.epam.models.dto.TrainerDto;
@@ -12,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface TrainerService {
-    Trainer save(TrainerCreateDto trainerCreateDto) throws NotFoundException;
+    Pair<String, Trainer> save(TrainerCreateDto trainerCreateDto) throws NotFoundException;
 
     TrainerDto update(TrainerUpdateDto request) throws NotFoundException;
 

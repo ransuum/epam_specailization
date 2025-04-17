@@ -39,7 +39,7 @@ public class TrainingController {
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('AUTHORIZED')")
     public ResponseEntity<PagedModel<EntityModel<TrainingListDto>>> findAll(
-            @ParameterObject @PageableDefault(sort = "traineeName,asc") Pageable pageable,
+            @ParameterObject @PageableDefault(sort = "trainingName,asc") Pageable pageable,
             PagedResourcesAssembler<TrainingListDto> assembler) {
         final var trainingPages = trainingService.findAll(pageable);
         return ResponseEntity.ok(assembler.toModel(trainingPages));

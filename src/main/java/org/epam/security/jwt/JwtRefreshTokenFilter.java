@@ -45,17 +45,18 @@ public class JwtRefreshTokenFilter extends OncePerRequestFilter {
                 return;
             }
 
-            JwtDecoder jwtDecoder = NimbusJwtDecoder.withPublicKey(rsaKeyRecord.rsaPublicKey()).build();
+            final JwtDecoder jwtDecoder = NimbusJwtDecoder.withPublicKey(rsaKeyRecord.rsaPublicKey()).build();
             final String token = authHeader.substring(7);
             final Jwt jwtRefreshToken = jwtDecoder.decode(token);
             final String userName = jwtTokenUtils.getUserName(jwtRefreshToken);
 
             if (!userName.isEmpty() && SecurityContextHolder.getContext().getAuthentication() == null) {
-                var isRefreshTokenValidInDatabase = refreshTokenRepo.findByToken(jwtRefreshToken.getTokenValue())
+                final var isRefreshTokenValidInDatabase = refreshTokenRepo.findByToken(jwtRefreshToken.getTokenValue())
                         .map(refreshTokenEntity -> !refreshTokenEntity.isRevoked())
                         .orElse(false);
-                UserDetails userDetails = jwtTokenUtils.userDetails(userName);
-                if (jwtTokenUtils.isTokenValid(jwtRefreshToken, userDetails) && isRefreshTokenValidInDatabase) {
+
+                final UserDetails userDetails = jwtTokenUtils.userDetails(userName);
+                if (jwtTokenUtils.isTokenValid(jwtRefreshToken, userDetails) && Boolean.TRUE.equals(isRefreshTokenValidInDatabase)) {
                     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
                     UsernamePasswordAuthenticationToken createdToken = new UsernamePasswordAuthenticationToken(

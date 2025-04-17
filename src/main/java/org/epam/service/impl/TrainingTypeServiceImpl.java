@@ -35,11 +35,12 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     @Override
     @Transactional
     public TrainingTypeDto update(String id, TrainingTypeName trainingTypeName) throws NotFoundException {
-        final var trainingView = trainingTypeRepository.findById(id)
+        return trainingTypeRepository.findById(id)
+                .map(trainingType -> {
+                    if (check(trainingTypeName)) trainingType.setTrainingTypeName(trainingTypeName);
+                    return TrainingTypeMapper.INSTANCE.toDto(trainingTypeRepository.save(trainingType));
+                })
                 .orElseThrow(() -> new NotFoundException(NotFoundMessages.TRAINING_TYPE.getVal()));
-
-        if (check(trainingTypeName)) trainingView.setTrainingTypeName(trainingTypeName);
-        return TrainingTypeMapper.INSTANCE.toDto(trainingTypeRepository.save(trainingView));
     }
 
     @Override

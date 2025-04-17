@@ -101,6 +101,7 @@ VALUES ('uuid1', 'John', 'Doe', 'johndoe', 'password123', TRUE, 'ROLE_TRAINEE'),
 
 INSERT INTO trainee (id, address, date_of_birth)
 VALUES ('uuid1', '123 Elm Street', '1990-01-01'),
+       ('uuid5', '123 Elm Street', '1990-01-01'),
        ('uuid2', '456 Oak Avenue', '1995-06-15');
 
 INSERT INTO training_type (id, training_type_name)
@@ -110,6 +111,7 @@ VALUES ('type1', 'SELF_PLACING'),
 
 INSERT INTO trainer (id, specialization_id)
 VALUES ('uuid3', 'type1'),
+       ('uuid5', 'type1'),
        ('uuid4', 'type2');
 
 INSERT INTO training (id, duration, start_time, training_name, trainee_id, trainer_id, training_type_id)

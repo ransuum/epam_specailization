@@ -24,6 +24,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,9 @@ class TrainerServiceTest {
 
     @Mock
     private TraineeRepository traineeRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Mock
     private TrainingTypeRepository trainingTypeRepository;
@@ -163,6 +167,7 @@ class TrainerServiceTest {
         final String trainerUsername = "testUser";
         final String oldPassword = "oldPassword";
         final String newPassword = "newPassword";
+        when(passwordEncoder.matches(oldPassword, "oldPassword")).thenReturn(true);
 
         when(trainerRepository.findByUser_Username(trainerUsername)).thenReturn(Optional.of(testTrainer));
 
@@ -196,6 +201,7 @@ class TrainerServiceTest {
     void changePassword_shouldReturnNullWhenOldPasswordMismatch() {
         when(securityService.getCurrentUsername()).thenReturn("testUser");
         when(trainerRepository.findByUser_Username("testUser")).thenReturn(Optional.of(testTrainer));
+        when(passwordEncoder.matches(testTrainer.getUser().getPassword(), "fsdfsdfsd")).thenReturn(false);
 
         assertThrows(CredentialException.class, () ->
                 trainerService.changePassword("wrongOldPassword", "newPassword")

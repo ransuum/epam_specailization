@@ -7,9 +7,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 @SpringBootApplication
 @EnableConfigurationProperties(RSAKeyRecord.class)
-public class SpringCoreTask {
-
+public class GymManagementApplication {
     public static void main(String[] args) {
-        SpringApplication.run(SpringCoreTask.class, args);
+        SpringApplication.run(GymManagementApplication.class, args);
     }
 }
