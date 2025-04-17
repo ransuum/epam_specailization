@@ -1,6 +1,7 @@
 package org.epam.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.tuple.Pair;
 import org.epam.models.dto.AuthResponseDto;
 import org.epam.models.dto.create.TraineeCreateDto;
 import org.epam.models.dto.create.TrainerCreateDto;
@@ -171,7 +172,8 @@ class AuthenticationServiceTest {
     @Test
     void registerTrainee_Success() {
         var traineeCreateDto = new TraineeCreateDto("Test", "User", "01-01-1990", "Test Address");
-        when(traineeService.save(traineeCreateDto)).thenReturn(testTrainee);
+        var password = "4534534";
+        when(traineeService.save(traineeCreateDto)).thenReturn(Pair.of(password, testTrainee));
         when(jwtTokenGenerator.createAuthenticationObject(testUser)).thenReturn(authentication);
         when(jwtTokenGenerator.generateAccessToken(authentication)).thenReturn("accessToken");
         when(jwtTokenGenerator.generateRefreshToken(authentication)).thenReturn("refreshToken");
@@ -192,7 +194,8 @@ class AuthenticationServiceTest {
     @Test
     void registerTrainer_Success() {
         var trainerCreateDto = new TrainerCreateDto("Test", "User", "Specialization");
-        when(trainerService.save(trainerCreateDto)).thenReturn(testTrainer);
+        var password = "4534534";
+        when(trainerService.save(trainerCreateDto)).thenReturn(Pair.of(password, testTrainer));
         when(jwtTokenGenerator.createAuthenticationObject(testUser)).thenReturn(authentication);
         when(jwtTokenGenerator.generateAccessToken(authentication)).thenReturn("accessToken");
         when(jwtTokenGenerator.generateRefreshToken(authentication)).thenReturn("refreshToken");
